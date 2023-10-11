@@ -6,7 +6,7 @@ import me.uwuaden.kotlinplugin.Main.Companion.lastDamager
 import me.uwuaden.kotlinplugin.Main.Companion.lastWeapon
 import me.uwuaden.kotlinplugin.Main.Companion.plugin
 import me.uwuaden.kotlinplugin.Main.Companion.scheduler
-import me.uwuaden.kotlinplugin.effectManager.EffectManager
+import me.uwuaden.kotlinplugin.assets.EffectManager
 import me.uwuaden.kotlinplugin.gameSystem.LastWeaponData
 import me.uwuaden.kotlinplugin.itemManager.ItemManager
 import me.uwuaden.kotlinplugin.teamSystem.TeamManager
@@ -178,7 +178,7 @@ class SkillEvent: Listener {
 
             if (player.getCooldown(Material.RED_DYE) > 0) return
             player.setCooldown(Material.RED_DYE, 20 * 30)
-            var loc = player.getTargetBlock(100)?.location
+            var loc = player.getTargetBlockExact(100)?.location
             if (loc == null) {
                 player.setCooldown(Material.RED_DYE, 20 * 3)
                 player.sendMessage("${ChatColor.RED}너무 멉니다.")

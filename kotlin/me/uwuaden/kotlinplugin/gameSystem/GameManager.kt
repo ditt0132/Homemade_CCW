@@ -10,7 +10,7 @@ import me.uwuaden.kotlinplugin.Main.Companion.playerStat
 import me.uwuaden.kotlinplugin.Main.Companion.plugin
 import me.uwuaden.kotlinplugin.Main.Companion.scheduler
 import me.uwuaden.kotlinplugin.Main.Companion.worldDatas
-import me.uwuaden.kotlinplugin.effectManager.EffectManager
+import me.uwuaden.kotlinplugin.assets.EffectManager
 import me.uwuaden.kotlinplugin.itemManager.ItemManager
 import me.uwuaden.kotlinplugin.itemManager.itemData.WorldItemManager
 import me.uwuaden.kotlinplugin.itemManager.maps.MapManager

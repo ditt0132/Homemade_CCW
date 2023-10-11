@@ -9,7 +9,7 @@ import me.uwuaden.kotlinplugin.gameSystem.GameEvent
 import me.uwuaden.kotlinplugin.itemManager.DroppedItem
 import me.uwuaden.kotlinplugin.itemManager.ItemManager
 import me.uwuaden.kotlinplugin.itemManager.OpenItemEvent
-import me.uwuaden.kotlinplugin.itemManager.customItem.CustomItemData
+import me.uwuaden.kotlinplugin.assets.CustomItemData
 import me.uwuaden.kotlinplugin.itemManager.customItem.CustomItemEvent
 import me.uwuaden.kotlinplugin.itemManager.customItem.CustomItemManager
 import me.uwuaden.kotlinplugin.itemManager.maps.MapEvent
