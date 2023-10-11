@@ -3,7 +3,8 @@ package me.uwuaden.kotlinplugin.itemManager.customItem
 import me.uwuaden.kotlinplugin.Main.Companion.lockedPlayer
 import me.uwuaden.kotlinplugin.Main.Companion.plugin
 import me.uwuaden.kotlinplugin.Main.Companion.scheduler
-import me.uwuaden.kotlinplugin.effectManager.EffectManager
+import me.uwuaden.kotlinplugin.assets.CustomItemData
+import me.uwuaden.kotlinplugin.assets.EffectManager
 import me.uwuaden.kotlinplugin.itemManager.ItemManager
 import me.uwuaden.kotlinplugin.teamSystem.TeamManager
 import org.apache.commons.lang3.Validate
@@ -369,7 +370,7 @@ object CustomItemManager {
                                     }
                                     4 -> {
                                         addItemToChest(chest, ItemStack(Material.ANVIL))
-                                        addItemToChest(chest, ItemManager.createEnchantedBook(Enchantment.ARROW_KNOCKBACK, 2))
+                                        addItemToChest(chest, ItemManager.createEnchantedBook(Enchantment.ARROW_KNOCKBACK, 1))
                                     }
                                     5 -> { addItemToChest(chest, ItemManager.createNamedItem(Material.NETHERITE_SHOVEL, 1, "${ChatColor.AQUA}${ChatColor.BOLD}Prototype V3", listOf("${ChatColor.GRAY}매우 강력한 스나이퍼 라이플입니다.", "${ChatColor.GRAY}거리가 멀수록 대미지가 증가합니다!"))) }
                                     6 -> {

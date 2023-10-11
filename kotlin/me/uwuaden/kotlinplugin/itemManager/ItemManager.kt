@@ -6,7 +6,7 @@ import me.uwuaden.kotlinplugin.Main.Companion.inventoryData
 import me.uwuaden.kotlinplugin.Main.Companion.isOpening
 import me.uwuaden.kotlinplugin.Main.Companion.plugin
 import me.uwuaden.kotlinplugin.Main.Companion.scheduler
-import me.uwuaden.kotlinplugin.itemManager.customItem.CustomItemData
+import me.uwuaden.kotlinplugin.assets.CustomItemData
 import me.uwuaden.kotlinplugin.skillSystem.SkillManager
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor

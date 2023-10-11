@@ -1,6 +1,8 @@
-package me.uwuaden.kotlinplugin.itemManager.customItem
+package me.uwuaden.kotlinplugin.assets
 
 import me.uwuaden.kotlinplugin.itemManager.ItemManager
+import net.kyori.adventure.text.format.NamedTextColor
+import net.kyori.adventure.text.format.TextDecoration
 import org.bukkit.ChatColor
 import org.bukkit.Color
 import org.bukkit.Material
@@ -126,5 +128,14 @@ object CustomItemData {
     fun getStinger(): ItemStack {
         return ItemManager.enchantItem(ItemManager.createNamedItem(Material.BOW, 1, "${ChatColor.AQUA}${ChatColor.BOLD}Stinger", listOf("${ChatColor.DARK_GRAY}Charge Capacity: 200", "${ChatColor.DARK_GRAY}Max Use: 1", "${ChatColor.DARK_GRAY}[⚙] Tech", "${ChatColor.GRAY}투사체 속도가 더 빠른 활입니다!", " ", "${ChatColor.GRAY}Gadget")), Enchantment.ARROW_DAMAGE, 1)
     }
+    fun getDivinityShield(): ItemStack {
+        return ItemManager.createNamedItem(
+            Material.YELLOW_DYE,
+            1,
+            "${NamedTextColor.GOLD}${TextDecoration.BOLD}Shield of Divinity",
+            listOf("${NamedTextColor.YELLOW}${TextDecoration.BOLD}우클릭: ${NamedTextColor.GRAY}사용시 10초간 받는 대미지가 100% 감소하고 구속 3이 부여됩니다.", "${ChatColor.GRAY}Gadget")
+        )
+    }
+
 
 }

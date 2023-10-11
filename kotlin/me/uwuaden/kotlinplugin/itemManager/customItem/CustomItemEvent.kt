@@ -6,7 +6,10 @@ import me.uwuaden.kotlinplugin.Main.Companion.lastWeapon
 import me.uwuaden.kotlinplugin.Main.Companion.lockedPlayer
 import me.uwuaden.kotlinplugin.Main.Companion.plugin
 import me.uwuaden.kotlinplugin.Main.Companion.scheduler
-import me.uwuaden.kotlinplugin.effectManager.EffectManager
+import me.uwuaden.kotlinplugin.assets.CustomItemData
+import me.uwuaden.kotlinplugin.assets.EffectManager
+import me.uwuaden.kotlinplugin.assets.ItemManipulator
+import me.uwuaden.kotlinplugin.assets.ItemManipulator.setCount
 import me.uwuaden.kotlinplugin.gameSystem.LastWeaponData
 import me.uwuaden.kotlinplugin.gameSystem.WorldManager
 import me.uwuaden.kotlinplugin.itemManager.ItemManager
@@ -582,7 +585,7 @@ class CustomItemEvent: Listener {
 
                 if (i % 10 == 0) pos.world.spawnParticle(Particle.END_ROD, pos, 1, 0.0, 0.0, 0.0, 0.0)
                 pos.getNearbyLivingEntities(10.0, 10.0, 10.0).forEach {
-                    if (it is LivingEntity && it.boundingBox.clone().expand(1.2).contains(
+                    if (it is LivingEntity && it.boundingBox.clone().expand(1.1).contains(
                             pos.x,
                             pos.y,
                             pos.z
@@ -879,7 +882,7 @@ class CustomItemEvent: Listener {
                     break@sh
                 }
                 for (it in loc.getNearbyLivingEntities(10.0, 10.0, 10.0).filterNot { it == player }) {
-                    if (it.boundingBox.clone().expand(1.2).contains(
+                    if (it.boundingBox.clone().expand(1.1).contains(
                             loc.x,
                             loc.y,
                             loc.z
@@ -1132,12 +1135,7 @@ class CustomItemEvent: Listener {
             )
             inv.setItem(
                 13,
-                ItemManager.createNamedItem(
-                    Material.YELLOW_DYE,
-                    3,
-                    "${ChatColor.GOLD}빛의 방패",
-                    listOf("${ChatColor.GRAY}사용시 10초간 받는 대미지가 80% 감소하고 신속 2가 부여됩니다.")
-                )
+                CustomItemData.getDivinityShield().setCount(3)
             )
             inv.setItem(
                 15,
@@ -1170,14 +1168,7 @@ class CustomItemEvent: Listener {
                         )
                     }
 
-                    13 -> {
-                        ItemManager.createNamedItem(
-                            Material.YELLOW_DYE,
-                            3,
-                            "${ChatColor.GOLD}빛의 방패",
-                            listOf("${ChatColor.GRAY}사용시 10초간 받는 대미지가 80% 감소하고 신속 2가 부여됩니다.", "${ChatColor.GRAY}Gadget")
-                        )
-                    }
+                    13 -> CustomItemData.getDivinityShield().setCount(3)
 
                     15 -> {
                         ItemManager.createNamedItem(
@@ -1226,12 +1217,12 @@ class CustomItemEvent: Listener {
         if (e.hand == EquipmentSlot.OFF_HAND) return
         if (!e.action.isRightClick) return
         val player = e.player
-        if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.GOLD}빛의 방패") {
+        if (player.inventory.itemInMainHand.itemMeta?.displayName == ItemManipulator.itemName(CustomItemData.getDivinityShield())) {
             e.isCancelled = true
             if (player.getCooldown(Material.YELLOW_DYE) > 0) return
             player.setCooldown(Material.YELLOW_DYE, 20 * 15)
-            player.addPotionEffect(PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 20 * 10, 3, false, true))
-            player.addPotionEffect(PotionEffect(PotionEffectType.SPEED, 20 * 10, 1, false, true))
+            player.addPotionEffect(PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 20 * 10, 4, false, true))
+            player.addPotionEffect(PotionEffect(PotionEffectType.SLOW, 20 * 10, 3, false, true))
             EffectManager.playSurroundSound(player.location, Sound.ITEM_TRIDENT_THUNDER, 1.0F, 1.4F)
             EffectManager.playSurroundSound(player.location, Sound.ENTITY_ZOMBIE_VILLAGER_CURE, 0.8F, 1.2F)
 
@@ -1282,9 +1273,8 @@ class CustomItemEvent: Listener {
                 shooter.setCooldown(Material.BOW, 20 * 8)
                 e.projectile.remove()
 
-                val delay = e.force * 1.0
+                val delay = e.force * 0.8
                 val loc = shooter.eyeLocation.clone()
-                val entities = ArrayList<LivingEntity>()
 
                 val readyParticleLoc = loc.clone()
                 for (i in 0 until (delay * 10).roundToInt()) {
@@ -1294,7 +1284,7 @@ class CustomItemEvent: Listener {
                             readyParticleLoc,
                             Sound.ENTITY_WITHER_SHOOT,
                             0.5f,
-                            (0.5f + 0.15f * i)
+                            (0.4f + 0.2f * i)
                         )
 
 
@@ -1337,12 +1327,8 @@ class CustomItemEvent: Listener {
                         if (loc.block.isSolid) {
                             break@sh
                         }
-                        for (it in loc.getNearbyLivingEntities(10.0, 10.0, 10.0).filterNot { it == shooter }) {
-                            if (it.boundingBox.contains(loc.x, loc.y, loc.z) && isHittable(
-                                    shooter,
-                                    it
-                                ) && !entities.contains(it)
-                            ) {
+                        for (it in loc.getNearbyLivingEntities(10.0, 10.0, 10.0).filter { isHittable(shooter, it) }.filterNot { it == shooter }) {
+                            if (it.boundingBox.expand(1.2).contains(loc.x, loc.y, loc.z)) {
                                 break@sh
                             }
                         }
@@ -1367,8 +1353,7 @@ class CustomItemEvent: Listener {
                             }
                         }
                     }
-                    for (it in loc.getNearbyLivingEntities(20.0, 20.0, 20.0).filter { isHittable(shooter, it) }) {
-                        entities.add(it)
+                    for (it in loc.getNearbyLivingEntities(20.0).filter { isHittable(shooter, it) }.filter { it != shooter }) {
                         if (it is Player) {
                             lastDamager[it] = shooter
                             lastWeapon[it] = LastWeaponData(
@@ -1402,6 +1387,8 @@ class CustomItemEvent: Listener {
                             it.damage(dmg)
                         } else {
                             it.damage(0.5)
+                            val direction = it.location.toVector().subtract(loc.toVector()).normalize()
+                            it.velocity = direction.multiply(0.2)
                         }
                     }
                 }, (delay * 20.0).roundToLong())
@@ -1495,13 +1482,13 @@ class CustomItemEvent: Listener {
                         0.0,
                         0.0,
                         0.0,
-                        DustOptions(Color.AQUA, 0.2F)
+                        DustOptions(Color.AQUA, 0.3F)
                     )
                     if (loc2.block.isSolid) {
                         break@sh
                     }
                     for (it in loc2.getNearbyLivingEntities(10.0, 10.0, 10.0).filterNot { it == player }) {
-                        if (it.boundingBox.clone().expand(1.2).contains(loc2.x, loc2.y, loc2.z) && isHittable(
+                        if (it.boundingBox.clone().expand(1.1).contains(loc2.x, loc2.y, loc2.z) && isHittable(
                                 player,
                                 it
                             )
