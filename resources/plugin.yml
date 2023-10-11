@@ -1,0 +1,8 @@
+name: Cooked_Chicken_Wars
+main: me.uwuaden.kotlinplugin.Main
+version: 1.0
+author: uwuaden
+libraries:
+  - io.github.monun:kommand-core:3.1.6
+api-version: 1.20
+depend: [kotlin-stdlib, ProtocolLib]
