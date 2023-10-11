@@ -1,6 +1,7 @@
 
 # 닭갈비-워즈
 [![GPLv3 License](https://img.shields.io/badge/License-GPL%20v3-orange.svg)](https://opensource.org/licenses/) [![Kotlin](https://img.shields.io/badge/Kotlin-1.6.0-purple)](https://kotlinlang.org/)
+![cbw](https://github.com/1NTP/Cooked_Chicken_Wars/assets/122966409/a51bed27-4799-4206-9add-9af6de65d416)
 
 ## Description
 시험기간이라 수정할거 많음 주의!!
