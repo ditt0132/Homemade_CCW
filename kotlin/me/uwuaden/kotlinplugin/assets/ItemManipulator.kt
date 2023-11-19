@@ -8,6 +8,9 @@ object ItemManipulator {
         cloneItem.amount = amount
         return cloneItem
     }
+    fun ItemStack.getName(): String {
+        return this.itemMeta.displayName
+    }
     fun itemName(item: ItemStack): String {
         return item.itemMeta.displayName
     }

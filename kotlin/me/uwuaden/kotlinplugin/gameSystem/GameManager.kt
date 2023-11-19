@@ -1,9 +1,9 @@
 package me.uwuaden.kotlinplugin.gameSystem
 
+import com.destroystokyo.paper.Title
 import me.uwuaden.kotlinplugin.Main
 import me.uwuaden.kotlinplugin.Main.Companion.defaultMMR
 import me.uwuaden.kotlinplugin.Main.Companion.droppedItems
-import me.uwuaden.kotlinplugin.Main.Companion.groundY
 import me.uwuaden.kotlinplugin.Main.Companion.lastDamager
 import me.uwuaden.kotlinplugin.Main.Companion.playerLocPing
 import me.uwuaden.kotlinplugin.Main.Companion.playerStat
@@ -20,6 +20,7 @@ import me.uwuaden.kotlinplugin.skillSystem.SkillEvent.Companion.playerMaxUse
 import me.uwuaden.kotlinplugin.skillSystem.SkillEvent.Companion.score
 import me.uwuaden.kotlinplugin.teamSystem.TeamClass
 import me.uwuaden.kotlinplugin.teamSystem.TeamManager
+import me.uwuaden.kotlinplugin.zombie.ZombieManager
 import net.kyori.adventure.text.Component
 import org.apache.commons.lang3.Validate
 import org.bukkit.*
@@ -36,6 +37,17 @@ import org.bukkit.scoreboard.Team
 import java.util.*
 import kotlin.math.*
 
+private fun shufflePlayers(players: ArrayList<Player>): ArrayList<Player> {
+    val random = Random()
+    players.shuffle()
+    val playerHash = HashMap<Player, Int>()
+    players.forEach {
+        val data = RankSystem.initData(it.uniqueId)
+        playerHash[it] =  (data.playerMMR/10)*10 + random.nextInt(-100, 100)
+    }
+    players.sortBy { playerHash[it] }
+    return players
+}
 private fun drawLine( /* Would be your orange wool */
                       point1: Location,  /* Your white wool */
                       point2: Location,  /*Space between each particle*/
@@ -93,6 +105,7 @@ private fun winPlayers(players: ArrayList<Player>) {
 
     val dataClass = WorldManager.initData(players[0].world)
     players.forEach { p ->
+        RankSystem.updateMMR(p, (dataClass.playerKill[p.uniqueId] ?: 0), dataClass.totalPlayer, 1, dataClass.avgMMR)
         Main.scheduler.scheduleSyncDelayedTask(Main.plugin, {
             p.sendTitle("${ChatColor.GOLD}${ChatColor.BOLD}THE", " ", 1, 20 * 1, 1)
         }, 0)
@@ -185,7 +198,7 @@ private fun initDroppedItemLoc(loc: Location, rad: Double) {
                         droppedItem.loc = Location(droppedItem.loc.world, droppedItem.loc.x, getHighestBlockBelow(droppedItem.loc).y+0.5, droppedItem.loc.z)
                         scheduler.scheduleSyncDelayedTask(plugin, {
                             ItemManager.createDisplay(droppedItem)
-                        }, 1)
+                        }, 0)
                     }
                 }
             }
@@ -224,13 +237,15 @@ private fun getMobSpawnLocation(loc: Location, rad: Int): Location? {
     val z = loc.blockZ
     val world =loc.world
     val random = Random()
-    for (i in 0 until 30) {
+    for (i in 0 until 50) {
         val spawnLoc = Location(world, random.nextInt(x - rad, x + rad) +0.5, random.nextInt(y, y + rad) +0.1, random.nextInt(z - rad, z + rad) + 0.5)
 
         if (world.isChunkLoaded(spawnLoc.x.roundToInt() shr 4, spawnLoc.z.roundToInt() shr 4) && !WorldManager.isOutsideBorder(spawnLoc)) {
             for (n in 0 until 10) {
                 if (spawnLoc.block.type == Material.AIR && spawnLoc.clone().add(0.0, 1.0, 0.0).block.type == Material.AIR && spawnLoc.clone().add(0.0, -1.0, 0.0).block.isSolid) {
-                    return spawnLoc
+                    if (loc.distance(spawnLoc) > 20 && spawnLoc.y <= 8 && spawnLoc.y >= -1) {
+                        return spawnLoc
+                    }
                 }
                 spawnLoc.y--
             }
@@ -343,6 +358,7 @@ private fun initPlayer(player: Player) {
     player.saturation = 0.0F
     playerCapacityPoint[player.uniqueId] = 0
     playerMaxUse[player.uniqueId] = 0
+    lastDamager.remove(player)
     player.inventory.setItem(8, MapManager.createMapView(player))
     player.inventory.addItem(ItemStack(Material.WOODEN_SWORD))
     player.inventory.addItem(ItemStack(Material.WOODEN_PICKAXE))
@@ -355,67 +371,77 @@ private fun initPlayer(player: Player) {
 }
 
 object GameManager {
-    fun zombieSch() {
-        scheduler.scheduleSyncRepeatingTask(plugin, {
-            plugin.server.worlds.forEach { world->
-                world.livingEntities.forEach {
-                    if (it.scoreboardTags.contains("Spawned-Zombie")) {
-                        val entity = it as Zombie
-                        if (entity.target == null) {
-                            val players = entity.location.getNearbyPlayers(320.0).filter { p -> p.gameMode != GameMode.SPECTATOR }.sortedBy { p -> entity.location.distance(p.location) }
-                            if (players.isNotEmpty()) entity.target = players[0]
-                        }
-                        if(WorldManager.isOutsideBorder(it.location)) {
-
-                            entity.damage(2.0)
-                        }
-                    }
-
-                    if (it.name == "${ChatColor.RED}${ChatColor.BOLD}TITAN ZOMBIE") {
-
-                        var sound = false
-                        for (x in -2..2) {
-                            for (y in 0..320) {
-                                for (z in -2..2) {
-                                    val loc = it.location.clone().add(x.toDouble(), y.toDouble(), z.toDouble())
-                                    if (loc.world.isChunkLoaded(loc.x.roundToInt() shr 4, loc.z.roundToInt() shr 4) && loc.y.roundToInt() > groundY) {
-                                        if (loc.block.type != Material.AIR) {
-                                            //sound = true
-                                            loc.world.spawnParticle(Particle.BLOCK_CRACK, loc, 5, 0.5, 0.5, 0.5, 0.0, loc.block.blockData)
-                                            loc.block.type = Material.AIR
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        if (sound) {
-                            EffectManager.playSurroundSound(it.location, Sound.ENTITY_ZOMBIE_BREAK_WOODEN_DOOR, 1.0F, 1.0F)
-                        }
-                    } else if (it.name.contains("${ChatColor.DARK_GRAY}${ChatColor.BOLD}Silence")) {
-
-                        val entity = it as LivingEntity
-                        if (entity.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
-                            val pls = it.location.getNearbyPlayers(24.0).filter { p -> p.gameMode != GameMode.SPECTATOR }
-                            if (pls.isNotEmpty()) {
-                                entity.removePotionEffect(PotionEffectType.INVISIBILITY)
-                                it.teleport(pls.random().location)
-                                it.world.playSound(it.location, Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 2.0f)
-                                it.world.spawnParticle(Particle.REVERSE_PORTAL, it.location.clone().add(0.0, 1.0, 0.0), 20, 1.0, 1.0, 1.0, 0.0)
-                                it.world.spawnParticle(Particle.SMOKE_NORMAL, it.location.clone().add(0.0, 1.0, 0.0), 5, 1.0, 1.0, 1.0, 0.0)
-                            }
-                        }
-
-                    }
-                }
-            }
-        }, 0, 5)
-    }
+//    fun zombieSch() {
+//        scheduler.scheduleSyncRepeatingTask(plugin, {
+//            plugin.server.worlds.forEach { world->
+//                world.livingEntities.forEach {
+//                    if (it.scoreboardTags.contains("Spawned-Zombie")) {
+//                        val entity = it as Zombie
+//                        if (null == entity.target) {
+//                            val players = entity.location.getNearbyPlayers(320.0).filter { p -> p.gameMode != GameMode.SPECTATOR }.sortedBy { p -> entity.location.distance(p.location) }
+//                            if (players.isNotEmpty()) entity.target = players[0]
+//                        }
+//                        if(WorldManager.isOutsideBorder(it.location)) {
+//
+//                            entity.damage(2.0)
+//                        }
+//                    }
+//
+//                    if (it.name == "${ChatColor.RED}${ChatColor.BOLD}TITAN ZOMBIE") {
+//
+//                        var sound = false
+//                        for (x in -2..2) {
+//                            for (y in 0..320) {
+//                                for (z in -2..2) {
+//                                    val loc = it.location.clone().add(x.toDouble(), y.toDouble(), z.toDouble())
+//                                    if (loc.world.isChunkLoaded(loc.x.roundToInt() shr 4, loc.z.roundToInt() shr 4) && loc.y.roundToInt() > groundY) {
+//                                        if (loc.block.type != Material.AIR) {
+//                                            //sound = true
+//                                            loc.world.spawnParticle(Particle.BLOCK_CRACK, loc, 5, 0.5, 0.5, 0.5, 0.0, loc.block.blockData)
+//                                            loc.block.type = Material.AIR
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                        }
+//                        if (sound) {
+//                            EffectManager.playSurroundSound(it.location, Sound.ENTITY_ZOMBIE_BREAK_WOODEN_DOOR, 1.0F, 1.0F)
+//                        }
+//                    } else if (it.name.contains("${ChatColor.DARK_GRAY}${ChatColor.BOLD}Silence")) {
+//
+//                        val entity = it as LivingEntity
+//                        if (entity.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
+//                            val pls = it.location.getNearbyPlayers(24.0).filter { p -> p.gameMode != GameMode.SPECTATOR }
+//                            if (pls.isNotEmpty()) {
+//                                entity.removePotionEffect(PotionEffectType.INVISIBILITY)
+//                                it.teleport(pls.random().location)
+//                                it.world.playSound(it.location, Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 2.0f)
+//                                it.world.spawnParticle(Particle.REVERSE_PORTAL, it.location.clone().add(0.0, 1.0, 0.0), 20, 1.0, 1.0, 1.0, 0.0)
+//                                it.world.spawnParticle(Particle.SMOKE_NORMAL, it.location.clone().add(0.0, 1.0, 0.0), 5, 1.0, 1.0, 1.0, 0.0)
+//                            }
+//                        }
+//
+//                    }
+//                }
+//            }
+//        }, 0, 5)
+//    }
 
 
     fun joinPlayers(fromWorld: World, toWorld: World, mode: String) {
         val random = Random()
-        val randomSize = 200.0
-        val borderRadius = 500.0
+        val dataClass = WorldManager.initData(toWorld)
+        var randomSize = 200.0
+        var borderRadius = 500.0
+        var itemCount = 4000
+
+        println(dataClass.worldFolderName)
+        if (dataClass.worldFolderName == "Sinchon") {
+            randomSize = 50.0
+            borderRadius = 250.0
+            itemCount = 1000
+        }
+
         val borderCenter = Location(
             toWorld,
             random.nextDouble(-1 * randomSize, randomSize),
@@ -432,15 +458,12 @@ object GameManager {
             toWorld,
             borderCenter.clone().add(-1 * borderRadius, 0.0, -1 * borderRadius),
             borderCenter.clone().add(borderRadius, 0.0, borderRadius),
-            4000
+            itemCount
         )
 
         fromWorld.players.forEach { player ->
             initPlayer(player)
-
         }
-        val dataClass = WorldManager.initData(toWorld)
-
 
         dataClass.totalPlayer = fromWorld.players.size
 
@@ -455,22 +478,15 @@ object GameManager {
 
         BorderManager.initBoarder(borderCenter, borderRadius*2)
 
-        dataClass.worldMode[toWorld] = mode
+        dataClass.worldMode = mode
         dataClass.worldTimer[toWorld] = System.currentTimeMillis()
 
-        val players = ArrayList<Player>()
+        var players = ArrayList<Player>()
         fromWorld.players.forEach {
             players.add(it)
         }
 
-        players.shuffle()
-        val playerHash = HashMap<Player, Int>()
-        players.forEach {
-            val data = RankSystem.initData(it.uniqueId)
-            playerHash[it] =  (data.playerMMR/10)*10 + random.nextInt(-100, 100)
-        }
-
-        players.sortBy { playerHash[it] }
+        players = shufflePlayers(players)
 
         scheduler.scheduleSyncDelayedTask(plugin, {
             players.forEach {
@@ -507,7 +523,7 @@ object GameManager {
             dataClass.teams.add(TeamClass(toWorld, second.toMutableSet()))
 
             var i = 0
-            spawnLocList(borderCenter.clone().add(-1*borderRadius, 0.0, -1*borderRadius), borderCenter.clone().add(borderRadius, 0.0, borderRadius), 2, 30).forEach {
+            spawnLocList(borderCenter.clone().add(-1*borderRadius, 0.0, -1*borderRadius), borderCenter.clone().add(borderRadius, 0.0, borderRadius), 2, 100).forEach {
                 if (i == 0) {
                     var t = 0
                     first.forEach { p->
@@ -533,50 +549,99 @@ object GameManager {
         } else if (mode.contains("Teams:")) {
             try {
                 val playerPerTeam = mode.split(":")[1].trim().toInt()
-                val teamCount = ceil(players.size.toDouble()/playerPerTeam.toDouble()).roundToInt()
                 val teams: HashMap<Int, TeamClass> = HashMap()
                 val playerStack = Stack<Player>()
+
+                val queueData = QueueOperator.initData(fromWorld)
+
+                val teamArray = ArrayList<TeamClass>()
+
+                queueData.teamList.forEach { teamClass ->
+                    if (teamClass.players.size <= playerPerTeam) {
+
+                        //플레이어 목록<Player>
+                        val partyPlayers = mutableSetOf<Player>()
+
+                        //플레이어 추가
+                        teamClass.players.forEach {
+                            val p = plugin.server.getPlayer(it)
+                            if (p != null) partyPlayers.add(p)
+                        }
+
+                        //플레이어 팀 목록 제거
+                        partyPlayers.forEach {
+                            players.remove(it)
+                        }
+                        teamArray.add(TeamClass(toWorld, partyPlayers))
+                    }
+                }
+
+                players = shufflePlayers(players)
+
                 players.forEach {
                     playerStack.add(it)
                 }
+
+                val teamCount = ceil(players.size.toDouble()/playerPerTeam.toDouble()).roundToInt()
+
+
+                //플레이어 배치
                 for (t in 0 until playerPerTeam) {
                     for (i in 0 until teamCount) {
                         if (teams[i] == null) teams[i] = TeamClass(toWorld, mutableSetOf())
                         if (playerStack.size > 0) teams[i]!!.players.add(playerStack.pop())
                     }
                 }
-                teams.forEach {
-                    dataClass.teams.add(it.value)
-                }
 
-                val spawnLocs = spawnLocList(borderCenter.clone().add(-1*borderRadius, 0.0, -1*borderRadius), borderCenter.clone().add(borderRadius, 0.0, borderRadius), teamCount, 30)
+
+
+                teams.values.forEach {
+                    teamArray.add(it)
+                }
+                teamArray.forEach {
+                    dataClass.teams.add(it)
+                }
+                val spawnLocs = spawnLocList(borderCenter.clone().add(-1*borderRadius, 0.0, -1*borderRadius), borderCenter.clone().add(borderRadius, 0.0, borderRadius), teamArray.size+2, 30)
                 scheduler.runTaskAsynchronously(plugin, Runnable {
-                    teams.forEach {
-                        it.value.players.forEach { pl ->
-                            scheduler.scheduleSyncDelayedTask(plugin, {
-                                pl.teleport(spawnLocs[it.key])
+                    var i = 0
+                    teamArray.forEach {
+                        scheduler.scheduleSyncDelayedTask(plugin, {
+                            it.players.forEach { pl ->
+                                pl.teleport(spawnLocs[i])
                                 initPlayer(pl)
-                            }, 0)
-                            Thread.sleep(100)
-                        }
+                            }
+                        }, 0)
+                        Thread.sleep(100)
+                        i++
                     }
                 })
             } catch (e: Exception) {
                 println(e)
             }
+        } else if (mode == "SoloSurvival") {
+            toWorld.time = 13000
+            toWorld.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false)
+
+            val spawnLoc = spawnLocList(borderCenter.clone().add(-1*borderRadius, 0.0, -1*borderRadius), borderCenter.clone().add(borderRadius, 0.0, borderRadius), fromWorld.players.size, 30)
+            val teams = mutableSetOf<Player>()
+            var i = 0
+            players.forEach { player ->
+                teams.add(player)
+                player.teleport(spawnLoc[i])
+                i++
+            }
+            dataClass.teams.add(TeamClass(toWorld, teams))
+
         } else {
             var i = 0
-            spawnLocList(borderCenter.clone().add(-1*borderRadius, 0.0, -1*borderRadius), borderCenter.clone().add(borderRadius, 0.0, borderRadius), fromWorld.players.size, 30).forEach {
+            spawnLocList(borderCenter.clone().add(-0.8*borderRadius, 0.0, -0.8*borderRadius), borderCenter.clone().add(0.8*borderRadius, 0.0, 0.8*borderRadius), fromWorld.players.size, 30).forEach {
                 players[i].teleport(it)
                 initPlayer(players[i])
                 i++
             }
         }
 
-        if (mode == "SoloSurvival") {
-            toWorld.time = 10000
-            toWorld.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false)
-        }
+
 
 
         val worldDeleteSec: Long = 10
@@ -585,10 +650,14 @@ object GameManager {
 
         val min = 1.0 //min분 마다 자기장 축소
 
+        var changeSec = 12
+        if (mode == "SoloSurvival") {
+            changeSec = 6
+        }
 
         var delay: Long = 0
         scheduler.scheduleSyncDelayedTask(plugin, {
-            for (n in 1..12) {
+            for (n in 1..changeSec) {
                 val changedBorderSize = borderSize*((0.8).pow(n))
                 val gab = borderSize*((0.8).pow(n-1)) - borderSize*((0.8).pow(n))
 
@@ -639,8 +708,7 @@ object GameManager {
                         return@forEach
                     }
                 }
-
-                if (isInRange) {
+                if (isInRange && !WorldManager.isOutsideBorder(loc)) {
                     locs.add(loc)
                     loop = false
                 }
@@ -658,6 +726,14 @@ object GameManager {
     }
 
     fun gameSch() {
+        scheduler.scheduleSyncRepeatingTask(plugin, {
+            plugin.server.worlds.filter { it.name.contains("Field-") }.forEach { world ->
+                world.players.forEach { player ->
+                    initDroppedItemLoc(player.location, 50.0)
+                    WorldItemManager.createItems(player.location, 50.0)
+                }
+            }
+        }, 0, 20)
         Main.scheduler.scheduleSyncRepeatingTask(Main.plugin, {
             plugin.server.onlinePlayers.forEach { p ->
                 if (p.gameMode == GameMode.SPECTATOR) {
@@ -675,11 +751,11 @@ object GameManager {
 
             playerLocPing.forEach { (uuid, loc) ->
                 val p = plugin.server.getPlayer(uuid)
-                if (p != null && loc.world == p.world) {
+                if (null != p && loc.world == p.world) {
                     drawLine(p.location, loc, 0.2, 158, 253, 56, p)
                 }
             }
-            Main.plugin.server.worlds.forEach { world ->
+            Main.plugin.server.worlds.filter { it.name.contains("Field-") }.forEach { world ->
                 val dataClass = WorldManager.initData(world)
 
                 world.players.forEach { player ->
@@ -695,21 +771,19 @@ object GameManager {
                     if(!t.hasPlayer(player)) {
                         t.addPlayer(player)
                     }
-
-                    initDroppedItemLoc(player.location, 80.0)
-                    WorldItemManager.createItems(player.location, 80.0)
                 }
 
-                if (!dataClass.GameEndedWorld.contains(world) && (System.currentTimeMillis() - (dataClass.worldTimer[world] ?: System.currentTimeMillis())) > 1000 * 5) {
-                    if (dataClass.worldMode[world] == "Solo") {
+                if (!dataClass.gameEndedWorld && (System.currentTimeMillis() - (dataClass.worldTimer[world] ?: System.currentTimeMillis())) > 1000 * 10) {
+                    if (dataClass.worldMode == "Solo") {
                         val players = world.players.filter { it.gameMode == GameMode.SURVIVAL }
                         if (players.size == 1) {
-                            dataClass.GameEndedWorld.add(world)
+                            dataClass.gameEndedWorld = true
+
                             winPlayer(players[0])
                             lobbyTeleportWorlds(world)
 
                         }
-                    } else if (dataClass.worldMode[world] == "TwoTeam") {
+                    } else if (dataClass.worldMode == "TwoTeam") {
                         var team: TeamClass? = null
                         val players = world.players.filter { it.gameMode == GameMode.SURVIVAL }
                         val teams = mutableSetOf<TeamClass>()
@@ -723,25 +797,25 @@ object GameManager {
                             team = it
                         }
                         if (teams.size == 1) {
-                            dataClass.GameEndedWorld.add(world)
+                            dataClass.gameEndedWorld = true
                             winPlayers(ArrayList(team!!.players))
                             lobbyTeleportWorlds(world)
                         }
 
-                    } else if (dataClass.worldMode[world] == "SoloSurvival") {
+                    } else if (dataClass.worldMode == "SoloSurvival") {
                         val players = world.players.filter { it.gameMode == GameMode.SURVIVAL }
                         val specs = world.players.filter { it.gameMode == GameMode.SPECTATOR }
                         if (specs.isNotEmpty() && players.isEmpty()) {
-                            dataClass.GameEndedWorld.add(world)
+                            dataClass.gameEndedWorld = true
                             specs.forEach {
                                 it.sendMessage("${ChatColor.RED}        GAME OVER")
                                 it.sendMessage("${ChatColor.RED} ")
-                                it.sendMessage("${ChatColor.RED}    ${(System.currentTimeMillis() -(dataClass.worldTimer[world] ?: System.currentTimeMillis()))/1000}초 생존함.")
+                                it.sendMessage("${ChatColor.RED}      Wave: ${dataClass.dataInt}")
                                 it.sendMessage("${ChatColor.RED}  ")
                             }
                             lobbyTeleportWorlds(world)
                         }
-                    } else if (dataClass.worldMode[world]?.contains("Teams:") == true) {
+                    } else if (dataClass.worldMode?.contains("Teams:") == true) {
                         var team: TeamClass? = null
                         val players = world.players.filter { it.gameMode == GameMode.SURVIVAL }
                         val teams = mutableSetOf<TeamClass>()
@@ -755,7 +829,7 @@ object GameManager {
                             team = it
                         }
                         if (teams.size == 1) {
-                            dataClass.GameEndedWorld.add(world)
+                            dataClass.gameEndedWorld = true
                             winPlayers(ArrayList(team!!.players))
                             lobbyTeleportWorlds(world)
                         }
@@ -767,20 +841,66 @@ object GameManager {
         scheduler.scheduleSyncRepeatingTask(plugin, {
             plugin.server.worlds.forEach { world ->
                 val dataClass = WorldManager.initData(world)
-                if (dataClass.worldMode[world] == "SoloSurvival") {
+                if (dataClass.worldMode == "SoloSurvival") {
                     val players = world.players.filter { it.gameMode == GameMode.SURVIVAL }
                     val monsters = world.entities.filter { it.scoreboardTags.contains("Spawned-Zombie") }
                     val time = (System.currentTimeMillis() -(dataClass.worldTimer[world] ?: System.currentTimeMillis()))/1000
-                    players.shuffled().forEach {
-                        if (monsters.size < 30) {
-                            val spawnLoc = getMobSpawnLocation(it.location, 100)
-                            if (spawnLoc != null) {
-                                spawnZombie(time.toInt(), spawnLoc)
+                    if (dataClass.dataInt == 0) dataClass.dataInt = 1
+                    if (dataClass.dataLong == 0L) dataClass.dataLong = System.currentTimeMillis()
+                    val wave = dataClass.dataInt
+                    val waveDelay = dataClass.dataLong
+                    if (!dataClass.gameEndedWorld) {
+                        if (System.currentTimeMillis() > waveDelay) {
+                            if (monsters.isEmpty()) {
+                                dataClass.dataLong = System.currentTimeMillis() + 30 * 1000
+                                startWave(world, wave)
+                                dataClass.dataInt = wave + 1
+                            } else if (monsters.size <= 10) {
+                                monsters.forEach { monster ->
+                                    (monster as LivingEntity).addPotionEffect(PotionEffect(PotionEffectType.GLOWING, 20*3, 0, false,false))
+
+                                }
                             }
                         }
                     }
                 }
             }
         }, 0, 20)
+    }
+    private fun startWave(world: World, wave: Int) {
+        val mobList = ZombieManager.convertMobList(world.playerCount, ZombieManager.getMobList(wave))
+        if (mobList.isEmpty()) {
+            val dataClass = WorldManager.initData(world)
+            dataClass.gameEndedWorld = true
+            world.players.forEach { player ->
+                player.sendTitle(Title("§6GG"))
+                player.sendMessage("§6Victory!!")
+                player.sendMessage("§6좀비모드 클리어를 축하합니다!")
+                player.playSound(player, Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 0.5f)
+                return
+            }
+        }
+        world.players.forEach { player ->
+            player.sendTitle(Title("§cWave: $wave"))
+            player.playSound(player, Sound.ENTITY_WITHER_SPAWN, 1.0f, 1.0f)
+        }
+        scheduler.runTaskAsynchronously(plugin, Runnable {
+            mobList.forEach { mobStr ->
+                scheduler.scheduleSyncDelayedTask(plugin, {
+                    val players = world.players.filter { it.gameMode == GameMode.SURVIVAL }
+                    if (players.isNotEmpty()) {
+                        val playerLoc = players.random().location
+                        for (i in 0 until 100) {
+                            val spawnLoc = getMobSpawnLocation(playerLoc, 50)
+                            if (spawnLoc != null) {
+                                ZombieManager.spawnZombie(mobStr, spawnLoc)
+                                break
+                            }
+                        }
+                    }
+                }, 0)
+                Thread.sleep(1000)
+            }
+        })
     }
 }

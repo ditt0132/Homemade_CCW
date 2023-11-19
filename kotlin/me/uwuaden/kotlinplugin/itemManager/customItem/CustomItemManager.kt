@@ -15,6 +15,7 @@ import org.bukkit.attribute.Attribute
 import org.bukkit.block.Block
 import org.bukkit.block.Chest
 import org.bukkit.enchantments.Enchantment
+import org.bukkit.entity.ArmorStand
 import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
@@ -288,7 +289,7 @@ object CustomItemManager {
                     }
                 }
             }
-        }, 0, 1)
+        }, 0, 5)
         scheduler.scheduleSyncRepeatingTask(plugin, {
             plugin.server.onlinePlayers.forEach { player ->
                 if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.YELLOW}영역 수류탄") {
@@ -303,6 +304,9 @@ object CustomItemManager {
                 if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.YELLOW}연막탄") {
                     drawOrbital(player, player.eyeLocation, 15, 100, Color.WHITE, true, 9.81)
                 }
+                if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.YELLOW}화염병") {
+                    drawOrbital(player, player.eyeLocation, 15, 100, Color.WHITE, true, 9.81)
+                }
                 if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.AQUA}${ChatColor.BOLD}Prototype V3") {
                     player.addPotionEffect(PotionEffect(PotionEffectType.SLOW, 15, 1, false, false))
                 }
@@ -313,9 +317,9 @@ object CustomItemManager {
         }, 0, 10)
         scheduler.scheduleSyncRepeatingTask(plugin, {
             plugin.server.worlds.forEach { w->
-                w.entities.forEach {
+                w.entities.filterIsInstance<ArmorStand>().forEach {
                     if (it.scoreboardTags.contains("Entity-Supplies") && it.isOnGround) {
-                        it.location.getNearbyLivingEntities(0.5).filterNot { e-> it == e}.forEach { e->
+                        it.location.getNearbyLivingEntities(0.5).filterNot { e-> it == e }.forEach { e->
                             e.damage(15.0)
                             EffectManager.playSurroundSound(e.location, Sound.ENTITY_ZOMBIE_ATTACK_WOODEN_DOOR, 1.0f, 2.0f)
                         }
@@ -335,7 +339,7 @@ object CustomItemManager {
 
 
                             for (i in 0 until random.nextInt(2, 4)) {
-                                addItemToChest(chest, ItemManager.createNamedItem(Material.GOLDEN_CARROT, 1, "${ChatColor.GOLD}Golden Carrot", listOf("${ChatColor.GRAY}작아서 휴대하기 편합니다!", " ", "${ChatColor.GRAY}우클릭하면 즉시 hp를 회복합니다.")))
+                                addItemToChest(chest, CustomItemData.getGoldenCarrot())
                             }
                             for (i in 0 until random.nextInt(4, 5)) {
                                 addItemToChest(chest, ItemStack(Material.GOLDEN_APPLE))
