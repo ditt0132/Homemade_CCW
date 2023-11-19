@@ -58,7 +58,7 @@ class QuickSlotEvent: Listener {
                 player.inventory.close()
             } else {
                 player.sendMessage("${ChatColor.RED}아이템이 지정되지 않았습니다.")
-                player.sendMessage("${ChatColor.RED}/닭갈비 퀵슬롯 <슬롯> 명령어로 지정해주세요.")
+                player.sendMessage("${ChatColor.RED}/닭갈비 퀵슬롯 $slotIndex 명령어로 지정해주세요.")
             }
         }
     }

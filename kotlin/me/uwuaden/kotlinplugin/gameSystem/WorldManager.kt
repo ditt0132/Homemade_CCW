@@ -69,9 +69,9 @@ object  WorldManager {
         val copyDir = File(File(plugin.dataFolder, "maps"), worldFolderName)
         val pasteDir = File(plugin.server.worldContainer, worldName)
         FileManager.copyDir(copyDir.toPath(), pasteDir.toPath())
-        scheduler.scheduleSyncDelayedTask(plugin, {
-            loadWorld(worldName)
-        }, 20*10)
+
+        loadWorld(worldName)
+
 
         return worldName
     }
@@ -117,7 +117,7 @@ object  WorldManager {
             }
 
             CompletableFuture.allOf(*chunkFutures.toTypedArray()).thenRun {
-                Main.plugin.logger.log(Level.WARNING, "World \"${world.name}\" Chunk Loading Done (${(System.currentTimeMillis()-milli)/1000.0} Seconds)")
+                plugin.logger.log(Level.WARNING, "World \"${world.name}\" Chunk Loading Done (${(System.currentTimeMillis()-milli)/1000.0} Seconds)")
                 if (loadAnnounce) worldLoaded.add(world.name)
             }
         })
