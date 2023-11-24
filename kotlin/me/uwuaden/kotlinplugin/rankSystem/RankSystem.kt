@@ -104,8 +104,8 @@ object RankSystem {
         if (change > 50) change = 50
         else if (change < -50) change = -50
 
-        if (classData.gamePlayed < 5) {
-            change*=5
+        if (classData.gamePlayed < 3) {
+            change*=3
         }
 
         classData.playerMMR = (classData.playerMMR) + change
@@ -121,7 +121,7 @@ object RankSystem {
 
         val playerRate = classData.playerRank
         val playerMMR = classData.playerMMR
-        val playCountNeeded = 5 //3으로 수정
+        val playCountNeeded = 3
         
         classData.gamePlayed += 1
         if (classData.unRanked && classData.rank) {
