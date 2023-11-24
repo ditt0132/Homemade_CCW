@@ -13,8 +13,9 @@
 - **Supported minecraft version**
   - 1.20.1
 - **Plugin requires**
-  - ProtocolLib
   - kotlin-stdlib
+  - Vault
+  - 이코노미 플러그인 (Essential or something)
 ## 주의사항
   - 사설용이라 따로 Config 없음.
   - 옛날부터 짜던거라 Deprecated 많음 <- 수정 예정

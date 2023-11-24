@@ -121,9 +121,11 @@ object RankSystem {
 
         val playerRate = classData.playerRank
         val playerMMR = classData.playerMMR
+        val playCountNeeded = 5 //3으로 수정
+        
         classData.gamePlayed += 1
         if (classData.unRanked && classData.rank) {
-            if (classData.gamePlayed >= 5) {
+            if (classData.gamePlayed >= playCountNeeded) { 
 
                 classData.playerRank = (playerMMR/100)*100 - 50
 
@@ -135,11 +137,11 @@ object RankSystem {
                 player.sendMessage(" ")
                 player.sendMessage("${ChatColor.GREEN}승급했습니다!")
                 player.sendMessage("  ")
-                player.sendMessage("${ChatColor.GREEN}티어: ${rateToString(player)}")
+                player.sendMessage("${ChatColor.GREEN}티어: ${rateToString(player)}") 
                 player.sendMessage("   ")
                 player.sendMessage("${ChatColor.GOLD}========================================")
             } else {
-                player.sendMessage("${ChatColor.GREEN}게임을 5회 플레이 후 랭크를 확인하세요.")
+                player.sendMessage("${ChatColor.GREEN}게임을 ${playCountNeeded}회 플레이 후 랭크를 확인하세요.")
                 player.sendMessage("${ChatColor.GREEN}현재: ${classData.gamePlayed}")
             }
 
