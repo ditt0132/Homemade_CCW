@@ -168,7 +168,7 @@ class Events: Listener {
     @EventHandler
     fun onPlayerJump(e: PlayerJumpEvent) {
         val player = e.player
-        if ((player.getPotionEffect(PotionEffectType.SLOW)?: return).amplifier >= 4) {
+        if ((player.getPotionEffect(PotionEffectType.SLOW)?: return).amplifier >= 3) {
             e.isCancelled = true
             player.sendActionBar("${ChatColor.GRAY}구속 효과로 인해 점프가 불가능합니다.")
         }
