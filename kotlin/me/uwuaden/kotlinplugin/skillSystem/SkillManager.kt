@@ -1,9 +1,11 @@
 package me.uwuaden.kotlinplugin.skillSystem
 
+import me.uwuaden.kotlinplugin.Main.Companion.econ
 import me.uwuaden.kotlinplugin.Main.Companion.plugin
 import me.uwuaden.kotlinplugin.Main.Companion.scheduler
+import me.uwuaden.kotlinplugin.assets.CustomItemData
+import me.uwuaden.kotlinplugin.assets.ItemManipulator.getName
 import me.uwuaden.kotlinplugin.itemManager.ItemManager
-import me.uwuaden.kotlinplugin.itemManager.customItem.CustomItemData
 import me.uwuaden.kotlinplugin.skillSystem.SkillEvent.Companion.playerCapacityPoint
 import me.uwuaden.kotlinplugin.skillSystem.SkillEvent.Companion.playerEItem
 import me.uwuaden.kotlinplugin.skillSystem.SkillEvent.Companion.playerEItemList
@@ -39,11 +41,14 @@ object SkillManager {
         scheduler.scheduleSyncRepeatingTask(plugin, {
             plugin.server.onlinePlayers.forEach { player ->
                 if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.AQUA}${ChatColor.BOLD}Divine Sword") {
-                    player.addPotionEffect(PotionEffect(PotionEffectType.SPEED, 20, 0, false, false))
-                    player.addPotionEffect(PotionEffect(PotionEffectType.WEAKNESS, 20*3, 1, false, false))
+                    player.addPotionEffect(PotionEffect(PotionEffectType.SPEED, 4, 0, false, false))
+                    player.addPotionEffect(PotionEffect(PotionEffectType.WEAKNESS, 4, 0, false, false))
+                }
+                if (player.inventory.itemInMainHand.itemMeta?.displayName == CustomItemData.getSwordOfHealing().getName()) {
+                    player.addPotionEffect(PotionEffect(PotionEffectType.REGENERATION, 4, 0, false, false))
                 }
             }
-        }, 0, 10)
+        }, 0, 2)
         scheduler.scheduleSyncRepeatingTask(plugin, {
             plugin.server.onlinePlayers.forEach { player ->
                 val item = player.inventory.itemInMainHand
@@ -58,17 +63,55 @@ object SkillManager {
             }
         }, 0, 10)
     }
+    private fun ItemStack.addEliteItemLore(cap: Int, maxUse: Int, type: String): ItemStack {
+        val cloneItem = this.clone()
+        val meta = cloneItem.itemMeta
+        val itemLore = meta.lore?: mutableListOf()
+        val addList = mutableListOf("${ChatColor.DARK_GRAY}Charge Capacity: $cap", "${ChatColor.DARK_GRAY}Max Use: $maxUse")
+        when (type) {
+            "nature" -> addList.add("${ChatColor.DARK_GRAY}[🍀] Nature")
+            "divinity" -> addList.add("${ChatColor.DARK_GRAY}[🛡] Divinity")
+            "chaos" -> addList.add("${ChatColor.DARK_GRAY}[🧨] Chaos")
+            "tech" -> addList.add("${ChatColor.DARK_GRAY}[⚙] Tech")
+            else -> addList.add("NULL")
+        }
+        itemLore.addAll(0, addList)
+        meta.lore = itemLore
+        cloneItem.itemMeta = meta
+        return cloneItem
+    }
+    private fun ItemStack.removeEliteItemLore(): ItemStack {
+        val cloneItem = this.clone()
+        val meta = cloneItem.itemMeta
+        val itemLore = meta.lore?: mutableListOf()
 
+        itemLore.removeIf { it.contains("Charge Capacity:") }
+        itemLore.removeIf { it.contains("Max Use:") }
+        itemLore.removeIf { it.contains("[🍀]") }
+        itemLore.removeIf { it.contains("[🛡]") }
+        itemLore.removeIf { it.contains("[🧨]") }
+        itemLore.removeIf { it.contains("[⚙]") }
+
+        meta.lore = itemLore
+        cloneItem.itemMeta = meta
+
+        return cloneItem
+    }
     fun initData() {
-        skillItem[0] = ItemManager.createNamedItem(Material.LIGHT_BLUE_DYE, 1, "${ChatColor.AQUA}${ChatColor.BOLD}반중력 큐브 V2", listOf("${ChatColor.DARK_GRAY}Charge Capacity: 400", "${ChatColor.DARK_GRAY}Max Use: 1", "${ChatColor.DARK_GRAY}[⚙] Tech", "${ChatColor.GRAY}재사용 가능한 반중력 큐브입니다! 사용시 보는 방향으로 자신과 상대를 밀어냅니다.", " ", "${ChatColor.GRAY}Gadget"))
-        skillItem[1] = ItemManager.createNamedItem(Material.GOLDEN_CARROT, 1, "${ChatColor.GOLD}Golden Carrot", listOf("${ChatColor.DARK_GRAY}Charge Capacity: 200", "${ChatColor.DARK_GRAY}Max Use: 3", "${ChatColor.DARK_GRAY}[🍀] Nature", "${ChatColor.GRAY}황금당근을 3배로 즐겨보세요!", " ", "${ChatColor.GRAY}Gadget"))
-        skillItem[2] = ItemManager.createNamedItem(Material.YELLOW_DYE, 1, "${ChatColor.GOLD}빛의 방패", listOf("${ChatColor.DARK_GRAY}Charge Capacity: 250", "${ChatColor.DARK_GRAY}Max Use: 2", "${ChatColor.DARK_GRAY}[🛡] Divinity", "${ChatColor.GRAY}1회용*", "${ChatColor.GRAY}사용시 10초간 받는 대미지가 80% 감소하고 신속 2가 부여됩니다.", " ", "${ChatColor.GRAY}Gadget"))
-        skillItem[3] = ItemManager.createNamedItem(Material.GOLDEN_APPLE, 1, "${ChatColor.GOLD}황금사과", listOf("${ChatColor.DARK_GRAY}Charge Capacity: 100", "${ChatColor.DARK_GRAY}Max Use: 5", "${ChatColor.DARK_GRAY}[🍀] Nature", "${ChatColor.GRAY}평범한 황금사과입니다.", " ", "${ChatColor.GRAY}Gadget"))
+        skillItem[0] = ItemManager.createNamedItem(Material.LIGHT_BLUE_DYE, 1, "${ChatColor.AQUA}${ChatColor.BOLD}반중력 큐브 V2", listOf("${ChatColor.DARK_GRAY}Charge Capacity: 500", "${ChatColor.DARK_GRAY}Max Use: 1", "${ChatColor.DARK_GRAY}[⚙] Tech", "${ChatColor.GRAY}재사용 가능한 반중력 큐브입니다! 사용시 보는 방향으로 자신과 상대를 밀어냅니다.", " ", "${ChatColor.GRAY}Gadget"))
+        skillItem[1] = CustomItemData.getGoldenCarrot().addEliteItemLore(200, 5, "nature")
+        skillItem[2] = CustomItemData.getDivinityShield().addEliteItemLore(250, 2, "divinity")
+        skillItem[3] = ItemManager.createNamedItem(Material.GOLDEN_APPLE, 1, "${ChatColor.GOLD}황금사과", listOf("${ChatColor.DARK_GRAY}Charge Capacity: 100", "${ChatColor.DARK_GRAY}Max Use: 10", "${ChatColor.DARK_GRAY}[🍀] Nature", "${ChatColor.GRAY}평범한 황금사과입니다.", " ", "${ChatColor.GRAY}Gadget"))
         skillItem[4] = ItemManager.createNamedItem(Material.RED_DYE, 1, "${ChatColor.RED}${ChatColor.BOLD}ILLUSIONIZE", listOf("${ChatColor.DARK_GRAY}Charge Capacity: 500", "${ChatColor.DARK_GRAY}Max Use: 1", "${ChatColor.DARK_GRAY}[🧨] Chaos", "${ChatColor.GRAY}바라본 위치에 넓은 범위 안에 있는 플레이어에게 대미지를 주고, 그 플레이어와 위치를 바꿉니다.", "${ChatColor.GRAY}쿨타임: 30초", " ", "${ChatColor.GRAY}Gadget"))
-        skillItem[5] = ItemManager.createNamedItem(Material.IRON_SWORD, 1, "${ChatColor.AQUA}${ChatColor.BOLD}Divine Sword", listOf("${ChatColor.DARK_GRAY}Charge Capacity: 500", "${ChatColor.DARK_GRAY}Max Use: 1", "${ChatColor.DARK_GRAY}[🛡] Divinity", "${ChatColor.GRAY}들고 있는 동안 신속1을 얻는 대신 나약함2를 받습니다.", " ", "${ChatColor.GRAY}Gadget"))
+        skillItem[5] = ItemManager.createNamedItem(Material.IRON_SWORD, 1, "${ChatColor.AQUA}${ChatColor.BOLD}Divine Sword", listOf("${ChatColor.DARK_GRAY}Charge Capacity: 300", "${ChatColor.DARK_GRAY}Max Use: 1", "${ChatColor.DARK_GRAY}[🛡] Divinity", "${ChatColor.GRAY}들고 있는 동안 신속1을 얻는 대신 나약함2를 받습니다.", " ", "${ChatColor.GRAY}Gadget"))
         skillItem[6] = ItemManager.createNamedItem(Material.REDSTONE_TORCH, 1, "${ChatColor.RED}Flare Gun", listOf("${ChatColor.DARK_GRAY}Charge Capacity: 500", "${ChatColor.DARK_GRAY}Max Use: 1", "${ChatColor.DARK_GRAY}[⚙] Tech", "${ChatColor.GRAY}하늘에 발사시", "${ChatColor.GRAY}보급품이 떨어집니다!", " ", "${ChatColor.GRAY}보급품에 깔리지 않게 조심하세요!"))
         skillItem[7] = CustomItemData.getTeleportLeggings()
         skillItem[8] = CustomItemData.getStinger()
+        skillItem[9] = CustomItemData.getBookOfMastery().addEliteItemLore(1000, 1, "divinity")
+        skillItem[10] = CustomItemData.getBookOfSalvation().addEliteItemLore(50, 1, "divinity")
+        skillItem[11] = CustomItemData.getSwordOfHealing().addEliteItemLore(400, 1, "divinity")
+        skillItem[12] = CustomItemData.getShotGun().addEliteItemLore(300, 1, "tech")
+        skillItem[13] = CustomItemData.getQuickRocketLauncher().addEliteItemLore(500, 1, "tech")
     }
     fun changeChargeValue(item: ItemStack, new: Int) {
         val lores = item.itemMeta.lore ?: return
@@ -117,7 +160,7 @@ object SkillManager {
             val item = ItemManager.createNamedItem(Material.LIGHT_BLUE_STAINED_GLASS_PANE, 1, " ", null)
             inv.setItem(i, item)
         }
-        for (i in invSlotSize-9 until invSlotSize) {
+        for (i in invSlotSize-9 until invSlotSize) { //playerCoin
             val item = ItemManager.createNamedItem(Material.LIGHT_BLUE_STAINED_GLASS_PANE, 1, " ", null)
             inv.setItem(i, item)
         }
@@ -159,7 +202,7 @@ object SkillManager {
                         addLoreLine(itemClone, "${ChatColor.YELLOW}${ChatColor.BOLD}Click ${ChatColor.GREEN}to Equip")
                     }
                     addLoreLine(itemClone, " ")
-                    addLoreLine(itemClone, "${ChatColor.DARK_GRAY}Skill")
+                    addLoreLine(itemClone, "${ChatColor.DARK_GRAY}Elite Item")
                     addLoreLine(itemClone, "${ChatColor.DARK_GRAY}ID: $id")
 
 
@@ -169,7 +212,8 @@ object SkillManager {
                 }
             }
         }
-
+        val item = ItemManager.createNamedItem(Material.REDSTONE_TORCH, 1, "${ChatColor.GREEN}Money: ${econ.getBalance(player)}", null)
+        inv.setItem(invSlotSize-1, item)
 
         if (createdSkillList.size - invSlotSize*(page+1) >= 0) {
             inv.setItem(invSlotSize-4, ItemManager.createNamedItem(Material.ARROW, 1, "${ChatColor.GREEN}Next Page", null))
@@ -185,9 +229,12 @@ object SkillManager {
     fun getItemCharge(id: Int): Pair<Int, Int>? {
         val item = skillItem[id] ?: return null
         val lores = item.itemMeta.lore?: mutableListOf()
-
-        val capacity = lores.filter { it.contains("Charge Capacity:") }[0].split(": ")[1].trim().toInt()
-        val maxUse = lores.filter { it.contains("Max Use:") }[0].split(": ")[1].trim().toInt()
+        if (lores.isEmpty()) {
+            println(lores)
+            return Pair(0, 0)
+        }
+        val capacity = lores.filter { it.contains("${ChatColor.DARK_GRAY}Charge Capacity:") }[0].split(": ")[1].trim().toInt()
+        val maxUse = lores.filter { it.contains("${ChatColor.DARK_GRAY}Max Use:") }[0].split(": ")[1].trim().toInt()
 
         return Pair(capacity, maxUse) //Cap, Max Use
     }
@@ -231,7 +278,7 @@ object SkillManager {
 
             playerMaxUse[player.uniqueId] = (playerMaxUse[player.uniqueId] ?: 0) + 1
 
-            val failedItems = player.inventory.addItem(skillItem[itemID] ?: return).values
+            val failedItems = player.inventory.addItem((skillItem[itemID] ?: return).removeEliteItemLore()).values //Todo:
             failedItems.forEach {
                 player.world.dropItem(player.eyeLocation, it)
             }

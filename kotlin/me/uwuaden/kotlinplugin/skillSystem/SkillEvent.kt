@@ -1,22 +1,29 @@
 package me.uwuaden.kotlinplugin.skillSystem
 
 import com.destroystokyo.paper.event.player.PlayerJumpEvent
+import me.uwuaden.kotlinplugin.Main.Companion.econ
 import me.uwuaden.kotlinplugin.Main.Companion.groundY
 import me.uwuaden.kotlinplugin.Main.Companion.lastDamager
 import me.uwuaden.kotlinplugin.Main.Companion.lastWeapon
 import me.uwuaden.kotlinplugin.Main.Companion.plugin
 import me.uwuaden.kotlinplugin.Main.Companion.scheduler
-import me.uwuaden.kotlinplugin.effectManager.EffectManager
+import me.uwuaden.kotlinplugin.assets.CustomItemData
+import me.uwuaden.kotlinplugin.assets.EffectManager
+import me.uwuaden.kotlinplugin.assets.ItemManipulator
+import me.uwuaden.kotlinplugin.assets.ItemManipulator.getName
 import me.uwuaden.kotlinplugin.gameSystem.LastWeaponData
 import me.uwuaden.kotlinplugin.itemManager.ItemManager
+import me.uwuaden.kotlinplugin.itemManager.customItem.CustomItemManager
 import me.uwuaden.kotlinplugin.teamSystem.TeamManager
+import net.kyori.adventure.text.Component
 import org.apache.commons.lang3.Validate
 import org.bukkit.*
-import org.bukkit.Particle.DustOptions
-import org.bukkit.Particle.REDSTONE
+import org.bukkit.Particle.*
+import org.bukkit.block.Block
 import org.bukkit.entity.*
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
+import org.bukkit.event.entity.EntityDamageByEntityEvent
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerItemHeldEvent
@@ -76,7 +83,6 @@ private fun isHittable(player: Player, target: LivingEntity): Boolean {
 class SkillEvent: Listener {
     companion object {
         var playerEItem = HashMap<UUID, Int>() //현재 사용 중인거
-        var playerCoin = HashMap<UUID, Int>() //돈
         var playerEItemList = HashMap<UUID, PlayerSkillHolder>() //보유중인거
         var skillItem = HashMap<Int, ItemStack>() //아이디 -> 아이템
         var playerCapacityPoint = HashMap<UUID, Int>() //킬스택임 ㅇㅇ
@@ -95,13 +101,14 @@ class SkillEvent: Listener {
         e.isCancelled = true
         if (e.currentItem == null) return
 
-        if (e.currentItem!!.itemMeta?.lore?.contains("${ChatColor.DARK_GRAY}Skill") == true) {
+        if (e.currentItem!!.itemMeta?.lore?.contains("${ChatColor.DARK_GRAY}Elite Item") == true) {
             val lores = e.currentItem!!.itemMeta.lore!!
             val player = e.view.player as Player
             val id = lores.filter { it.contains("ID: ") }[0].split(": ")[1].trim().toInt()
             val invSize = e.inventory.size
             val str = ChatColor.stripColor((e.inventory.getItem(invSize-5)?: return).itemMeta.displayName)?: return
             val page = str.split(":")[1].trim().toInt()
+
 
             if (!e.isShiftClick) {
                 if (lores.contains("${ChatColor.YELLOW}Locked")) {
@@ -124,9 +131,8 @@ class SkillEvent: Listener {
 
                     if (itemHolder.eliteItems.contains(id)) return
 
-                    if ((playerCoin[player.uniqueId]?: 0) >= 1000) {
-                        if (playerCoin[player.uniqueId] == null) return
-                        playerCoin[player.uniqueId] = playerCoin[player.uniqueId]!! - 1000
+                    if (econ.getBalance(player) >= 5000.0) {
+                        econ.withdrawPlayer(player, 5000.0)
 
 
 
@@ -155,8 +161,8 @@ class SkillEvent: Listener {
             e.isCancelled = true
 
             if (player.getCooldown(Material.LIGHT_BLUE_DYE) > 0) return
-            player.setCooldown(Material.LIGHT_BLUE_DYE, 20 * 8)
-            val loc = player.eyeLocation
+            player.setCooldown(Material.LIGHT_BLUE_DYE, 20 * 10)
+            val loc = player.location
             val exLoc = loc.clone()
             exLoc.add(loc.direction.multiply(2.0))
             EffectManager.playSurroundSound(loc, Sound.BLOCK_BEACON_DEACTIVATE, 1.0f, 2.0f)
@@ -178,7 +184,7 @@ class SkillEvent: Listener {
 
             if (player.getCooldown(Material.RED_DYE) > 0) return
             player.setCooldown(Material.RED_DYE, 20 * 30)
-            var loc = player.getTargetBlock(100)?.location
+            var loc = player.getTargetBlockExact(100)?.location
             if (loc == null) {
                 player.setCooldown(Material.RED_DYE, 20 * 3)
                 player.sendMessage("${ChatColor.RED}너무 멉니다.")
@@ -451,6 +457,238 @@ class SkillEvent: Listener {
             if (dmg) {
                 player.damage(5.0)
             }
+        }
+    }
+    @EventHandler
+    fun swordOfHealingDamage(e: EntityDamageByEntityEvent) {
+        val attacker = e.damager
+        val victim = e.entity
+
+        if (attacker is Player && victim is LivingEntity && CustomItemManager.isHittable(attacker, victim)) {
+            if (attacker.inventory.itemInMainHand.itemMeta?.displayName == CustomItemData.getSwordOfHealing().getName()) {
+                if (attacker.getCooldown(Material.IRON_SWORD) > 0) {
+                    attacker.sendMessage(Component.text("${ChatColor.RED} 쿨타임 중 입니다. (${attacker.getCooldown(Material.IRON_SWORD).toDouble() / 20.0}초)"))
+                    return
+                }
+                attacker.setCooldown(Material.IRON_SWORD, 20 * 8)
+
+                val players = attacker.location.getNearbyPlayers(8.0).filter { TeamManager.isSameTeam(attacker.world, attacker, it) }.toMutableSet()
+                players.add(attacker)
+
+                players.forEach {
+                    it.addPotionEffect(PotionEffect(PotionEffectType.REGENERATION, 33, 2,false, false))
+                }
+                EffectManager.drawParticleCircle(attacker.location, 8.0, Color.fromRGB(255, 241, 54))
+
+                EffectManager.playSurroundSound(
+                    victim.location,
+                    Sound.ENTITY_PLAYER_LEVELUP,
+                    1.0F,
+                    2.0f
+                )
+            }
+        }
+    }
+
+    @EventHandler
+    fun onUseShotgun(e: PlayerInteractEvent) {
+        if (e.hand == EquipmentSlot.OFF_HAND) return
+        if (!e.action.isRightClick) return
+        val player = e.player
+        if (player.inventory.itemInMainHand.itemMeta?.displayName == CustomItemData.getShotGun().getName()) {
+            e.isCancelled = true
+            if (player.getCooldown(Material.IRON_HOE) > 0) return
+            player.setCooldown(Material.IRON_HOE, 30)
+            val random = java.util.Random()
+
+            val loc = player.location
+            val entities = ArrayList<LivingEntity>()
+
+            val exLoc = player.location.clone()
+            exLoc.add(loc.direction.multiply(2.0))
+            EffectManager.playSurroundSound(exLoc, Sound.ENTITY_GHAST_SHOOT, 1.0f, 0.5f)
+            EffectManager.playSurroundSound(player.location, Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 0.5f)
+
+            val pDirection = player.location.toVector().subtract(exLoc.toVector()).normalize()
+            player.velocity = pDirection.multiply(0.3)
+
+
+            for (n in 0 until 12) {
+                val loc2 = player.eyeLocation.clone()
+                val ent = mutableSetOf<LivingEntity>()
+                loc2.yaw = loc.yaw + random.nextFloat(-15.0F, 15.0F) //15
+                loc2.pitch = loc.pitch + random.nextFloat(-7.5F, 7.5F)
+                sh@ for (i in 0 until 10 * 320) {
+                    loc2.add(loc2.direction.multiply(0.1))
+                    if (i > 10 && i%10 == 0) loc2.world.spawnParticle(
+                        SMOKE_NORMAL,
+                        loc2,
+                        1,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0
+                    )
+                    if (loc2.block.isSolid) {
+                        break@sh
+                    }
+                    for (it in loc2.getNearbyLivingEntities(10.0, 10.0, 10.0).filterNot { it == player }) {
+                        if (it.boundingBox.clone().expand(1.1).contains(loc2.x, loc2.y, loc2.z) && isHittable(
+                                player,
+                                it
+                            )
+                        ) {
+                            ent.add(it)
+                            break@sh
+                        }
+                    }
+                }
+                ent.forEach {
+                    entities.add(it)
+                }
+            }
+            if (entities.isNotEmpty()) player.playSound(player, Sound.ENTITY_ARROW_HIT_PLAYER, 1.0f, 1.0f)
+
+            val dmgEntities = mutableSetOf<LivingEntity>()
+
+            entities.forEach {
+                dmgEntities.add(it)
+            }
+            dmgEntities.forEach { entity ->
+                entity.damage(entities.filter { it == entity }.size * 0.3)
+                if (entity is Player) {
+                    lastDamager[entity] = player
+                    lastWeapon[entity] = LastWeaponData(
+                        CustomItemData.getShotGun(), System.currentTimeMillis() + 1000 * 10
+                    )
+                }
+                entity.addPotionEffect(PotionEffect(PotionEffectType.SLOW, 10, 0, false, false))
+            }
+        }
+    }
+    @EventHandler
+    fun onUseQuickRocketLauncher(e: PlayerInteractEvent) {
+        if (e.hand == EquipmentSlot.OFF_HAND) return
+        if (!e.action.isRightClick) return
+        val player = e.player
+        if (player.inventory.itemInMainHand.itemMeta?.displayName == ItemManipulator.itemName(CustomItemData.getQuickRocketLauncher())) {
+            e.isCancelled = true
+
+            if (player.getCooldown(Material.STONE_SHOVEL) > 0) return
+            player.setCooldown(Material.STONE_SHOVEL, 20 * 4)
+
+            val loc = player.eyeLocation
+            var explode = false
+            val exLoc = player.location.clone()
+            exLoc.add(loc.direction.multiply(2.0))
+            EffectManager.playSurroundSound(exLoc, Sound.ENTITY_GHAST_SHOOT, 1.0f, 0.5f)
+            EffectManager.playSurroundSound(exLoc, Sound.ENTITY_FIREWORK_ROCKET_LAUNCH, 1.0F, 1.2F)
+
+            val kb = 0.4
+
+            val direction = player.location.toVector().subtract(exLoc.toVector()).normalize()
+            player.velocity = direction.multiply(kb)
+
+
+            scheduler.runTaskAsynchronously(plugin, Runnable {
+                sh@for (i in 0 until 10*320) {
+                    scheduler.scheduleSyncDelayedTask(plugin, {
+                        if (i > 10) loc.world.spawnParticle(REDSTONE, loc, 1, 0.1, 0.1, 0.1, 0.0, DustOptions(Color.GRAY, 1.5F))
+                        if (loc.block.isSolid) {
+                            explode = true
+                        }
+                        for (it in loc.getNearbyLivingEntities(10.0, 10.0, 10.0).filterNot { it == player }.filter {
+                            CustomItemManager.isHittable(
+                                player,
+                                it
+                            )
+                        }) {
+                            if (it.boundingBox.clone().expand(1.1).contains(loc.x, loc.y, loc.z)) {
+                                explode = true
+                            }
+                        }
+                        loc.add(loc.direction.multiply(0.1))
+                    }, 0)
+                    if (explode) {
+                        scheduler.scheduleSyncDelayedTask(plugin, {
+                            EffectManager.playSurroundSound(loc, Sound.ENTITY_GENERIC_EXPLODE, 1.0F, 2.0F)
+                            loc.world.spawnParticle(Particle.EXPLOSION_HUGE, loc, 1, 0.0, 0.0, 0.0, 0.0)
+                            loc.getNearbyLivingEntities(3.0).filter {
+                                CustomItemManager.isHittable(
+                                    player,
+                                    it
+                                )
+                            }.forEach {
+                                it.damage(4.0)
+
+                                val directionVel = it.location.toVector().subtract(loc.toVector()).normalize()
+                                it.velocity = directionVel.multiply(kb)
+
+                            }
+                            val blocks = mutableSetOf<Block>()
+
+                            val r = 3
+                            loc.y += 1.0
+                            while (loc.y < 320) {
+
+                                EffectManager.getBlocksInCircle(loc, r).forEach {
+                                    blocks.add(it)
+                                }
+                                loc.y += 1.0
+                            }
+                            blocks.filter { it.type != Material.AIR }
+
+                            blocks.forEach {
+                                EffectManager.breakBlock(it.location)
+                            }
+                        }, 0)
+                        break@sh
+                    }
+                    Thread.sleep(2)
+                }
+            })
+        }
+    }
+    @EventHandler
+    fun onUseBookOfSalvation(e: PlayerInteractEvent) {
+        if (e.hand == EquipmentSlot.OFF_HAND) return
+        if (!e.action.isRightClick) return
+        val player = e.player
+        if (player.inventory.itemInMainHand.itemMeta?.displayName == CustomItemData.getBookOfSalvation().getName()) {
+            e.isCancelled = true
+            if (player.getCooldown(Material.BOOK) > 0) return
+
+            val loc = player.eyeLocation.clone()
+            val locDir = player.location.clone()
+
+            sh@ for (i in 0 until 10 * 100) {
+                loc.add(loc.direction.multiply(0.1))
+                val players = loc.getNearbyPlayers(10.0, 10.0, 10.0).filterNot { it == player }.filter {
+                    it.boundingBox.clone().expand(1.5)
+                        .contains(loc.x, loc.y, loc.z) && TeamManager.isSameTeam(e.player.world, player, it) && it.gameMode == GameMode.SURVIVAL
+                }
+                if (players.isNotEmpty()) {
+                    val target = players.sortedBy { it.location.distance(player.location) }[0]
+                    EffectManager.playSurroundSound(player.location, Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f)
+                    val targetLoc = target.location.clone()
+                    targetLoc.yaw = locDir.yaw
+                    targetLoc.pitch = locDir.pitch
+                    player.teleport(targetLoc)
+                    EffectManager.playSurroundSound(player.location, Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f)
+                    EffectManager.playSurroundSound(player.location, Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 1.1f)
+                    for (y in 0 until 320) {
+                        val pLoc = target.location.clone()
+                        pLoc.y += y.toDouble()/2.0
+                        player.world.spawnParticle(REDSTONE, pLoc, 3, 0.0, 0.0, 0.0, DustOptions(Color.BLUE, 1.0f))
+                    }
+                    player.addPotionEffect(PotionEffect(PotionEffectType.HEAL, 1, 1, false, false))
+                    player.addPotionEffect(PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 20*3, 4, false, false))
+                    player.addPotionEffect(PotionEffect(PotionEffectType.SPEED, 20*3, 1, false, false))
+                    player.setCooldown(Material.BOOK, 20 * 60)
+                    break@sh
+                }
+            }
+            player.sendMessage("§c타겟이 없습니다.")
         }
     }
 }

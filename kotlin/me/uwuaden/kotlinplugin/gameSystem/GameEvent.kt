@@ -9,7 +9,6 @@ import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.block.BlockBreakEvent
-import org.bukkit.event.entity.EntityDamageByEntityEvent
 import org.bukkit.event.entity.EntityDamageEvent
 import org.bukkit.event.entity.PlayerDeathEvent
 import org.bukkit.event.inventory.InventoryClickEvent
@@ -54,7 +53,7 @@ class GameEvent: Listener {
         }
         if (e.block.y <= groundY.toInt()) {
             e.isCancelled = true
-            e.player.sendMessage("${ChatColor.RED}바닥의 블럭을 부실 수 없습니다.")
+            e.player.sendMessage("${ChatColor.RED}바닥의 블럭을 부술 수 없습니다.")
             e.block.world.spawnParticle(Particle.SMOKE_NORMAL, e.block.location.clone().add(0.0, 0.5, 0.0), 10, 0.0, 0.0, 0.0, 0.0)
         }
     }
@@ -137,6 +136,8 @@ class GameEvent: Listener {
     @EventHandler
     fun onEnchant(e: InventoryClickEvent) {
         if (e.inventory.type == InventoryType.ANVIL) {
+            val worldData = WorldManager.initData(e.view.player.world)
+            if (worldData.worldMode == "SoloSurvival") return
             val player = e.view.player as Player
             if (e.slot == 2) {
                 val itemLast = e.inventory.getItem(2) ?: return
@@ -164,19 +165,4 @@ class GameEvent: Listener {
             }
         }
     }
-
-    @EventHandler
-    fun onPVP(e: EntityDamageByEntityEvent) {
-        val attacker = e.damager
-        val victim = e.entity
-        val world = victim.world
-        if (!world.name.contains("Field-")) return
-
-        val dataClass = WorldManager.initData(world)
-
-        if (attacker is Player && victim is Player && dataClass.worldMode[world] == "SoloSurvival") {
-            e.isCancelled = true
-        }
-    }
-
 }

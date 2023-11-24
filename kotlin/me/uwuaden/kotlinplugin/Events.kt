@@ -1,15 +1,16 @@
 package me.uwuaden.kotlinplugin
 
+import com.destroystokyo.paper.event.player.PlayerJumpEvent
+import me.uwuaden.kotlinplugin.Main.Companion.econ
 import me.uwuaden.kotlinplugin.Main.Companion.lastDamager
 import me.uwuaden.kotlinplugin.Main.Companion.lastWeapon
 import me.uwuaden.kotlinplugin.Main.Companion.lobbyLoc
-import me.uwuaden.kotlinplugin.effectManager.EffectManager
+import me.uwuaden.kotlinplugin.assets.EffectManager
 import me.uwuaden.kotlinplugin.gameSystem.LastWeaponData
 import me.uwuaden.kotlinplugin.gameSystem.WorldManager
 import me.uwuaden.kotlinplugin.itemManager.ItemManager
 import me.uwuaden.kotlinplugin.itemManager.customItem.CustomItemManager
 import me.uwuaden.kotlinplugin.rankSystem.RankSystem
-import me.uwuaden.kotlinplugin.skillSystem.SkillEvent.Companion.playerCoin
 import me.uwuaden.kotlinplugin.skillSystem.SkillManager
 import me.uwuaden.kotlinplugin.teamSystem.TeamManager
 import net.kyori.adventure.text.Component
@@ -19,12 +20,11 @@ import org.bukkit.entity.Firework
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
-import org.bukkit.event.entity.EntityDamageByEntityEvent
-import org.bukkit.event.entity.PlayerDeathEvent
-import org.bukkit.event.entity.ProjectileHitEvent
+import org.bukkit.event.entity.*
 import org.bukkit.event.player.*
 import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
+import org.bukkit.potion.PotionEffectType
 import kotlin.math.roundToInt
 
 private fun deathPlayer(p: Player) {
@@ -37,23 +37,30 @@ private fun deathPlayer(p: Player) {
         }
         val dataClass = WorldManager.initData(p.world)
         if (dataClass.deadPlayer.contains(p)) return
+        if (lastDamager[p] != null) {
+            if (TeamManager.isSameTeam(p.world, p, lastDamager[p]!!)) {
+                Main.lastDamager.remove(p)
+            }
+        }
+
         if (killer != null) {
             dataClass.playerKill[killer.uniqueId] = (dataClass.playerKill[killer.uniqueId] ?: 0) + 1
             SkillManager.addCapacityPoint(killer, 100)
+            econ.depositPlayer(killer, 500.0)
+            killer.sendMessage("§e플레이어 킬! (+500코인)")
         }
         if (lastDamager[p] == null) {
             WorldManager.broadcastWorld(
                 p.world,
                 "${ChatColor.RED}☠   ${ChatColor.BOLD}➔ ${ChatColor.RED}${p.name}"
             )
-        }
-        else {
+        } else {
             var weaponName: String? = null
 
             if (lastWeapon[p] != null) {
                 val data = lastWeapon[p]!!
-                if (data.effTimeMilli > System.currentTimeMillis() && data.item.itemMeta.displayName != "") {
-                    weaponName = data.item.itemMeta.displayName
+                if (data.effTimeMilli > System.currentTimeMillis() && data.item.itemMeta?.displayName != "") {
+                    weaponName = data.item.itemMeta?.displayName
 
                 }
             }
@@ -67,16 +74,13 @@ private fun deathPlayer(p: Player) {
             )
         }
 
+        if (dataClass.worldMode == "SoloSurvival") return
+
         val drop = ItemManager.createDroppedItem(p.location, true, 6)
 
         val items = ArrayList<ItemStack>()
 
         p.inventory.forEach {
-            if (it != null) {
-                items.add(it)
-            }
-        }
-        p.inventory.armorContents?.forEach {
             if (it != null) {
                 items.add(it)
             }
@@ -99,7 +103,7 @@ private fun deathPlayer(p: Player) {
 
         lastDamager.remove(p)
 
-        if (!dataClass.deadPlayer.contains(p) && dataClass.worldMode[p.world] == "Solo") {
+        if (!dataClass.deadPlayer.contains(p) && dataClass.worldMode == "Solo") {
             dataClass.deadPlayer.add(p)
 
             RankSystem.updateMMR(p, dataClass.playerKill[p.uniqueId]?: 0, dataClass.totalPlayer, p.world.players.filter { it.gameMode == GameMode.SURVIVAL }.size + 1, dataClass.avgMMR)
@@ -122,14 +126,53 @@ class Events: Listener {
         }
     }
     @EventHandler
-    fun onDamage(e: EntityDamageByEntityEvent) {
-        if (e.damager is Player && e.entity is Player) {
-            val damager = e.damager as Player
-            lastDamager[e.entity as Player] = e.damager as Player
-            LastWeaponData(damager.inventory.itemInMainHand, System.currentTimeMillis()+1000*10).set(e.entity as Player)
+    fun onNaturalHealing(e: EntityRegainHealthEvent) {
+        if (e.entity is Player) {
+            val player = e.entity as Player
+            if (player.fireTicks > 0) {
+                e.isCancelled = true
+                player.sendActionBar("${ChatColor.RED}불에 타는 중에는 회복이 되지 않습니다.")
+            }
         }
     }
+    @EventHandler
+    fun onDamageByEntity(e: EntityDamageByEntityEvent) {
+        if (e.damager is Player && e.entity is Player) {
+            val damager = e.damager as Player
+            val victim = e.entity as Player
 
+            if (!TeamManager.isSameTeam(damager.world, damager, victim)) {
+                lastDamager[e.entity as Player] = e.damager as Player
+                LastWeaponData(damager.inventory.itemInMainHand, System.currentTimeMillis()+1000*10).set(e.entity as Player)
+            }
+            if ((victim.getPotionEffect(PotionEffectType.DAMAGE_RESISTANCE)?: return).amplifier >= 4) {
+                damager.sendActionBar("${ChatColor.GRAY}${victim.name}님은 면역상태입니다.")
+                e.isCancelled = true
+            }
+        }
+    }
+    @EventHandler
+    fun onDamage(e: EntityDamageEvent) {
+        if (e.entity is Player) {
+            val player = e.entity as Player
+            if (listOf(EntityDamageEvent.DamageCause.ENTITY_ATTACK, EntityDamageEvent.DamageCause.ENTITY_SWEEP_ATTACK).contains(e.cause)) {
+                e.damage*=0.7
+            } else if (listOf(EntityDamageEvent.DamageCause.PROJECTILE).contains(e.cause)) {
+                e.damage*=0.8
+            }
+            if ((player.getPotionEffect(PotionEffectType.DAMAGE_RESISTANCE)?: return).amplifier >= 4) {
+                e.isCancelled = true
+            }
+        }
+    }
+    @EventHandler
+    fun onPlayerJump(e: PlayerJumpEvent) {
+        val player = e.player
+        if ((player.getPotionEffect(PotionEffectType.SLOW)?: return).amplifier >= 4) {
+            e.isCancelled = true
+            player.sendActionBar("${ChatColor.GRAY}구속 효과로 인해 점프가 불가능합니다.")
+        }
+    }
     @EventHandler
     fun onFirework(e: EntityDamageByEntityEvent) {
         if (e.damager is Firework && e.damager.scoreboardTags.contains("display_firework")) {
@@ -152,8 +195,6 @@ class Events: Listener {
         e.player.inventory.clear()
         e.player.level = 0
         e.player.exp = 0.0F
-        if (playerCoin[e.player.uniqueId] == null) playerCoin[e.player.uniqueId] = 10000
-
     }
 
     @EventHandler
@@ -171,7 +212,7 @@ class Events: Listener {
         if (msg == "집결") {
             player.performCommand("teamcmd assemble")
         } else if (msg == "아이템") {
-            team.players.filter { it.location.distance(player.location) <= 50 }.forEach {
+            team.players.filter {it.world == player.world }.filter { it.location.distance(player.location) <= 50 }.forEach {
                 it.sendMessage(Component.text("§a${player.name}님이 주변에 여유 아이템이 있다고 합니다!"))
             }
         } else {

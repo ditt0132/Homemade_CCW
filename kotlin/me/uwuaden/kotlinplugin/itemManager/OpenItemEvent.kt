@@ -61,7 +61,7 @@ class OpenItemEvent: Listener {
                         ItemManager.openDroppedItem(e.player, droppedItemUid!!)
                         e.isCancelled = true
                     }
-                }, 1)
+                }, 0)
             } catch (e: Exception) {}
         })
     }

@@ -6,6 +6,6 @@ import org.bukkit.World
 import org.bukkit.entity.Player
 import java.util.*
 
-class WorldDataManager(var teams: ArrayList<TeamClass> = ArrayList(), val worldTimer: HashMap<World, Long> = HashMap(), val playerKill: HashMap<UUID, Int> = HashMap(), val worldMode: HashMap<World, String> = HashMap(), val GameEndedWorld: ArrayList<World> = ArrayList(), val WorldDroppedItemData: HashMap<World, WorldItemData> = HashMap(), var deadPlayer: MutableSet<Player> = mutableSetOf(), var totalPlayer: Int = 50, var avgMMR: Int = 0) {
+class WorldDataManager(var teams: ArrayList<TeamClass> = ArrayList(), val worldTimer: HashMap<World, Long> = HashMap(), val playerKill: HashMap<UUID, Int> = HashMap(), var worldMode: String = "Solo", var gameEndedWorld: Boolean = false, val WorldDroppedItemData: HashMap<World, WorldItemData> = HashMap(), var deadPlayer: MutableSet<Player> = mutableSetOf(), var totalPlayer: Int = 50, var avgMMR: Int = 0, var dataInt: Int = 0, var dataLong: Long = 0, var playerItemList: HashMap<UUID, MutableSet<String>> = HashMap(), var worldFolderName: String = "test") {
 
 }
