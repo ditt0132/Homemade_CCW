@@ -105,8 +105,9 @@ object RankSystem {
         else if (change < -50) change = -50
 
         if (classData.gamePlayed < 3) {
-            change*=3
+            change*=5
         }
+        classData.gamePlayed += 1
 
         classData.playerMMR = (classData.playerMMR) + change
 
@@ -122,8 +123,7 @@ object RankSystem {
         val playerRate = classData.playerRank
         val playerMMR = classData.playerMMR
         val playCountNeeded = 3
-        
-        classData.gamePlayed += 1
+
         if (classData.unRanked && classData.rank) {
             if (classData.gamePlayed >= playCountNeeded) { 
 
