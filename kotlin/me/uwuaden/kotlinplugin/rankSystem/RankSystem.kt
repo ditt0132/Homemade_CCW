@@ -80,8 +80,8 @@ object RankSystem {
 
         val playerMMR = classData.playerMMR
         val gap = AvgMMR - playerMMR
-        var mergingScore = abs(gap/50)
-        if (mergingScore > 3) mergingScore = 3
+        var mergingScore = abs(gap/100)
+        if (mergingScore > 2) mergingScore = 2
         var killFinal = (kill.toDouble()/playerTotal.toDouble())*((10.0/100.0).pow(-1)) //100명 당 10킬 기준으로 갈림
 
         if (killFinal > 1.0) killFinal = 1.0
@@ -147,8 +147,8 @@ object RankSystem {
             if (classData.unRanked) return
 
             val selfGap = playerMMR - playerRate
-            var mergingRate = abs(selfGap / 20)
-            if (mergingRate > 3) mergingRate = 3
+            var mergingRate = abs(selfGap / 100)
+            if (mergingRate > 2) mergingRate = 2
 
             val gap = AvgMMR - playerMMR
             var mergingScore = abs(gap / 50)
@@ -159,8 +159,8 @@ object RankSystem {
 
             val rate = 1.0 - (Ranking.toDouble() - 1.0) / playerTotal.toDouble()
 
-            val killFactor = 40
-            val rankFactor = 60
+            val killFactor = 30
+            val rankFactor = 70
 
             var change = (-50 + rate * rankFactor + killFinal * killFactor).roundToInt()
 

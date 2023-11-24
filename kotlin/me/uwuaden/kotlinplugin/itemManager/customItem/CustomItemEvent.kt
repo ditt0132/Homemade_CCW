@@ -6,7 +6,10 @@ import me.uwuaden.kotlinplugin.Main.Companion.lastWeapon
 import me.uwuaden.kotlinplugin.Main.Companion.lockedPlayer
 import me.uwuaden.kotlinplugin.Main.Companion.plugin
 import me.uwuaden.kotlinplugin.Main.Companion.scheduler
-import me.uwuaden.kotlinplugin.effectManager.EffectManager
+import me.uwuaden.kotlinplugin.assets.CustomItemData
+import me.uwuaden.kotlinplugin.assets.EffectManager
+import me.uwuaden.kotlinplugin.assets.ItemManipulator
+import me.uwuaden.kotlinplugin.assets.ItemManipulator.setCount
 import me.uwuaden.kotlinplugin.gameSystem.LastWeaponData
 import me.uwuaden.kotlinplugin.gameSystem.WorldManager
 import me.uwuaden.kotlinplugin.itemManager.ItemManager
@@ -229,58 +232,29 @@ private fun earthGrenade(loc: Location, p: Player) {
     }
     blocks.filter { it.type != Material.AIR }
 
-    scheduler.scheduleSyncDelayedTask(plugin, {
-        blocks.forEach {
-            if (probabilityTrue(30.0)) {
-                loc.world.spawnParticle(Particle.BLOCK_CRACK, it.location, 5, 0.5, 0.5, 0.5, 0.0, it.blockData)
-                it.type = Material.AIR
-            }
-        }
-
-        originLoc.getNearbyLivingEntities(r.toDouble()).forEach { e->
-            e.damage(2.0)
-            if (e is Player) {
-                lastDamager[e] = p
-                lastWeapon[e] = LastWeaponData(ItemManager.createNamedItem(Material.STICK, 1, "영역 수류탄", null), System.currentTimeMillis()+1000*10)
-            }
-        }
-        drawParticleCircle(particleLoc, 8.0, Color.fromRGB(100, 65, 23))
-        EffectManager.playSurroundSound(originLoc, Sound.ENTITY_ZOMBIE_BREAK_WOODEN_DOOR, 1.0f, 0.5f)
-        scheduler.scheduleSyncDelayedTask(plugin, {
-            blocks.forEach {
-                if (probabilityTrue(50.0)) {
-                    loc.world.spawnParticle(Particle.BLOCK_CRACK, it.location, 5, 0.5, 0.5, 0.5, 0.0, it.blockData)
-                    it.type = Material.AIR
-                }
-            }
-            originLoc.getNearbyLivingEntities(r.toDouble()).forEach { e->
-                e.damage(2.0)
-                if (e is Player) {
-                    lastDamager[e] = p
-                    lastWeapon[e] = LastWeaponData(ItemManager.createNamedItem(Material.STICK, 1, "영역 수류탄", null), System.currentTimeMillis()+1000*10)
-                }
-            }
-            drawParticleCircle(particleLoc, 8.0, Color.fromRGB(100, 65, 23))
-            EffectManager.playSurroundSound(originLoc, Sound.ENTITY_ZOMBIE_BREAK_WOODEN_DOOR, 1.0f, 0.5f)
+    scheduler.runTaskAsynchronously(plugin, Runnable {
+        Thread.sleep(1500)
+        for (i in 0 until 3) {
             scheduler.scheduleSyncDelayedTask(plugin, {
-                blocks.filter {it.y != originLoc.blockY}.forEach {
-                    if (probabilityTrue(100.0)) {
-                        loc.world.spawnParticle(Particle.BLOCK_CRACK, it.location, 5, 0.5, 0.5, 0.5, 0.0, it.blockData)
-                        it.type = Material.AIR
+                blocks.forEach {
+                    if (probabilityTrue((10 + (i+1)*30).toDouble())) {
+                        EffectManager.breakBlock(it.location)
                     }
                 }
+
                 originLoc.getNearbyLivingEntities(r.toDouble()).forEach { e->
-                    e.damage(2.0)
+                    e.damage(0.5)
                     if (e is Player) {
                         lastDamager[e] = p
                         lastWeapon[e] = LastWeaponData(ItemManager.createNamedItem(Material.STICK, 1, "영역 수류탄", null), System.currentTimeMillis()+1000*10)
                     }
                 }
-                drawParticleCircle(originLoc, 8.0, Color.fromRGB(100, 65, 23))
-                EffectManager.playSurroundSound(particleLoc, Sound.ENTITY_ZOMBIE_BREAK_WOODEN_DOOR, 1.0f, 0.7f)
-            }, 30)
-        }, 30)
-    }, 30)
+                drawParticleCircle(particleLoc, 8.0, Color.fromRGB(100, 65, 23))
+                EffectManager.playSurroundSound(originLoc, Sound.ENTITY_ZOMBIE_BREAK_WOODEN_DOOR, 1.0f, 0.5f)
+            }, 0)
+            Thread.sleep(1500)
+        }
+    })
 }
 private fun antiGravityGrenade(loc: Location, p: Player) {
     scheduler.scheduleSyncDelayedTask(plugin, {
@@ -324,14 +298,18 @@ private fun gravityGrenade(loc: Location, p: Player) {
                             val locClone = loc.clone()
                             locClone.y = it.y
                             val direction = it.location.toVector().subtract(locClone.toVector()).normalize()
-                            it.velocity = direction.multiply(-0.2)
+                            val vel = it.velocity.clone()
+                            vel.add(direction.multiply(-0.2))
+                            it.velocity = vel
                         }
                     }
                     loc.getNearbyLivingEntities(2.0).forEach {
                         val locClone = loc.clone()
                         locClone.y = it.y
                         val direction = it.location.toVector().subtract(locClone.toVector()).normalize()
-                        it.velocity = direction.multiply(-0.2)
+                        val vel = it.velocity.clone()
+                        vel.add(direction.multiply(-0.2))
+                        it.velocity = vel
                     }
                 }, 0)
                 Thread.sleep(1000/4)
@@ -391,7 +369,7 @@ private fun smokeGrenade(loc: Location, p: Player) {
             scheduler.runTaskAsynchronously(plugin, Runnable {
                 for (i in 0 until loopTime) {
                     scheduler.scheduleSyncDelayedTask(plugin, {
-                        EffectManager.playSurroundSound(entity.location, Sound.ENTITY_BAT_TAKEOFF, 2.0f, 0.5f)
+                        EffectManager.playSurroundSound(entity.location, Sound.ENTITY_BAT_TAKEOFF, 2.0f, 1.2f)
                         loc2.world.spawnParticle(CLOUD, loc2, 100, 0.0, 0.5, 0.0, 0.3)
                         val scale = ((size*2)/(loopTime.toFloat()))*(10 - (i+1))
                         val transform2 = entity.transformation
@@ -410,7 +388,58 @@ private fun smokeGrenade(loc: Location, p: Player) {
         }, 20*40)
     }, 20*1)
 }
+private fun molotovCocktail(loc: Location, p: Player) {
+    val originLoc = loc.clone()
+    val r = 6
 
+    originLoc.y = (originLoc.y + 0.5).roundToInt().toDouble()
+    val particleLoc = originLoc.clone().add(0.0, 0.51, 0.0)
+    EffectManager.playSurroundSound(originLoc, Sound.ITEM_FLINTANDSTEEL_USE, 2.0f, 1.5f)
+    EffectManager.playSurroundSound(originLoc, Sound.BLOCK_ANVIL_PLACE, 0.5f, 2.0f)
+
+    scheduler.scheduleSyncDelayedTask(plugin, {
+        EffectManager.playSurroundSound(originLoc, Sound.ITEM_FLINTANDSTEEL_USE, 2.0f, 2.0f)
+        EffectManager.playSurroundSound(originLoc, Sound.ENTITY_GHAST_SHOOT, 1.5f, 1.5f)
+        scheduler.runTaskAsynchronously(plugin, Runnable {
+            for (i in 0 until 10*6) {
+                scheduler.scheduleSyncDelayedTask(plugin, {
+                    originLoc.getNearbyLivingEntities(r.toDouble() + 3.0).forEach { e->
+                        val distLoc = originLoc.clone()
+                        val deltaY = abs(originLoc.y - e.location.y)
+                        distLoc.y = e.location.y
+                        if (deltaY <= 1.1 && distLoc.distance(e.location) <= r.toDouble()) {
+                            if (TeamManager.isSameTeam(loc.world, p, e)) {
+                                e.fireTicks = 20 * 2
+                            } else {
+                                e.fireTicks = 20 * 4
+                            }
+                            if (i%5 == 0) {
+                                if (e is Player) {
+                                    lastDamager[e] = p
+                                    lastWeapon[e] = LastWeaponData(ItemManager.createNamedItem(Material.STICK, 1, "화염병", null), System.currentTimeMillis()+1000*10)
+                                }
+                                if (TeamManager.isSameTeam(loc.world, p, e)) {
+                                    e.damage(0.5)
+                                } else {
+                                    e.damage(1.0)
+                                }
+                                EffectManager.playSurroundSound(originLoc, Sound.BLOCK_FIRE_AMBIENT, 1.0f, 1.5f)
+                            }
+                        }
+                        for (n in 0 until 60 - i) {
+                            val tryLoc = particleLoc.clone().add(Random.nextDouble(-r.toDouble(), r.toDouble()), 0.0, Random.nextDouble(-r.toDouble(), r.toDouble()))
+                            if (tryLoc.distance(particleLoc) <= r.toDouble()) {
+                                tryLoc.world.spawnParticle(FLAME, tryLoc, 1, 0.0, 0.0, 0.0, 0.03)
+                            }
+                        }
+                        if (i%5 == 0) drawParticleCircle(particleLoc, r.toDouble(), Color.fromRGB(255, 127, 0))
+                    }
+                }, 0)
+                Thread.sleep(100)
+            }
+        })
+    }, 50)
+}
 private fun isDiamond(material: Material): Boolean {
     val list = listOf(
         Material.DIAMOND_HELMET,
@@ -515,42 +544,25 @@ class CustomItemEvent: Listener {
             scheduler.scheduleSyncDelayedTask(Main.plugin, {
                 smokeGrenade(loc, player)
             }, tick.toLong())
-        }
-    }
+        } else if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.YELLOW}화염병") {
+            e.isCancelled = true
 
-    @EventHandler
-    fun revelationDamage(e: EntityDamageByEntityEvent) {
-        val attacker = e.damager
-        val victim = e.entity
-        val data = WorldManager.initData(attacker.world)
-        if ((data.playerKill[attacker.uniqueId] ?: 0) < 3) {
-            if (attacker is Player && victim is LivingEntity && isHittable(attacker, victim)) {
-                if (attacker.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.AQUA}${ChatColor.BOLD}Revelation") {
-                    if (attacker.getCooldown(Material.GOLDEN_SWORD) > 0) {
-                        attacker.sendMessage(
-                            Component.text(
-                                "${ChatColor.RED} 쿨타임 중 입니다. (${
-                                    attacker.getCooldown(
-                                        Material.GOLDEN_SWORD
-                                    ).toDouble() / 20.0
-                                }초)"
-                            )
-                        )
-                        return
-                    }
-                    attacker.setCooldown(Material.GOLDEN_SWORD, 20 * 5)
-
-                    val dmg = (50 - 20 * (data.playerKill[attacker.uniqueId] ?: 0)).toDouble() / 10.0
-                    victim.damage(dmg)
-                    victim.world.strikeLightningEffect(victim.location)
-                    EffectManager.playSurroundSound(
-                        victim.location,
-                        Sound.ITEM_TRIDENT_THUNDER,
-                        1.0F,
-                        1.0F + ((10 - 2 * (data.playerKill[attacker.uniqueId] ?: 0)).toFloat() / 10.0F)
-                    )
-                }
+            if ((GrenadeCD[player.uniqueId] ?: 0) >= System.currentTimeMillis()) {
+                player.sendMessage(Component.text("${ChatColor.RED} 쿨타임 중 입니다. (${((GrenadeCD[player.uniqueId] ?: System.currentTimeMillis()) - System.currentTimeMillis()) / 1000}초)"))
+                return
             }
+
+            player.inventory.itemInMainHand.amount -= 1
+            GrenadeCD[player.uniqueId] = System.currentTimeMillis() + cd * 1000L
+
+            EffectManager.playSurroundSound(player.location, Sound.ENTITY_BAT_TAKEOFF, 1.0F, 1.0F)
+
+            val tick = CustomItemManager.drawOrbital(player, player.eyeLocation, 15, 100, Color.WHITE, false, 9.81)
+            CustomItemManager.throwOrbital(player, player.eyeLocation, 15, tick, Color.GREEN, 9.81)
+            val loc = CustomItemManager.getOrbitalLoc(player, player.eyeLocation, 15, tick, 9.81)
+            scheduler.scheduleSyncDelayedTask(Main.plugin, {
+                molotovCocktail(loc, player)
+            }, tick.toLong())
         }
     }
 
@@ -582,7 +594,7 @@ class CustomItemEvent: Listener {
 
                 if (i % 10 == 0) pos.world.spawnParticle(Particle.END_ROD, pos, 1, 0.0, 0.0, 0.0, 0.0)
                 pos.getNearbyLivingEntities(10.0, 10.0, 10.0).forEach {
-                    if (it is LivingEntity && it.boundingBox.clone().expand(1.2).contains(
+                    if (it is LivingEntity && it.boundingBox.clone().expand(1.1).contains(
                             pos.x,
                             pos.y,
                             pos.z
@@ -639,13 +651,49 @@ class CustomItemEvent: Listener {
             player.setCooldown(Material.LIGHT_BLUE_DYE, 20 * 2)
 
             player.inventory.itemInMainHand.amount -= 1
-            val loc = player.eyeLocation
+            val loc = player.location
             val exLoc = loc.clone()
             exLoc.add(loc.direction.multiply(2.0))
             EffectManager.playSurroundSound(loc, Sound.BLOCK_BEACON_DEACTIVATE, 1.0f, 2.0f)
             exLoc.getNearbyLivingEntities(2.5).forEach {
                 val direction = it.location.toVector().subtract(exLoc.toVector()).normalize()
                 it.velocity = direction.multiply(1.2)
+            }
+        }
+    }
+
+    @EventHandler
+    fun revelationDamage(e: EntityDamageByEntityEvent) {
+        val attacker = e.damager
+        val victim = e.entity
+        val data = WorldManager.initData(attacker.world)
+        if ((data.playerKill[attacker.uniqueId] ?: 0) < 3) {
+            if (attacker is Player && victim is LivingEntity && isHittable(attacker, victim)) {
+                if (attacker.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.AQUA}${ChatColor.BOLD}Revelation") {
+                    if (attacker.getCooldown(Material.GOLDEN_SWORD) > 0) {
+                        attacker.sendMessage(
+                            Component.text(
+                                "${ChatColor.RED} 쿨타임 중 입니다. (${
+                                    attacker.getCooldown(
+                                        Material.GOLDEN_SWORD
+                                    ).toDouble() / 20.0
+                                }초)"
+                            )
+                        )
+                        return
+                    }
+                    attacker.setCooldown(Material.GOLDEN_SWORD, 20 * 5)
+
+                    val dmg = (50 - 20 * (data.playerKill[attacker.uniqueId] ?: 0)).toDouble() / 10.0
+                    victim.damage(dmg)
+                    victim.world.strikeLightningEffect(victim.location)
+                    EffectManager.playSurroundSound(
+                        victim.location,
+                        Sound.ITEM_TRIDENT_THUNDER,
+                        1.0F,
+                        1.0F + ((10 - 2 * (data.playerKill[attacker.uniqueId] ?: 0)).toFloat() / 10.0F)
+                    )
+                }
             }
         }
     }
@@ -879,7 +927,7 @@ class CustomItemEvent: Listener {
                     break@sh
                 }
                 for (it in loc.getNearbyLivingEntities(10.0, 10.0, 10.0).filterNot { it == player }) {
-                    if (it.boundingBox.clone().expand(1.2).contains(
+                    if (it.boundingBox.clone().expand(1.1).contains(
                             loc.x,
                             loc.y,
                             loc.z
@@ -1132,12 +1180,7 @@ class CustomItemEvent: Listener {
             )
             inv.setItem(
                 13,
-                ItemManager.createNamedItem(
-                    Material.YELLOW_DYE,
-                    3,
-                    "${ChatColor.GOLD}빛의 방패",
-                    listOf("${ChatColor.GRAY}사용시 10초간 받는 대미지가 80% 감소하고 신속 2가 부여됩니다.")
-                )
+                CustomItemData.getDivinityShield().setCount(3)
             )
             inv.setItem(
                 15,
@@ -1170,14 +1213,7 @@ class CustomItemEvent: Listener {
                         )
                     }
 
-                    13 -> {
-                        ItemManager.createNamedItem(
-                            Material.YELLOW_DYE,
-                            3,
-                            "${ChatColor.GOLD}빛의 방패",
-                            listOf("${ChatColor.GRAY}사용시 10초간 받는 대미지가 80% 감소하고 신속 2가 부여됩니다.", "${ChatColor.GRAY}Gadget")
-                        )
-                    }
+                    13 -> CustomItemData.getDivinityShield().setCount(3)
 
                     15 -> {
                         ItemManager.createNamedItem(
@@ -1226,12 +1262,12 @@ class CustomItemEvent: Listener {
         if (e.hand == EquipmentSlot.OFF_HAND) return
         if (!e.action.isRightClick) return
         val player = e.player
-        if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.GOLD}빛의 방패") {
+        if (player.inventory.itemInMainHand.itemMeta?.displayName == ItemManipulator.itemName(CustomItemData.getDivinityShield())) {
             e.isCancelled = true
             if (player.getCooldown(Material.YELLOW_DYE) > 0) return
             player.setCooldown(Material.YELLOW_DYE, 20 * 15)
-            player.addPotionEffect(PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 20 * 10, 3, false, true))
-            player.addPotionEffect(PotionEffect(PotionEffectType.SPEED, 20 * 10, 1, false, true))
+            player.addPotionEffect(PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 20 * 10, 4, false, true))
+            player.addPotionEffect(PotionEffect(PotionEffectType.SLOW, 20 * 10, 0, false, true))
             EffectManager.playSurroundSound(player.location, Sound.ITEM_TRIDENT_THUNDER, 1.0F, 1.4F)
             EffectManager.playSurroundSound(player.location, Sound.ENTITY_ZOMBIE_VILLAGER_CURE, 0.8F, 1.2F)
 
@@ -1273,7 +1309,7 @@ class CustomItemEvent: Listener {
             if (shooter.world.name.contains("Field-")) {
                 val dataClass = WorldManager.initData(shooter.world)
                 chargeShot = ((dataClass.playerKill[shooter.uniqueId] ?: 0) == 0)
-                println(dataClass.playerKill[shooter.uniqueId] ?: 0)
+
             } else {
                 chargeShot = true
             }
@@ -1282,9 +1318,8 @@ class CustomItemEvent: Listener {
                 shooter.setCooldown(Material.BOW, 20 * 8)
                 e.projectile.remove()
 
-                val delay = e.force * 1.0
+                val delay = e.force * 0.8
                 val loc = shooter.eyeLocation.clone()
-                val entities = ArrayList<LivingEntity>()
 
                 val readyParticleLoc = loc.clone()
                 for (i in 0 until (delay * 10).roundToInt()) {
@@ -1294,7 +1329,7 @@ class CustomItemEvent: Listener {
                             readyParticleLoc,
                             Sound.ENTITY_WITHER_SHOOT,
                             0.5f,
-                            (0.5f + 0.15f * i)
+                            (0.4f + 0.2f * i)
                         )
 
 
@@ -1337,12 +1372,8 @@ class CustomItemEvent: Listener {
                         if (loc.block.isSolid) {
                             break@sh
                         }
-                        for (it in loc.getNearbyLivingEntities(10.0, 10.0, 10.0).filterNot { it == shooter }) {
-                            if (it.boundingBox.contains(loc.x, loc.y, loc.z) && isHittable(
-                                    shooter,
-                                    it
-                                ) && !entities.contains(it)
-                            ) {
+                        for (it in loc.getNearbyLivingEntities(10.0, 10.0, 10.0).filter { isHittable(shooter, it) }.filterNot { it == shooter }) {
+                            if (it.boundingBox.expand(1.2).contains(loc.x, loc.y, loc.z)) {
                                 break@sh
                             }
                         }
@@ -1367,8 +1398,7 @@ class CustomItemEvent: Listener {
                             }
                         }
                     }
-                    for (it in loc.getNearbyLivingEntities(20.0, 20.0, 20.0).filter { isHittable(shooter, it) }) {
-                        entities.add(it)
+                    for (it in loc.getNearbyLivingEntities(20.0).filter { isHittable(shooter, it) }.filter { it != shooter }) {
                         if (it is Player) {
                             lastDamager[it] = shooter
                             lastWeapon[it] = LastWeaponData(
@@ -1402,6 +1432,8 @@ class CustomItemEvent: Listener {
                             it.damage(dmg)
                         } else {
                             it.damage(0.5)
+                            val direction = it.location.toVector().subtract(loc.toVector()).normalize()
+                            it.velocity = direction.multiply(0.2)
                         }
                     }
                 }, (delay * 20.0).roundToLong())
@@ -1464,7 +1496,7 @@ class CustomItemEvent: Listener {
 
             val random = java.util.Random()
 
-            val loc = player.eyeLocation
+            val loc = player.location
             val entities = ArrayList<LivingEntity>()
 
             EffectManager.playSurroundSound(player.location, Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 2.0f)
@@ -1481,7 +1513,7 @@ class CustomItemEvent: Listener {
             }
 
             for (n in 0 until 12) {
-                val loc2 = loc.clone()
+                val loc2 = player.eyeLocation.clone()
                 val ent = mutableSetOf<LivingEntity>()
                 loc2.yaw = loc.yaw + random.nextFloat(-20.0F, 20.0F)
                 loc2.pitch = loc.pitch + random.nextFloat(-10.0F, 10.0F)
@@ -1495,13 +1527,13 @@ class CustomItemEvent: Listener {
                         0.0,
                         0.0,
                         0.0,
-                        DustOptions(Color.AQUA, 0.2F)
+                        DustOptions(Color.AQUA, 0.3F)
                     )
                     if (loc2.block.isSolid) {
                         break@sh
                     }
                     for (it in loc2.getNearbyLivingEntities(10.0, 10.0, 10.0).filterNot { it == player }) {
-                        if (it.boundingBox.clone().expand(1.2).contains(loc2.x, loc2.y, loc2.z) && isHittable(
+                        if (it.boundingBox.clone().expand(1.1).contains(loc2.x, loc2.y, loc2.z) && isHittable(
                                 player,
                                 it
                             )
@@ -1585,8 +1617,80 @@ class CustomItemEvent: Listener {
         if (tags.isEmpty()) return
         val tag = tags[0]
         if (tag == "Stinger") {
-            e.damage = e.damage*0.5
+            e.damage *= 0.5
         }
+    }
+    @EventHandler
+    fun onUseRocketLauncher(e: PlayerInteractEvent) {
+        if (e.hand == EquipmentSlot.OFF_HAND) return
+        if (!e.action.isRightClick) return
+        val player = e.player
+        if (player.inventory.itemInMainHand.itemMeta?.displayName == ItemManipulator.itemName(CustomItemData.getRocketLauncher())) {
+            e.isCancelled = true
 
+            if (player.getCooldown(Material.WOODEN_SHOVEL) > 0) return
+            player.setCooldown(Material.WOODEN_SHOVEL, 20 * 30)
+
+            val loc = player.eyeLocation
+            var explode = false
+            val exLoc = player.location.clone()
+            exLoc.add(loc.direction.multiply(2.0))
+            EffectManager.playSurroundSound(exLoc, Sound.ENTITY_GHAST_SHOOT, 1.0f, 0.5f)
+            EffectManager.playSurroundSound(exLoc, Sound.ENTITY_GENERIC_EXPLODE, 1.0F, 0.5F)
+
+            val kb = 1.2
+
+            val direction = player.location.toVector().subtract(exLoc.toVector()).normalize()
+            player.velocity = direction.multiply(kb)
+
+
+            scheduler.runTaskAsynchronously(plugin, Runnable {
+                sh@for (i in 0 until 10*320) {
+                    scheduler.scheduleSyncDelayedTask(plugin, {
+                        if (i > 10) loc.world.spawnParticle(REDSTONE, loc, 1, 0.1, 0.1, 0.1, 0.0, DustOptions(Color.GRAY, 1.5F))
+                        if (loc.block.isSolid) {
+                            explode = true
+                        }
+                        for (it in loc.getNearbyLivingEntities(10.0, 10.0, 10.0).filterNot { it == player }.filter { isHittable(player, it) }) {
+                            if (it.boundingBox.clone().expand(1.1).contains(loc.x, loc.y, loc.z)) {
+                                explode = true
+                            }
+                        }
+                        loc.add(loc.direction.multiply(0.1))
+                    }, 0)
+                    if (explode) {
+                        scheduler.scheduleSyncDelayedTask(plugin, {
+                            EffectManager.playSurroundSound(loc, Sound.ENTITY_GENERIC_EXPLODE, 2.0F, 1.0F)
+                            loc.world.spawnParticle(EXPLOSION_HUGE, loc, 1, 0.0, 0.0, 0.0, 0.0)
+                            loc.getNearbyLivingEntities(5.0).filter { isHittable(player, it) }.forEach {
+                                it.damage(6.0)
+
+                                val directionVel = it.location.toVector().subtract(loc.toVector()).normalize()
+                                it.velocity = directionVel.multiply(kb)
+
+                            }
+                            val blocks = mutableSetOf<Block>()
+
+                            val r = 5
+                            loc.y += 1.0
+                            while (loc.y < 320) {
+
+                                getBlocksInCircle(loc, r).forEach {
+                                    blocks.add(it)
+                                }
+                                loc.y += 1.0
+                            }
+                            blocks.filter { it.type != Material.AIR }
+
+                            blocks.forEach {
+                                EffectManager.breakBlock(it.location)
+                            }
+                        }, 0)
+                        break@sh
+                    }
+                    Thread.sleep(2)
+                }
+            })
+        }
     }
 }

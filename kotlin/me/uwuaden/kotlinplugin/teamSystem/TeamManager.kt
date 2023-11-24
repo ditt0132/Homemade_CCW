@@ -4,6 +4,7 @@ import me.uwuaden.kotlinplugin.Main.Companion.plugin
 import me.uwuaden.kotlinplugin.Main.Companion.scheduler
 import me.uwuaden.kotlinplugin.Main.Companion.worldDatas
 import org.bukkit.Color
+import org.bukkit.GameMode
 import org.bukkit.Material
 import org.bukkit.World
 import org.bukkit.entity.LivingEntity
@@ -16,6 +17,23 @@ import org.bukkit.inventory.meta.trim.ArmorTrim
 import org.bukkit.inventory.meta.trim.TrimMaterial
 import org.bukkit.inventory.meta.trim.TrimPattern
 
+private fun setHelmet(player: Player, target: Player, color: Color) {
+    if (target.equipment.helmet != null && target.equipment.helmet.type.toString().contains("HELMET")) {
+        val item = target.equipment.helmet.clone()
+        val meta = item.itemMeta as ArmorMeta
+        meta.trim = ArmorTrim(TrimMaterial.EMERALD, TrimPattern.WARD)
+        item.itemMeta = meta
+        if (item.type != Material.AIR) {
+            player.sendEquipmentChange(target, EquipmentSlot.HEAD, item)
+        }
+    } else {
+        val leatherHelm = ItemStack(Material.LEATHER_HELMET)
+        val leatherMeta = leatherHelm.itemMeta as LeatherArmorMeta
+        leatherMeta.setColor(color)
+        leatherHelm.itemMeta = leatherMeta
+        player.sendEquipmentChange(target, EquipmentSlot.HEAD, leatherHelm)
+    }
+}
 object TeamManager {
     fun isSameTeam(world: World, player1: Player, player2: Player): Boolean {
         val teams = worldDatas[world]?.teams ?: return false
@@ -43,27 +61,30 @@ object TeamManager {
 
     fun sch() {
         scheduler.scheduleSyncRepeatingTask(plugin, {
-            plugin.server.worlds.forEach { world ->
-                if (world.name.contains("Field-")) {
-                    world.players.forEach { p ->
-                        p.location.getNearbyPlayers(100.0).forEach {
-                            if (isSameTeam(it.world, p, it)) {
-                                if (it != p) {
-                                    if (it.equipment.helmet != null && it.equipment.helmet.type.toString().contains("HELMET")) {
-                                        val item = it.equipment.helmet.clone()
-                                        val meta = item.itemMeta as ArmorMeta
-                                        meta.trim = ArmorTrim(TrimMaterial.EMERALD, TrimPattern.WARD)
-                                        item.itemMeta = meta
-                                        if (item.type != Material.AIR) {
-                                            p.sendEquipmentChange(it, EquipmentSlot.HEAD, item)
-                                        }
-                                    } else {
+            plugin.server.worlds.filter { it.name.contains("Field-")}.forEach { world ->
+                world.players.forEach { p ->
+                    if (p.gameMode == GameMode.SPECTATOR) {
+                        p.location.getNearbyPlayers(50.0).forEach {
+                            val team = getTeam(world, it)
+                            if (it != p) {
+                                if (isSameTeam(it.world, p, it)) {
+                                    setHelmet(p, it, Color.LIME)
+                                } else {
+                                    if (team != null) {
                                         val leatherHelm = ItemStack(Material.LEATHER_HELMET)
                                         val leatherMeta = leatherHelm.itemMeta as LeatherArmorMeta
-                                        leatherMeta.setColor(Color.LIME)
+                                        leatherMeta.setColor(team.color)
                                         leatherHelm.itemMeta = leatherMeta
                                         p.sendEquipmentChange(it, EquipmentSlot.HEAD, leatherHelm)
                                     }
+                                }
+                            }
+                        }
+                    } else {
+                        p.location.getNearbyPlayers(50.0).forEach {
+                            if (isSameTeam(it.world, p, it)) {
+                                if (it != p) {
+                                    setHelmet(p, it, Color.LIME)
                                 }
                             }
                         }

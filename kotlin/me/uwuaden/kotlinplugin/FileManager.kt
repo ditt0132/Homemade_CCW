@@ -5,10 +5,15 @@ import me.uwuaden.kotlinplugin.Main.Companion.scheduler
 import me.uwuaden.kotlinplugin.quickSlot.PlayerQuickSlotData
 import me.uwuaden.kotlinplugin.quickSlot.QuickSlotEvent.Companion.playerQuickSlot
 import me.uwuaden.kotlinplugin.rankSystem.RankSystem
+import me.uwuaden.kotlinplugin.skillSystem.PlayerSkillHolder
+import me.uwuaden.kotlinplugin.skillSystem.SkillEvent.Companion.playerEItem
+import me.uwuaden.kotlinplugin.skillSystem.SkillEvent.Companion.playerEItemList
 import net.kyori.adventure.text.Component
 import org.bukkit.Material
+import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.inventory.ItemStack
 import java.io.File
+import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
@@ -33,6 +38,77 @@ object FileManager {
             }
         })
     }
+    fun savePlayerEItemToFile() {
+        var file = File(plugin.dataFolder, "PlayerEItem.yml")
+        var config = YamlConfiguration()
+
+        // HashMap을 YAML에 저장
+        playerEItem.forEach { (uuid, value) ->
+            config.set(uuid.toString(), value)
+        }
+
+        // 파일에 저장
+        try {
+            config.save(file)
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+
+        file = File(plugin.dataFolder, "PlayerEItemList.yml")
+        config = YamlConfiguration()
+
+        playerEItemList.forEach { (uuid, data) ->
+            config.set(uuid.toString(), data.eliteItems.toList())
+        }
+
+        try {
+            config.save(file)
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+    }
+    fun loadPlayerEItemFromFile() {
+        var file = File(plugin.dataFolder, "PlayerEItem.yml")
+        var config = YamlConfiguration()
+
+        // 파일에서 데이터 로드
+        try {
+            config.load(file)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        val data1 = HashMap<UUID, Int>()
+
+        // YAML에서 데이터를 HashMap으로 변환
+        config.getKeys(false).forEach { uuidStr ->
+            val uuid = UUID.fromString(uuidStr)
+            val value = config.getInt(uuidStr)
+            data1[uuid] = value
+        }
+
+        playerEItem = data1
+
+        file = File(plugin.dataFolder, "PlayerEItemList.yml")
+        config = YamlConfiguration()
+
+        try {
+            config.load(file)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        val data2 = HashMap<UUID, PlayerSkillHolder>()
+        config.getKeys(false).forEach { uuidStr ->
+            val uuid = UUID.fromString(uuidStr)
+            val value = config.getIntegerList(uuidStr)
+            val holder = PlayerSkillHolder()
+            holder.eliteItems = value.toMutableSet()
+            data2[uuid] = holder
+        }
+
+        playerEItemList = data2
+    }
     fun saveVar() {
         var f = File(plugin.dataFolder, "PlayerMMR.yml")
         var t = ""
@@ -46,7 +122,7 @@ object FileManager {
         playerQuickSlot.forEach { (uuid, data) ->
             t += "${uuid}/-:-/ "
             data.slotData.forEach { (idx, item) ->
-                var displayName = item.itemMeta.displayName //Todo: 모르겠음
+                val displayName = item.itemMeta.displayName //Todo: 모르겠음
 
                 t += "${idx}/-&-/${displayName}/-&-/${item.type}/-,-/ "
             }
@@ -75,12 +151,10 @@ object FileManager {
                             if (t.hasMoreTokens()) {
                                 val mmr = t.nextToken().trim().toInt()
                                 classData.playerMMR = mmr
-                                println(classData.playerMMR)
                             }
                             if (t.hasMoreTokens()) {
                                 val rank = t.nextToken().trim().toInt()
                                 classData.playerRank = rank
-                                println(classData.playerRank)
                             }
                             if (t.hasMoreTokens()) {
                                 val bool = t.nextToken().trim().toBoolean()
