@@ -31,7 +31,7 @@ private fun swapPlayerItem(player: Player, item: ItemStack) {
 
 class QuickSlotEvent: Listener {
     companion object {
-        val playerQuickSlot = HashMap<UUID, PlayerQuickSlotData>()
+        var playerQuickSlot = HashMap<UUID, PlayerQuickSlotData>()
     }
 
     @EventHandler

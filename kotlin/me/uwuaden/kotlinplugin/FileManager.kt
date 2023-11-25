@@ -8,10 +8,7 @@ import me.uwuaden.kotlinplugin.rankSystem.RankSystem
 import me.uwuaden.kotlinplugin.skillSystem.PlayerSkillHolder
 import me.uwuaden.kotlinplugin.skillSystem.SkillEvent.Companion.playerEItem
 import me.uwuaden.kotlinplugin.skillSystem.SkillEvent.Companion.playerEItemList
-import net.kyori.adventure.text.Component
-import org.bukkit.Material
 import org.bukkit.configuration.file.YamlConfiguration
-import org.bukkit.inventory.ItemStack
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
@@ -66,6 +63,20 @@ object FileManager {
         } catch (e: IOException) {
             e.printStackTrace()
         }
+
+        config = YamlConfiguration()
+        file = File(plugin.dataFolder, "PlayerQuickslotData.yml")
+
+        playerQuickSlot.forEach { (uuid, data) ->
+            data.slotData.forEach { (idx, item) ->
+                config.set(uuid.toString() + "_$idx", item)
+            }
+        }
+        try {
+            config.save(file)
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
     }
     fun loadPlayerEItemFromFile() {
         var file = File(plugin.dataFolder, "PlayerEItem.yml")
@@ -108,6 +119,31 @@ object FileManager {
         }
 
         playerEItemList = data2
+
+
+        val data3 = HashMap<UUID, PlayerQuickSlotData>()
+        file = File(plugin.dataFolder, "PlayerQuickslotData.yml")
+        config = YamlConfiguration()
+
+        try {
+            config.load(file)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        config.getKeys(false).forEach { uuidStr ->
+            val list = uuidStr.split("_")
+            val uuid = UUID.fromString(list[0])
+            val item = config.getItemStack(uuidStr)
+            val itemIdx = list[1].toInt()
+
+            if (data3[uuid] == null) {
+                data3[uuid] = PlayerQuickSlotData()
+            }
+
+            if (item != null) data3[uuid]?.slotData?.set(itemIdx, item)
+        }
+        playerQuickSlot = data3
     }
     fun saveVar() {
         var f = File(plugin.dataFolder, "PlayerMMR.yml")
@@ -117,19 +153,19 @@ object FileManager {
         }
         f.writeText(t)
 
-        f = File(plugin.dataFolder, "PlayerQuickSlot.yml")
-        t = ""
-        playerQuickSlot.forEach { (uuid, data) ->
-            t += "${uuid}/-:-/ "
-            data.slotData.forEach { (idx, item) ->
-                val displayName = item.itemMeta.displayName //Todo: 모르겠음
-
-                t += "${idx}/-&-/${displayName}/-&-/${item.type}/-,-/ "
-            }
-            t = removeLastChars(t, 6)
-            t += "\n"
-        }
-        f.writeText(t)
+//        f = File(plugin.dataFolder, "PlayerQuickSlot.yml")
+//        t = ""
+//        playerQuickSlot.forEach { (uuid, data) ->
+//            t += "${uuid}/-:-/ "
+//            data.slotData.forEach { (idx, item) ->
+//                val displayName = item.itemMeta.displayName //Todo: 모르겠음
+//
+//                t += "${idx}/-&-/${displayName}/-&-/${item.type}/-,-/ "
+//            }
+//            t = removeLastChars(t, 6)
+//            t += "\n"
+//        }
+//        f.writeText(t)
     }
 
     fun loadVar() {
@@ -178,36 +214,36 @@ object FileManager {
         } else {
             f.createNewFile()
         }
-        f = File(plugin.dataFolder, "PlayerQuickSlot.yml")
-        if (f.exists()) {
-            f.readText(Charsets.UTF_8).split("\n").forEach {
-                if (it.trim() != "") {
-                    try {
-                        val key = (UUID.fromString(it.split("/-:-/ ")[0].trim()))
-                        if (key != null) {
-                            val text = it.split("/-:-/ ")[1]
-
-                            playerQuickSlot[key] = PlayerQuickSlotData()
-                            text.split("/-,-/").forEach { str ->
-                                println(str)
-                                val data = str.split("/-&-/")
-
-                                val item = ItemStack(Material.valueOf(data[2].trim()))
-                                val meta = item.itemMeta
-                                if (data[1] != "") {
-                                    meta.displayName(Component.text(data[1]))
-                                }
-                                item.itemMeta = meta
-                                playerQuickSlot[key]!!.slotData[data[0].trim().toInt()] = item
-                            }
-                        }
-                    } catch (e: Exception) {
-                        println(e)
-                    }
-                }
-            }
-        } else {
-            f.createNewFile()
-        }
+//        f = File(plugin.dataFolder, "PlayerQuickSlot.yml")
+//        if (f.exists()) {
+//            f.readText(Charsets.UTF_8).split("\n").forEach {
+//                if (it.trim() != "") {
+//                    try {
+//                        val key = (UUID.fromString(it.split("/-:-/ ")[0].trim()))
+//                        if (key != null) {
+//                            val text = it.split("/-:-/ ")[1]
+//
+//                            playerQuickSlot[key] = PlayerQuickSlotData()
+//                            text.split("/-,-/").forEach { str ->
+//                                println(str)
+//                                val data = str.split("/-&-/")
+//
+//                                val item = ItemStack(Material.valueOf(data[2].trim()))
+//                                val meta = item.itemMeta
+//                                if (data[1] != "") {
+//                                    meta.displayName(Component.text(data[1]))
+//                                }
+//                                item.itemMeta = meta
+//                                playerQuickSlot[key]!!.slotData[data[0].trim().toInt()] = item
+//                            }
+//                        }
+//                    } catch (e: Exception) {
+//                        println(e)
+//                    }
+//                }
+//            }
+//        } else {
+//            f.createNewFile()
+//        }
     }
 }

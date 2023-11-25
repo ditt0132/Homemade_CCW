@@ -37,7 +37,6 @@ import org.bukkit.scheduler.BukkitScheduler
 import java.io.File
 import java.util.*
 import java.util.logging.Level
-import kotlin.math.log
 
 
 private fun initPluginFolder() {
@@ -45,18 +44,6 @@ private fun initPluginFolder() {
     if (pluginFolder.exists()) return
     pluginFolder.mkdirs()
 
-}
-
-private fun playSurroundSound(loc: Location, sound: Sound, volume: Float, pitch: Float) {
-    loc.getNearbyPlayers(150.0).forEach { player ->
-        val dist = loc.distance(player.location)
-        if (dist <= 5) {
-            player.playSound(loc, sound, volume, pitch)
-        } else {
-            val calculatedVol = volume * (log(dist+30.0, 1.2) - 20.0).toFloat()
-            player.playSound(loc, sound, calculatedVol, pitch)
-        }
-    }
 }
 
 class Main: JavaPlugin() {
@@ -139,7 +126,7 @@ class Main: JavaPlugin() {
         Bukkit.getPluginManager().registerEvents(SpecEvent(), this)
         Bukkit.getPluginManager().registerEvents(ZombieEvent(), this)
 
-        if (!setupEconomy() ) {
+        if (!setupEconomy()) {
             server.logger.log(Level.WARNING, "Vault Load Error")
             server.pluginManager.disablePlugin(plugin)
             return
