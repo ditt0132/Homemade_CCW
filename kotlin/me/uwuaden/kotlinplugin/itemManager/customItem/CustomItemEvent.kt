@@ -409,19 +409,14 @@ private fun molotovCocktail(loc: Location, p: Player) {
                         distLoc.y = e.location.y
                         if (deltaY <= 1.1 && distLoc.distance(e.location) <= r.toDouble()) {
                             if (TeamManager.isSameTeam(loc.world, p, e)) {
-                                e.fireTicks = 20 * 2
-                            } else {
                                 e.fireTicks = 20 * 4
+                            } else {
+                                e.fireTicks = 20 * 8
                             }
                             if (i%5 == 0) {
                                 if (e is Player) {
                                     lastDamager[e] = p
                                     lastWeapon[e] = LastWeaponData(ItemManager.createNamedItem(Material.STICK, 1, "화염병", null), System.currentTimeMillis()+1000*10)
-                                }
-                                if (TeamManager.isSameTeam(loc.world, p, e)) {
-                                    e.damage(0.5)
-                                } else {
-                                    e.damage(1.0)
                                 }
                                 EffectManager.playSurroundSound(originLoc, Sound.BLOCK_FIRE_AMBIENT, 1.0f, 1.5f)
                             }

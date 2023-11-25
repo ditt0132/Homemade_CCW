@@ -376,7 +376,7 @@ class Main: JavaPlugin() {
 
                     }
                 }
-                then ("랭크") {
+                then("랭크") {
                     val autoCompleteBlockPosition = string().apply {
                         suggests { ctx ->
                             val list = mutableListOf<String>()
@@ -388,6 +388,22 @@ class Main: JavaPlugin() {
                         }
                     }
 
+                    then("시즌초기화" to string(StringType.GREEDY_PHRASE)) {
+                        executes {
+                            sender.sendMessage("정말로 시즌을 초기화하나요?")
+                            sender.sendMessage("/닭갈비관리자 시즌초기화 confirm 을 사용하여 시즌 초기화를 승인하세요")
+
+                        }
+                        then("confirm" to string()) {
+                            executes {
+
+
+                                }
+                            }
+
+                        }
+
+
                     then("PlayerName" to autoCompleteBlockPosition) {
                         executes {
                             val PlayerName: String by it
@@ -396,48 +412,48 @@ class Main: JavaPlugin() {
                                 val classData = RankSystem.initData(p.uniqueId)
 
                                 val rankStr = RankSystem.rateToString(player)
-                                player.sendMessage("${ChatColor.GREEN}${PlayerName}님의 랭크: ${rankStr} ${ChatColor.GREEN}(${classData.playerRank%100}/100)")
+                                player.sendMessage("${ChatColor.GREEN}${PlayerName}님의 랭크: ${rankStr} ${ChatColor.GREEN}(${classData.playerRank % 100}/100)")
                             }
                         }
                     }
-                }
 
-                then("강제시작") {
-                    executes {
-                        if (player.world.name.contains("Queue-")) {
-                            queueStartIn[player.world.name] = System.currentTimeMillis() + 10*1000
-                            player.sendMessage("${ChatColor.GREEN}강제시작 됨 (10초)")
-                        }
-                    }
-                }
-                then("test") {
-                    then("n" to int()) {
+                    then("강제시작") {
                         executes {
-                            val n: Int by it
-                            val data = WorldManager.initData(player.world)
-                            data.dataInt = n
+                            if (player.world.name.contains("Queue-")) {
+                                queueStartIn[player.world.name] = System.currentTimeMillis() + 10 * 1000
+                                player.sendMessage("${ChatColor.GREEN}강제시작 됨 (10초)")
+                            }
                         }
                     }
-                }
-                then("test2") {
-                    executes {
-                        player.inventory.addItem(CustomItemData.getMolt())
+                    then("test") {
+                        then("n" to int()) {
+                            executes {
+                                val n: Int by it
+                                val data = WorldManager.initData(player.world)
+                                data.dataInt = n
+                            }
+                        }
                     }
-                }
-                then("test3") {
-                    executes {
-                        player.location.getNearbyEntities(10.0, 10.0, 10.0).forEach {
-                            if (it.scoreboardTags.contains("ccw_smoke")) {
-                                if (it.boundingBox.contains(player.x, player.y, player.z)) {
-                                    player.sendMessage("asdf")
+                    then("test2") {
+                        executes {
+                            player.inventory.addItem(CustomItemData.getMolt())
+                        }
+                    }
+                    then("test3") {
+                        executes {
+                            player.location.getNearbyEntities(10.0, 10.0, 10.0).forEach {
+                                if (it.scoreboardTags.contains("ccw_smoke")) {
+                                    if (it.boundingBox.contains(player.x, player.y, player.z)) {
+                                        player.sendMessage("asdf")
+                                    }
                                 }
                             }
                         }
                     }
-                }
-                then("resetcooldown") {
-                    executes {
-                        player.setCooldown(player.inventory.itemInMainHand.type, 0)
+                    then("resetcooldown") {
+                        executes {
+                            player.setCooldown(player.inventory.itemInMainHand.type, 0)
+                        }
                     }
                 }
             }
