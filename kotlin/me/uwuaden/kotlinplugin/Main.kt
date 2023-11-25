@@ -388,19 +388,15 @@ class Main: JavaPlugin() {
                         }
                     }
 
-                    then("시즌초기화") {
+                    then("시즌초기화" to string(StringType.GREEDY_PHRASE)) {
                         executes {
                             sender.sendMessage("정말로 시즌을 초기화하나요?")
                             sender.sendMessage("/닭갈비관리자 시즌초기화 confirm 을 사용하여 시즌 초기화를 승인하세요")
-                            var rankreset = 0
-                            rankreset += 1
 
-                            if (rankreset > 1) {
-                                rankreset = 1
-                            }
                         }
-                        then("confirm") {
+                        then("confirm" to string()) {
                             executes {
+
 
                                 }
                             }
