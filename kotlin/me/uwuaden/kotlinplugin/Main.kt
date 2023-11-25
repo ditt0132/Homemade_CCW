@@ -387,23 +387,6 @@ class Main: JavaPlugin() {
                             suggest(list)
                         }
                     }
-
-                    then("시즌초기화" to string(StringType.GREEDY_PHRASE)) {
-                        executes {
-                            sender.sendMessage("정말로 시즌을 초기화하나요?")
-                            sender.sendMessage("/닭갈비관리자 시즌초기화 confirm 을 사용하여 시즌 초기화를 승인하세요")
-
-                        }
-                        then("confirm" to string()) {
-                            executes {
-
-
-                                }
-                            }
-
-                        }
-
-
                     then("PlayerName" to autoCompleteBlockPosition) {
                         executes {
                             val PlayerName: String by it
@@ -416,44 +399,82 @@ class Main: JavaPlugin() {
                             }
                         }
                     }
+                }
+                fun sendResetMessage(player: Player) {
+                    player.sendMessage("§a시즌을 초기화하시겠습니까?")
+                    player.sendMessage("§a§l/닭갈비관리자 시즌초기화 confirm§a으로 명령어를 실행해주세요.")
+                }
 
-                    then("강제시작") {
-                        executes {
-                            if (player.world.name.contains("Queue-")) {
-                                queueStartIn[player.world.name] = System.currentTimeMillis() + 10 * 1000
-                                player.sendMessage("${ChatColor.GREEN}강제시작 됨 (10초)")
-                            }
-                        }
+                then("시즌초기화" to string(StringType.GREEDY_PHRASE)) {
+                    executes {
+                        sendResetMessage(player)
                     }
-                    then("test") {
-                        then("n" to int()) {
-                            executes {
-                                val n: Int by it
-                                val data = WorldManager.initData(player.world)
-                                data.dataInt = n
-                            }
-                        }
-                    }
-                    then("test2") {
+                    then("arg" to string(StringType.GREEDY_PHRASE)) {
                         executes {
-                            player.inventory.addItem(CustomItemData.getMolt())
-                        }
-                    }
-                    then("test3") {
-                        executes {
-                            player.location.getNearbyEntities(10.0, 10.0, 10.0).forEach {
-                                if (it.scoreboardTags.contains("ccw_smoke")) {
-                                    if (it.boundingBox.contains(player.x, player.y, player.z)) {
-                                        player.sendMessage("asdf")
+                            val arg: String by it
+                            if (arg == "confirm") {
+                                plugin.server.onlinePlayers.forEach { player ->
+                                    player.sendMessage("시즌이 초기화되었습니다.")
+                                    player.sendMessage("(메세지)")
+                                    player.sendMessage("(메세지)")
+                                    player.sendMessage("(메세지)")
+                                }
+                                plugin.server.offlinePlayers.forEach { offlinePlayer ->
+                                    val classData = RankSystem.initData(offlinePlayer.uniqueId)
+
+                                    when (classData.playerRank/400) { //점수를 400단위 (한 티어) 단위로 잘라서 계산 (0: 아이언, 1: 브론즈, 2: 실버..)
+                                        //브론즈
+                                        1 -> {
+                                            econ.depositPlayer(offlinePlayer, 500.0)
+                                        }
+                                        //실버
+                                        2 -> {
+                                            econ.depositPlayer(offlinePlayer, 1000.0)
+                                        }
                                     }
+                                }
+                            } else {
+                                sendResetMessage(player)
+                            }
+                        }
+                    }
+                }
+                then("강제시작") {
+                    executes {
+                        if (player.world.name.contains("Queue-")) {
+                            queueStartIn[player.world.name] = System.currentTimeMillis() + 10 * 1000
+                            player.sendMessage("${ChatColor.GREEN}강제시작 됨 (10초)")
+                        }
+                    }
+                }
+                then("test") {
+                    then("n" to int()) {
+                        executes {
+                            val n: Int by it
+                            val data = WorldManager.initData(player.world)
+                            data.dataInt = n
+                        }
+                    }
+                }
+                then("test2") {
+                    executes {
+                        player.inventory.addItem(CustomItemData.getMolt())
+                    }
+                }
+                then("test3") {
+                    executes {
+                        player.location.getNearbyEntities(10.0, 10.0, 10.0).forEach {
+                            if (it.scoreboardTags.contains("ccw_smoke")) {
+                                if (it.boundingBox.contains(player.x, player.y, player.z)) {
+                                    player.sendMessage("asdf")
                                 }
                             }
                         }
                     }
-                    then("resetcooldown") {
-                        executes {
-                            player.setCooldown(player.inventory.itemInMainHand.type, 0)
-                        }
+                }
+                then("resetcooldown") {
+                    executes {
+                        player.setCooldown(player.inventory.itemInMainHand.type, 0)
                     }
                 }
             }

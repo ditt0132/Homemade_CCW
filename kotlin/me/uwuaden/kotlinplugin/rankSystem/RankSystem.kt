@@ -78,28 +78,28 @@ object RankSystem {
         val classData = initData(player.uniqueId)
 
 
-        val playerMMR = classData.playerMMR
-        val gap = AvgMMR - playerMMR
-        var mergingScore = abs(gap/100)
-        if (mergingScore > 2) mergingScore = 2
-        var killFinal = (kill.toDouble()/playerTotal.toDouble())*((10.0/100.0).pow(-1)) //100명 당 10킬 기준으로 갈림
+//        val playerMMR = classData.playerMMR
+//        val gap = AvgMMR - playerMMR
+//        var mergingScore = abs(gap/100)
+//        if (mergingScore > 2) mergingScore = 2
+        var killFinal = (kill.toDouble()/playerTotal.toDouble())*((10.0/100.0).pow(-1)) //100명 당 10킬 기준으로 갈림 = 100명일때 10킬시 최대 킬 스코어 (1.0)
 
         if (killFinal > 1.0) killFinal = 1.0
 
-        val rate = 1.0 - (Ranking.toDouble()-1.0)/playerTotal.toDouble()
+        val rate = 1.0 - (Ranking.toDouble()-1.0)/playerTotal.toDouble() //1등시 1.0 꼴지하면 0.0
 
         val killFactor = 80
         val rankFactor = 20
 
-        var change = (-50 + rate*rankFactor + killFinal*killFactor).roundToInt()
+        var change = (-30 + rate*rankFactor + killFinal*killFactor).roundToInt() //최대한 오르게 -50 -> -30으로 개선
 
 
 
-        if (gap > 0) { //HighMMR = 추가 점수
-            change += mergingScore*10
-        } else { //LowMMR
-            change -= mergingScore*10
-        }
+//        if (gap > 0) { //HighMMR = 추가 점수
+//            change += mergingScore*10
+//        } else { //LowMMR
+//            change -= mergingScore*10
+//        }
 
         if (change > 50) change = 50
         else if (change < -50) change = -50
@@ -109,11 +109,11 @@ object RankSystem {
         }
         classData.gamePlayed += 1
 
-        classData.playerMMR = (classData.playerMMR) + change
+        classData.playerMMR += change
 
         if (classData.playerMMR < 0) {
             classData.playerMMR = 0
-        }
+        } //0이하로 떨어지면 보정 들어갑니다.
     }
     fun updateRank(player: Player, kill: Int, playerTotal: Int, Ranking: Int, AvgMMR: Int) {
         val classData = initData(player.uniqueId)
@@ -127,7 +127,7 @@ object RankSystem {
         if (classData.unRanked && classData.rank) {
             if (classData.gamePlayed >= playCountNeeded) { 
 
-                classData.playerRank = (playerMMR/100)*100 - 50
+                classData.playerRank = (playerMMR/100)*100 + 50 //-50으로 보정 했는데 높은곳으로 올려주기 위해 +50으로 바꿈
 
                 if (classData.playerRank < 0) classData.playerRank = 0
 
