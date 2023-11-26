@@ -126,6 +126,10 @@ class Main: JavaPlugin() {
         Bukkit.getPluginManager().registerEvents(SpecEvent(), this)
         Bukkit.getPluginManager().registerEvents(ZombieEvent(), this)
 
+        fun rgb(R: Int, G: Int, B: Int): net.md_5.bungee.api.ChatColor {
+            return net.md_5.bungee.api.ChatColor.of(java.awt.Color(R, G, B))
+        }
+
         if (!setupEconomy()) {
             server.logger.log(Level.WARNING, "Vault Load Error")
             server.pluginManager.disablePlugin(plugin)
@@ -401,23 +405,51 @@ class Main: JavaPlugin() {
                             val arg: String by it
                             if (arg == "confirm") {
                                 plugin.server.onlinePlayers.forEach { player ->
-                                    player.sendMessage("시즌이 초기화되었습니다.")
-                                    player.sendMessage("(메세지)")
-                                    player.sendMessage("(메세지)")
-                                    player.sendMessage("(testing)")
+                                    player.playSound(player, Sound.UI_TOAST_CHALLENGE_COMPLETE, 1F, 0.7F)
+                                    player.sendMessage("${ChatColor.GOLD}=================================================")
+                                    player.sendMessage(" ")
+                                    player.sendMessage("${ChatColor.GREEN}2023년 11월 26일, 닭갈비 시즌 1이 종료되었습니다!")
+                                    player.sendMessage(" ")
+                                    player.sendMessage("${ChatColor.WHITE}당신의 최종 티어 : ${rgb(201,0,201)}Master 1102p ${ChatColor.GRAY}${ChatColor.ITALIC}(전체 순위 ${ChatColor.GREEN}6${ChatColor.GRAY}등, 전 시즌 대비 ${ChatColor.GREEN}+4${ChatColor.GRAY}등)")
+                                    player.sendMessage(" ")
+                                    player.sendMessage("최종 보상 : ${rgb(201,0,201)}[${ChatColor.BOLD}Season 1 ${ChatColor.ITALIC}#${rgb(201,0,201)}${ChatColor.BOLD}6 ${ChatColor.RESET}${rgb(201,0,201)}Master] ${ChatColor.RESET}휘장 ${ChatColor.GREEN}+ ${ChatColor.GOLD}")
+                                    player.sendMessage("${ChatColor.GRAY}${ChatColor.ITALIC}*휘장은 /profix 로 확인 및 수정할 수 있습니다!*")
+                                    player.sendMessage(" ")
+                                    player.sendMessage("${ChatColor.GOLD}=================================================")
+
                                 }
                                 plugin.server.offlinePlayers.forEach { offlinePlayer ->
                                     val classData = RankSystem.initData(offlinePlayer.uniqueId)
 
                                     when (classData.playerRank/400) { //점수를 400단위 (한 티어) 단위로 잘라서 계산 (0: 아이언, 1: 브론즈, 2: 실버..)
+                                        //아이언
+                                        0 -> {
+                                            econ.depositPlayer(offlinePlayer, 1000.0)
+                                        }
                                         //브론즈
                                         1 -> {
-                                            econ.depositPlayer(offlinePlayer, 500.0)
+                                            econ.depositPlayer(offlinePlayer, 2500.0)
                                         }
                                         //실버
                                         2 -> {
-                                            econ.depositPlayer(offlinePlayer, 1000.0)
+                                            econ.depositPlayer(offlinePlayer, 5000.0)
                                         }
+                                        //골드
+                                        3 -> {
+                                            econ.depositPlayer(offlinePlayer, 7500.0)
+                                        }
+                                        //플레
+                                        4 -> {
+                                            econ.depositPlayer(offlinePlayer, 15000.0)
+                                        } //다이아
+                                        5 -> {
+                                            econ.depositPlayer(offlinePlayer, 30000.0)
+                                        } //마스터
+                                        in 6..10 -> {
+                                            econ.depositPlayer(offlinePlayer, 100000.0)
+                                        }
+
+
                                     }
                                 }
                             } else {
