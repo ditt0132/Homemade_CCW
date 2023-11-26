@@ -404,7 +404,7 @@ class Main: JavaPlugin() {
                                     player.sendMessage("시즌이 초기화되었습니다.")
                                     player.sendMessage("(메세지)")
                                     player.sendMessage("(메세지)")
-                                    player.sendMessage("(메세지)")
+                                    player.sendMessage("(testing)")
                                 }
                                 plugin.server.offlinePlayers.forEach { offlinePlayer ->
                                     val classData = RankSystem.initData(offlinePlayer.uniqueId)
