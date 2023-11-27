@@ -67,6 +67,7 @@ class Main: JavaPlugin() {
 
         var worldDatas = HashMap<World, WorldDataManager>()
         var queueDatas = HashMap<World, QueueData>()
+        val chunkScheduleProgress = mutableSetOf<Chunk>()
 
         lateinit var lobbyLoc: Location
         lateinit var econ: Economy
@@ -104,6 +105,7 @@ class Main: JavaPlugin() {
         scheduler = Bukkit.getScheduler()
         scheduler.cancelTasks(plugin)
         QueueOperator.sch()
+        GameManager.chunkSch() //아이템 생성 등등 여러가지
         GameManager.gameSch()
         ItemManager.updateInventorySch()
         CustomItemManager.itemSch()

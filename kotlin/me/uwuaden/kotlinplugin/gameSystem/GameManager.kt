@@ -2,6 +2,7 @@ package me.uwuaden.kotlinplugin.gameSystem
 
 import com.destroystokyo.paper.Title
 import me.uwuaden.kotlinplugin.Main
+import me.uwuaden.kotlinplugin.Main.Companion.chunkScheduleProgress
 import me.uwuaden.kotlinplugin.Main.Companion.defaultMMR
 import me.uwuaden.kotlinplugin.Main.Companion.droppedItems
 import me.uwuaden.kotlinplugin.Main.Companion.lastDamager
@@ -35,6 +36,7 @@ import org.bukkit.potion.PotionEffect
 import org.bukkit.potion.PotionEffectType
 import org.bukkit.scoreboard.Team
 import java.util.*
+import java.util.logging.Level
 import kotlin.math.*
 
 private fun shufflePlayers(players: ArrayList<Player>): ArrayList<Player> {
@@ -188,7 +190,7 @@ private fun getHighestBlockBelow(location: Location): Location {
     return location
 }
 
-private fun initDroppedItemLoc(loc: Location, rad: Double) {
+private fun initDroppedItemLoc(loc: Location, rad: Double) { //Dep
     scheduler.runTaskAsynchronously(plugin, Runnable {
         try {
             Main.droppedItems.filter { it.loc.world == loc.world }.sortedBy { distance(loc, it.loc) }.forEach { droppedItem ->
@@ -203,6 +205,26 @@ private fun initDroppedItemLoc(loc: Location, rad: Double) {
                 }
             }
         } catch (e: Exception) {}
+    })
+}
+private fun initDroppedItemLoc(chunk: Chunk) {
+    scheduler.runTaskAsynchronously(plugin, Runnable {
+        try {
+            var loopTime = 0
+            droppedItems.filter { it.loc.chunk == chunk }.forEach { droppedItem ->
+                loopTime++
+                if (loopTime%50 == 0) Thread.sleep(50)
+                if (!droppedItem.isLocated) {
+                    droppedItem.isLocated = true
+                    droppedItem.loc = Location(droppedItem.loc.world, floor(droppedItem.loc.x) + 0.5, getHighestBlockBelow(droppedItem.loc).y+0.5, floor(droppedItem.loc.z) + 0.5)
+                    scheduler.scheduleSyncDelayedTask(plugin, {
+                        ItemManager.createDisplay(droppedItem)
+                    }, 0)
+                }
+            }
+        } catch (e: Exception) {
+            plugin.server.logger.log(Level.WARNING, "Dropped Item Locating Error")
+        }
     })
 }
 
@@ -371,6 +393,14 @@ private fun initPlayer(player: Player) {
 }
 
 object GameManager {
+    fun chunkSch() {
+        scheduler.scheduleSyncRepeatingTask(plugin, {
+            val chunk = chunkScheduleProgress.random()
+            chunkScheduleProgress.remove(chunk)
+            initDroppedItemLoc(chunk)
+        }, 0, 2)
+    }
+
 //    fun zombieSch() {
 //        scheduler.scheduleSyncRepeatingTask(plugin, {
 //            plugin.server.worlds.forEach { world->
@@ -729,7 +759,7 @@ object GameManager {
         scheduler.scheduleSyncRepeatingTask(plugin, {
             plugin.server.worlds.filter { it.name.contains("Field-") }.forEach { world ->
                 world.players.forEach { player ->
-                    initDroppedItemLoc(player.location, 50.0)
+                    //initDroppedItemLoc(player.location, 50.0)
                     WorldItemManager.createItems(player.location, 50.0)
                 }
             }

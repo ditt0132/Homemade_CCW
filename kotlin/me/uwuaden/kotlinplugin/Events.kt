@@ -1,6 +1,7 @@
 package me.uwuaden.kotlinplugin
 
 import com.destroystokyo.paper.event.player.PlayerJumpEvent
+import me.uwuaden.kotlinplugin.Main.Companion.chunkScheduleProgress
 import me.uwuaden.kotlinplugin.Main.Companion.econ
 import me.uwuaden.kotlinplugin.Main.Companion.lastDamager
 import me.uwuaden.kotlinplugin.Main.Companion.lastWeapon
@@ -22,6 +23,7 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.*
 import org.bukkit.event.player.*
+import org.bukkit.event.world.ChunkLoadEvent
 import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
 import org.bukkit.potion.PotionEffectType
@@ -114,6 +116,12 @@ private fun deathPlayer(p: Player) {
 }
 
 class Events: Listener {
+    @EventHandler
+    fun onChunkLoad(e: ChunkLoadEvent) {
+        if (e.world.name.contains("Field-")) {
+            if (e.isNewChunk) chunkScheduleProgress.add(e.chunk)
+        }
+    }
     @EventHandler
     fun slotChange(e: PlayerItemHeldEvent) {
         val item = e.player.inventory.getItem(e.newSlot) ?: return
