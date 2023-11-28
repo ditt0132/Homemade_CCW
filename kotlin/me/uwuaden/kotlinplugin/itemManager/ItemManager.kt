@@ -1,7 +1,6 @@
 package me.uwuaden.kotlinplugin.itemManager
 
 import me.uwuaden.kotlinplugin.Main.Companion.currentInv
-import me.uwuaden.kotlinplugin.Main.Companion.droppedItems
 import me.uwuaden.kotlinplugin.Main.Companion.inventoryData
 import me.uwuaden.kotlinplugin.Main.Companion.isOpening
 import me.uwuaden.kotlinplugin.Main.Companion.plugin
@@ -10,7 +9,6 @@ import me.uwuaden.kotlinplugin.assets.CustomItemData
 import me.uwuaden.kotlinplugin.gameSystem.WorldManager
 import me.uwuaden.kotlinplugin.skillSystem.SkillManager
 import net.kyori.adventure.text.Component
-
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor
 import org.bukkit.Location
@@ -133,8 +131,9 @@ object ItemManager {
 
     }
     fun createDroppedItem(location: Location, itemGen: Boolean, size: Int): DroppedItem {
+        val data = WorldManager.initData(location.world)
         val dropped = DroppedItem(UUID.randomUUID(), location, isLocated = true, itemGenerated = itemGen, size = size)
-        droppedItems.add(dropped)
+        data.droppedItems.add(dropped)
         createDisplay(dropped)
         return dropped
     }
@@ -276,15 +275,19 @@ object ItemManager {
         player.openInventory(inv)
     }
     fun getDroppedItem(uuid: UUID): DroppedItem? {
-        val itemClass = droppedItems.filter { it.uuid == uuid }
-        if (itemClass.isEmpty()) return null
-        return itemClass[0]
+        plugin.server.worlds.forEach { world ->
+            val data = WorldManager.initData(world)
+            val itemClass = data.droppedItems.filter { it.uuid == uuid }
+            if (itemClass.isNotEmpty()) return itemClass.first()
+        }
+        return null
     }
 
     fun autoDelete(item: DroppedItem) {
         if (!item.itemGenerated) return
         if (item.items.values.isEmpty()) {
-            droppedItems.remove(item)
+            val data = WorldManager.initData(item.loc.world)
+            data.droppedItems.remove(item)
         }
     }
     fun enchantItem(item: ItemStack, enchantment: Enchantment, lv: Int): ItemStack {

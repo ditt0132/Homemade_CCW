@@ -2,9 +2,8 @@ package me.uwuaden.kotlinplugin.gameSystem
 
 import com.destroystokyo.paper.Title
 import me.uwuaden.kotlinplugin.Main
-import me.uwuaden.kotlinplugin.Main.Companion.chunkScheduleProgress
+import me.uwuaden.kotlinplugin.Main.Companion.chunkItemDisplayGen
 import me.uwuaden.kotlinplugin.Main.Companion.defaultMMR
-import me.uwuaden.kotlinplugin.Main.Companion.droppedItems
 import me.uwuaden.kotlinplugin.Main.Companion.lastDamager
 import me.uwuaden.kotlinplugin.Main.Companion.playerLocPing
 import me.uwuaden.kotlinplugin.Main.Companion.playerStat
@@ -193,7 +192,8 @@ private fun getHighestBlockBelow(location: Location): Location {
 private fun initDroppedItemLoc(loc: Location, rad: Double) { //Dep
     scheduler.runTaskAsynchronously(plugin, Runnable {
         try {
-            Main.droppedItems.filter { it.loc.world == loc.world }.sortedBy { distance(loc, it.loc) }.forEach { droppedItem ->
+            val data = WorldManager.initData(loc.world)
+            data.droppedItems.filter { it.loc.world == loc.world }.sortedBy { distance(loc, it.loc) }.forEach { droppedItem ->
                 if (droppedItem.loc.distance(loc) <= rad) {
                     if (!droppedItem.isLocated) {
                         droppedItem.isLocated = true
@@ -210,8 +210,9 @@ private fun initDroppedItemLoc(loc: Location, rad: Double) { //Dep
 private fun initDroppedItemLoc(chunk: Chunk) {
     scheduler.runTaskAsynchronously(plugin, Runnable {
         try {
+            val data = WorldManager.initData(chunk.world)
             var loopTime = 0
-            droppedItems.filter { it.loc.chunk == chunk }.forEach { droppedItem ->
+            data.droppedItems.filter { it.loc.chunk == chunk }.forEach { droppedItem ->
                 loopTime++
                 if (loopTime%50 == 0) Thread.sleep(50)
                 if (!droppedItem.isLocated) {
@@ -233,7 +234,9 @@ private fun placeItems(loc: Location, rad: Double) {
 }
 
 private fun lobbyTeleportWorlds(world: World) {
-    droppedItems.removeIf { it.loc.world == world }
+    val data = WorldManager.initData(world)
+
+    data.droppedItems.removeIf { it.loc.world == world }
 
     Main.scheduler.scheduleSyncDelayedTask(Main.plugin, {
         Main.scheduler.scheduleSyncDelayedTask(Main.plugin, {
@@ -395,9 +398,19 @@ private fun initPlayer(player: Player) {
 object GameManager {
     fun chunkSch() {
         scheduler.scheduleSyncRepeatingTask(plugin, {
-            val chunk = chunkScheduleProgress.random()
-            chunkScheduleProgress.remove(chunk)
-            initDroppedItemLoc(chunk)
+            plugin.server.worlds.forEach { world ->
+                if (world.name.contains("Field-")) {
+                    val data = WorldManager.initData(world)
+                    val chunk = chunkItemDisplayGen.filter { it.world == world }
+                        .maxByOrNull { chunk -> data.droppedItems.filter { it.loc.chunk == chunk }.size }
+
+                    chunkItemDisplayGen.remove(chunk)
+                    if (chunk != null) {
+                        WorldItemManager.createItems(chunk)
+                        initDroppedItemLoc(chunk)
+                    }
+                }
+            }
         }, 0, 2)
     }
 
@@ -756,14 +769,14 @@ object GameManager {
     }
 
     fun gameSch() {
-        scheduler.scheduleSyncRepeatingTask(plugin, {
-            plugin.server.worlds.filter { it.name.contains("Field-") }.forEach { world ->
-                world.players.forEach { player ->
-                    //initDroppedItemLoc(player.location, 50.0)
-                    WorldItemManager.createItems(player.location, 50.0)
-                }
-            }
-        }, 0, 20)
+//        scheduler.scheduleSyncRepeatingTask(plugin, {
+//            plugin.server.worlds.filter { it.name.contains("Field-") }.forEach { world ->
+//                world.players.forEach { player ->
+//                    //initDroppedItemLoc(player.location, 50.0)
+//                    //WorldItemManager.createItems(player.location, 50.0)
+//                }
+//            }
+//        }, 0, 20)
         Main.scheduler.scheduleSyncRepeatingTask(Main.plugin, {
             plugin.server.onlinePlayers.forEach { p ->
                 if (p.gameMode == GameMode.SPECTATOR) {

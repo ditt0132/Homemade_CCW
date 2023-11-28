@@ -7,7 +7,6 @@ import me.uwuaden.kotlinplugin.Main.Companion.plugin
 import me.uwuaden.kotlinplugin.assets.CustomItemData
 import me.uwuaden.kotlinplugin.gameSystem.*
 import me.uwuaden.kotlinplugin.gameSystem.GameEvent
-import me.uwuaden.kotlinplugin.itemManager.DroppedItem
 import me.uwuaden.kotlinplugin.itemManager.ItemManager
 import me.uwuaden.kotlinplugin.itemManager.OpenItemEvent
 import me.uwuaden.kotlinplugin.itemManager.customItem.CustomItemEvent
@@ -53,7 +52,6 @@ class Main: JavaPlugin() {
         val worldLoaded = ArrayList<String>()
         val queueStartIn = HashMap<String, Long>()
         val queueClosed = ArrayList<String>()
-        var droppedItems = ArrayList<DroppedItem>()
         val currentInv = HashMap<UUID, UUID>()
         val isOpening = ArrayList<UUID>()
         val inventoryData = HashMap<UUID, Array<ItemStack?>>()
@@ -67,7 +65,8 @@ class Main: JavaPlugin() {
 
         var worldDatas = HashMap<World, WorldDataManager>()
         var queueDatas = HashMap<World, QueueData>()
-        val chunkScheduleProgress = mutableSetOf<Chunk>()
+        val chunkItemDisplayGen = mutableSetOf<Chunk>()
+        val chunkItemLocInit = mutableSetOf<Chunk>()
 
         lateinit var lobbyLoc: Location
         lateinit var econ: Economy
@@ -622,13 +621,15 @@ class Main: JavaPlugin() {
             register("itp") {
                 requires { isOp }
                 executes {
-                    player.teleport(droppedItems.random().loc)
+                    val data = WorldManager.initData(player.world)
+                    player.teleport(data.droppedItems.random().loc)
                 }
             }
             register("items") {
                 requires { isOp }
                 executes {
-                    player.sendMessage(droppedItems.filter { it.loc.world == player.world }.size.toString())
+                    val data = WorldManager.initData(player.world)
+                    player.sendMessage(data.droppedItems.filter { it.loc.world == player.world }.size.toString())
                 }
             }
             register("test") {

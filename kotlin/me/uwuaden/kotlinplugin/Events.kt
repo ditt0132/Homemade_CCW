@@ -1,7 +1,7 @@
 package me.uwuaden.kotlinplugin
 
 import com.destroystokyo.paper.event.player.PlayerJumpEvent
-import me.uwuaden.kotlinplugin.Main.Companion.chunkScheduleProgress
+import me.uwuaden.kotlinplugin.Main.Companion.chunkItemDisplayGen
 import me.uwuaden.kotlinplugin.Main.Companion.econ
 import me.uwuaden.kotlinplugin.Main.Companion.lastDamager
 import me.uwuaden.kotlinplugin.Main.Companion.lastWeapon
@@ -11,6 +11,7 @@ import me.uwuaden.kotlinplugin.gameSystem.LastWeaponData
 import me.uwuaden.kotlinplugin.gameSystem.WorldManager
 import me.uwuaden.kotlinplugin.itemManager.ItemManager
 import me.uwuaden.kotlinplugin.itemManager.customItem.CustomItemManager
+import me.uwuaden.kotlinplugin.itemManager.itemData.WorldItemManager
 import me.uwuaden.kotlinplugin.rankSystem.RankSystem
 import me.uwuaden.kotlinplugin.skillSystem.SkillManager
 import me.uwuaden.kotlinplugin.teamSystem.TeamManager
@@ -119,7 +120,8 @@ class Events: Listener {
     @EventHandler
     fun onChunkLoad(e: ChunkLoadEvent) {
         if (e.world.name.contains("Field-")) {
-            if (e.isNewChunk) chunkScheduleProgress.add(e.chunk)
+            WorldItemManager.createItems(e.chunk)
+            chunkItemDisplayGen.add(e.chunk)
         }
     }
     @EventHandler
