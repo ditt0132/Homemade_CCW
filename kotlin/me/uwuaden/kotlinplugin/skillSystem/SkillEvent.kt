@@ -508,6 +508,16 @@ class SkillEvent: Listener {
             exLoc.add(loc.direction.multiply(2.0))
             EffectManager.playSurroundSound(exLoc, Sound.ENTITY_GHAST_SHOOT, 1.0f, 0.5f)
             EffectManager.playSurroundSound(player.location, Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 0.5f)
+            //바꿀 사운드
+            //EffectManager.playSurroundSound(player.location, Sound.ENTITY_LIGHTNING_BOLT_IMPACT, 0.5f, 1.1f)
+            //EffectManager.playSurroundSound(player.location, Sound.ENTITY_LIGHTNING_BOLT_IMPACT, 0.5f, 2.0f)
+
+            //추가로 찰칵 사운드 두 개
+            //EffectManager.playSurroundSound(player.location, Sound.BLOCK_PISTON_CONTRACT, 0.5f, 0.7f)
+            //지연 0.2초 (20 * 2) - 레드스톤 중계기 두번
+            //EffectManager.playSurroundSound(player.location, Sound.BLOCK_PISTON_EXTEND, 0.5f, 0.8f)
+
+            //EffectManager.playSurroundSound(player.location, Sound.ENTITY_BAT_TAKEOFF, 1.0f, 1.2f)
 
             val pDirection = player.location.toVector().subtract(exLoc.toVector()).normalize()
             player.velocity = pDirection.multiply(0.3)

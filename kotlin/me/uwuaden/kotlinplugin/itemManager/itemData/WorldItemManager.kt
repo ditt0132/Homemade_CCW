@@ -12,7 +12,7 @@ import java.util.*
 import kotlin.math.abs
 
 
-object WorldItemManager {
+object  WorldItemManager {
     fun createItemData(world: World, loc1: Location, loc2: Location, count: Int) {
         val xRange: ClosedFloatingPointRange<Double>
         val zRange: ClosedFloatingPointRange<Double>
