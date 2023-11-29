@@ -35,7 +35,6 @@ import org.bukkit.potion.PotionEffect
 import org.bukkit.potion.PotionEffectType
 import org.bukkit.scoreboard.Team
 import java.util.*
-import java.util.logging.Level
 import kotlin.math.*
 
 private fun shufflePlayers(players: ArrayList<Player>): ArrayList<Player> {
@@ -209,23 +208,30 @@ private fun initDroppedItemLoc(loc: Location, rad: Double) { //Dep
 }
 private fun initDroppedItemLoc(chunk: Chunk) {
     scheduler.runTaskAsynchronously(plugin, Runnable {
-        try {
+//        try {
             val data = WorldManager.initData(chunk.world)
             var loopTime = 0
-            data.droppedItems.filter { it.loc.chunk == chunk }.forEach { droppedItem ->
-                loopTime++
-                if (loopTime%50 == 0) Thread.sleep(50)
-                if (!droppedItem.isLocated) {
-                    droppedItem.isLocated = true
-                    droppedItem.loc = Location(droppedItem.loc.world, floor(droppedItem.loc.x) + 0.5, getHighestBlockBelow(droppedItem.loc).y+0.5, floor(droppedItem.loc.z) + 0.5)
-                    scheduler.scheduleSyncDelayedTask(plugin, {
-                        ItemManager.createDisplay(droppedItem)
-                    }, 0)
-                }
-            }
-        } catch (e: Exception) {
-            plugin.server.logger.log(Level.WARNING, "Dropped Item Locating Error")
-        }
+            scheduler.scheduleSyncDelayedTask(plugin, {
+                val droppedItems = data.droppedItems.filter { it.loc.chunk == chunk }
+
+                scheduler.runTaskAsynchronously(plugin, Runnable {
+                    droppedItems.forEach { droppedItem ->
+                        loopTime++
+                        if (loopTime % 50 == 0) Thread.sleep(50)
+                        if (!droppedItem.isLocated) {
+                            droppedItem.isLocated = true
+                            scheduler.scheduleSyncDelayedTask(plugin, {
+                                droppedItem.loc = Location(droppedItem.loc.world, floor(droppedItem.loc.x) + 0.5, getHighestBlockBelow(droppedItem.loc).y + 0.5, floor(droppedItem.loc.z) + 0.5)
+                                ItemManager.createDisplay(droppedItem)
+                            }, 0)
+                        }
+                    }
+                })
+            }, 0)
+//        } catch (e: Exception) {
+//            plugin.server.logger.log(Level.WARNING, "Dropped Item Locating Error")
+//            println(e.localizedMessage)
+//        }
     })
 }
 
@@ -402,7 +408,7 @@ object GameManager {
                 if (world.name.contains("Field-")) {
                     val data = WorldManager.initData(world)
                     val chunk = chunkItemDisplayGen.filter { it.world == world }
-                        .maxByOrNull { chunk -> data.droppedItems.filter { it.loc.chunk == chunk }.size }
+                        .minByOrNull { chunk -> data.worldDroppedItemData.ItemCount[Pair(chunk.x, chunk.z)]?: 0 }
 
                     chunkItemDisplayGen.remove(chunk)
                     if (chunk != null) {

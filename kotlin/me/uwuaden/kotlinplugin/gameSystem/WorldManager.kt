@@ -52,10 +52,12 @@ object  WorldManager {
 
         val copyDir = File(File(plugin.dataFolder, "maps"), "queue")
         val pasteDir = File(plugin.server.worldContainer, worldName)
-        FileManager.copyDir(copyDir.toPath(), pasteDir.toPath())
-        scheduler.scheduleSyncDelayedTask(plugin, {
-            loadWorld(worldName)
-        }, 20*10)
+        scheduler.runTaskAsynchronously(plugin, Runnable {
+            FileManager.copyDir(copyDir.toPath(), pasteDir.toPath())
+            scheduler.scheduleSyncDelayedTask(plugin, {
+                loadWorld(worldName)
+            }, 0)
+        })
 
         return worldUUID
     }
@@ -68,9 +70,12 @@ object  WorldManager {
 
         val copyDir = File(File(plugin.dataFolder, "maps"), worldFolderName)
         val pasteDir = File(plugin.server.worldContainer, worldName)
-        FileManager.copyDir(copyDir.toPath(), pasteDir.toPath())
-
-        loadWorld(worldName)
+        scheduler.runTaskAsynchronously(plugin, Runnable {
+            FileManager.copyDir(copyDir.toPath(), pasteDir.toPath())
+            scheduler.scheduleSyncDelayedTask(plugin, {
+                loadWorld(worldName)
+            }, 0)
+        })
 
 
         return worldName
