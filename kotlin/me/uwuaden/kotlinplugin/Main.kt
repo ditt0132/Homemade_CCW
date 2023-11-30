@@ -4,6 +4,7 @@ import io.github.monun.kommand.StringType
 import io.github.monun.kommand.getValue
 import io.github.monun.kommand.kommand
 import me.uwuaden.kotlinplugin.Main.Companion.plugin
+import me.uwuaden.kotlinplugin.Main.Companion.scheduler
 import me.uwuaden.kotlinplugin.assets.CustomItemData
 import me.uwuaden.kotlinplugin.gameSystem.*
 import me.uwuaden.kotlinplugin.gameSystem.GameEvent
@@ -29,7 +30,10 @@ import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.event.HoverEvent
 import net.milkbowl.vault.economy.Economy
 import org.bukkit.*
+import org.bukkit.entity.ArmorStand
+import org.bukkit.entity.EntityType
 import org.bukkit.entity.Player
+import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scheduler.BukkitScheduler
@@ -37,6 +41,40 @@ import java.io.File
 import java.util.*
 import java.util.logging.Level
 
+private fun throwProjectile(player: Player) {
+    val throwLoc = player.location
+    val spawnLoc = throwLoc.clone()
+    spawnLoc.add(spawnLoc.direction.clone().multiply(1.0))
+    val dir = throwLoc.direction.clone().multiply(3.0)
+    val entity = player.world.spawnEntity(spawnLoc.clone().add(0.0, 300.0, 0.0), EntityType.ARMOR_STAND, false) as ArmorStand
+    entity.velocity = dir
+    entity.isSilent = true
+    entity.isInvisible = true
+    entity.isSmall = true
+    entity.isInvulnerable = true
+    entity.teleport(spawnLoc)
+
+    entity.setDisabledSlots(EquipmentSlot.HAND)
+    entity.setDisabledSlots(EquipmentSlot.OFF_HAND)
+    entity.setDisabledSlots(EquipmentSlot.HEAD)
+    entity.setDisabledSlots(EquipmentSlot.CHEST)
+    entity.setDisabledSlots(EquipmentSlot.LEGS)
+    entity.setDisabledSlots(EquipmentSlot.FEET)
+
+
+
+    scheduler.runTaskAsynchronously(plugin, Runnable {
+        for (i in 0 until 30) {
+            scheduler.scheduleSyncDelayedTask(plugin, {
+                entity.world.spawnParticle(Particle.SMOKE_NORMAL, entity.location, 3, 0.0, 0.0, 0.0, 0.0)
+            }, 0)
+            Thread.sleep(1000/20)
+        }
+        scheduler.scheduleSyncDelayedTask(plugin, {
+            entity.remove()
+        }, 0)
+    })
+}
 
 private fun initPluginFolder() {
     val pluginFolder = File(plugin.dataFolder, "maps")
@@ -355,6 +393,9 @@ class Main: JavaPlugin() {
             }
             register("닭갈비관리자") {
                 requires { isOp || isConsole }
+                executes {
+
+                }
                 then("저장") {
                     executes {
                         FileManager.saveVar()
@@ -448,7 +489,7 @@ class Main: JavaPlugin() {
                                             econ.depositPlayer(offlinePlayer, 100000.0)
                                         }
 
-
+                                        //TODO: 뻐킹 너무 많아요 ㅡㅡ
                                     }
                                 }
                             } else {
@@ -635,7 +676,7 @@ class Main: JavaPlugin() {
             register("test") {
                 requires { isOp }
                 executes {
-
+                    throwProjectile(player)
                 }
             }
             register("queuelist") {
