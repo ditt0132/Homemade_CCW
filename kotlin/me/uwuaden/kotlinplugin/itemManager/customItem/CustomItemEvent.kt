@@ -1,6 +1,5 @@
 package me.uwuaden.kotlinplugin.itemManager.customItem
 
-import me.uwuaden.kotlinplugin.Main
 import me.uwuaden.kotlinplugin.Main.Companion.lastDamager
 import me.uwuaden.kotlinplugin.Main.Companion.lastWeapon
 import me.uwuaden.kotlinplugin.Main.Companion.lockedPlayer
@@ -33,11 +32,68 @@ import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
 import org.bukkit.potion.PotionEffect
 import org.bukkit.potion.PotionEffectType
+import org.bukkit.util.Vector
 import java.util.*
 import kotlin.math.*
 import kotlin.random.Random
 
+private fun throwProjectile(player: Player, delayTick: Int, forceStopTick: Int, color: Color, longThrow: Boolean, callback: (Location, Player) -> Unit) {
+    val throwLoc = player.eyeLocation
+    val spawnLoc = throwLoc.clone()
+    spawnLoc.add(spawnLoc.direction.clone().multiply(1.0))
+    val dir: Vector
+    var delay = delayTick
+    var forceStop = forceStopTick
+    if (longThrow) {
+        dir = throwLoc.direction.clone().multiply(2.0)
+    } else {
+        dir = throwLoc.direction.clone().multiply(0.5)
+        dir.add(Vector(0.0, 0.5, 0.0))
+        delay/=2
+        forceStop/=2
+    }
+    val entity = player.world.spawnEntity(spawnLoc.clone().add(0.0, 300.0, 0.0), EntityType.ARMOR_STAND, false) as ArmorStand
+    entity.isSilent = true
+    entity.isInvisible = true
+    entity.isSmall = true
+    entity.isInvulnerable = true
+    entity.teleport(spawnLoc)
+    entity.velocity = dir
 
+    entity.setDisabledSlots(EquipmentSlot.HAND)
+    entity.setDisabledSlots(EquipmentSlot.OFF_HAND)
+    entity.setDisabledSlots(EquipmentSlot.HEAD)
+    entity.setDisabledSlots(EquipmentSlot.CHEST)
+    entity.setDisabledSlots(EquipmentSlot.LEGS)
+    entity.setDisabledSlots(EquipmentSlot.FEET)
+
+    var isOnGround = false
+
+    scheduler.runTaskAsynchronously(plugin, Runnable {
+        shooting@for (i in 0 until forceStop) {
+            scheduler.scheduleSyncDelayedTask(plugin, {
+
+                if (entity.isOnGround && !isOnGround) {
+                    isOnGround = true
+                    forceStop = i + delay //터지는 시간
+                }
+
+                entity.world.spawnParticle(Particle.REDSTONE, entity.location, 3, 0.0, 0.0, 0.0, 0.0, DustOptions(color, 1.5f))
+
+
+            }, 0)
+            if (i > forceStop) {
+                break@shooting
+            }
+            Thread.sleep(1000/20)
+        }
+
+        scheduler.scheduleSyncDelayedTask(plugin, {
+            callback(entity.location, player)
+            entity.remove()
+        }, 0)
+    })
+}
 private fun isHittable(player: Player, target: LivingEntity): Boolean {
     return !TeamManager.isSameTeam(player.world, player, target) && !(target is Player && target.gameMode == GameMode.SPECTATOR)
 }
@@ -176,7 +232,7 @@ private fun drawParticleCircle(center: Location, radius: Double, Color: Color) {
         val x = centerX + radius * cos(angle)
         val z = centerZ + radius * sin(angle)
         val particleLocation = Location(world, x, centerY, z)
-        world.spawnParticle(Particle.REDSTONE, particleLocation, 3, 0.0, 0.0, 0.0, 0.0, DustOptions(Color, 1.0f))
+        world.spawnParticle(Particle.REDSTONE, particleLocation, 3, 0.0, 0.0, 0.0, 0.0, DustOptions(Color, 1.0f), true)
     }
 }
 private fun drawLine( /* Would be your orange wool */
@@ -218,7 +274,7 @@ private fun drawLine( /* Would be your orange wool */
 }
 private fun earthGrenade(loc: Location, p: Player) {
     val originLoc = loc.clone()
-    val particleLoc = loc.clone().add(0.0, 1.0, 0.0)
+    val particleLoc = loc.clone().add(0.0, 0.25, 0.0)
     val blocks = mutableSetOf<Block>()
 
     val r = 8
@@ -232,8 +288,8 @@ private fun earthGrenade(loc: Location, p: Player) {
     }
     blocks.filter { it.type != Material.AIR }
 
+
     scheduler.runTaskAsynchronously(plugin, Runnable {
-        Thread.sleep(1500)
         for (i in 0 until 3) {
             scheduler.scheduleSyncDelayedTask(plugin, {
                 blocks.forEach {
@@ -243,11 +299,12 @@ private fun earthGrenade(loc: Location, p: Player) {
                 }
 
                 originLoc.getNearbyLivingEntities(r.toDouble()).forEach { e->
-                    e.damage(0.5)
                     if (e is Player) {
                         lastDamager[e] = p
                         lastWeapon[e] = LastWeaponData(ItemManager.createNamedItem(Material.STICK, 1, "영역 수류탄", null), System.currentTimeMillis()+1000*10)
                     }
+                    e.addPotionEffect(PotionEffect(PotionEffectType.SLOW, 2, 2, false, false))
+                    e.damage(0.5)
                 }
                 drawParticleCircle(particleLoc, 8.0, Color.fromRGB(100, 65, 23))
                 EffectManager.playSurroundSound(originLoc, Sound.ENTITY_ZOMBIE_BREAK_WOODEN_DOOR, 1.0f, 0.5f)
@@ -291,10 +348,15 @@ private fun gravityGrenade(loc: Location, p: Player) {
             for (i in 0 until 20) {
                 scheduler.scheduleSyncDelayedTask(plugin, {
                     if (i%2 == 0) {
-                        drawParticleCircle(loc.clone().add(0.0, 1.0, 0.0), 8.0, Color.PURPLE)
-                        loc.world.spawnParticle(Particle.REDSTONE, loc.clone().add(0.0, 1.0, 0.0), 50, 0.21, 0.21, 0.21, 0.0, DustOptions(Color.PURPLE, 2.0f))
-                        loc.world.spawnParticle(Particle.REDSTONE, loc.clone().add(0.0, 1.0, 0.0), 50, 0.2, 0.2, 0.2, 0.0, DustOptions(Color.BLACK, 2.0f))
-                        loc.getNearbyLivingEntities(8.0).forEach {
+                        drawParticleCircle(loc.clone().add(0.0, 0.25, 0.0), 6.0, Color.fromRGB(104, 104, 135))
+                        for (t in 0..20) {
+                            drawParticleCircle(loc.clone().add(0.0, 0.25, 0.0), 2.5 - t*0.1, Color.fromRGB(104 + t*4, 104 + t, 135 + t*3))
+                        }
+                        drawParticleCircle(loc.clone().add(0.0, 0.25, 0.0), 0.5, Color.fromRGB(255, 255, 112))
+                        loc.world.spawnParticle(Particle.REDSTONE, loc.clone().add(0.0, 0.25, 0.0), 40, 3.0, 3.0, 3.0, 0.0, DustOptions(Color.fromRGB(163, 111, 208), 1.5f))
+                        loc.world.spawnParticle(Particle.REDSTONE, loc.clone().add(0.0, 0.25, 0.0), 20, 1.0, 1.0, 1.0, 0.0, DustOptions(Color.fromRGB(255, 255, 112), 2.0f))
+                        loc.world.spawnParticle(Particle.REDSTONE, loc.clone().add(0.0, 0.25, 0.0), 100, 0.5, 0.5, 0.5, 0.0, DustOptions(Color.fromRGB(255, 255, 112), 1.5f))
+                        loc.getNearbyLivingEntities(6.0).forEach {
                             val locClone = loc.clone()
                             locClone.y = it.y
                             val direction = it.location.toVector().subtract(locClone.toVector()).normalize()
@@ -317,12 +379,16 @@ private fun gravityGrenade(loc: Location, p: Player) {
         })
         scheduler.scheduleSyncDelayedTask(plugin, {
             EffectManager.playSurroundSound(loc, Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 0.8f)
-            loc.getNearbyLivingEntities(8.0).forEach {
-                it.damage(2.0)
+            loc.world.spawnParticle(Particle.EXPLOSION_HUGE, loc.clone().add(0.0, 0.25, 0.0), 1, 0.0, 0.0, 0.0, 0.0)
+            loc.world.spawnParticle(Particle.REDSTONE, loc.clone().add(0.0, 0.25, 0.0), 80, 6.0, 6.0, 6.0, 0.0, DustOptions(Color.fromRGB(163, 111, 208), 1.5f))
+            loc.world.spawnParticle(Particle.REDSTONE, loc.clone().add(0.0, 0.25, 0.0), 40, 2.0, 2.0, 2.0, 0.0, DustOptions(Color.fromRGB(255, 255, 112), 2.0f))
+
+            loc.getNearbyLivingEntities(6.0).forEach {
                 if (it is Player) {
                     lastDamager[it] = p
                     lastWeapon[it] = LastWeaponData(ItemManager.createNamedItem(Material.STICK, 1, "중력 수류탄", null), System.currentTimeMillis()+1000*10)
                 }
+                it.damage(2.0)
             }
         }, 20*5)
     }, 20)
@@ -330,26 +396,50 @@ private fun gravityGrenade(loc: Location, p: Player) {
 private fun smokeGrenade(loc: Location, p: Player) {
     val range = 3.5f
     val size = 6.5f
+    loc.yaw = 0.0f
+    loc.pitch = 0.0f
+
+    val entity = loc.world.spawnEntity(loc, EntityType.ITEM_DISPLAY) as ItemDisplay
+    val loc2 = entity.location.clone().set(loc.x, ceil(loc.y), loc.z)
+    val spawnLoc = entity.location.clone().set(loc.x, ceil(loc.y) + size/2, loc.z)
+    entity.teleport(spawnLoc)
+    entity.itemStack = EffectManager.getSkull("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzZiMDNiNDAxNThiYjZlOThiMjA3NjZiMWQ0NmQ5MTgyYzE1YTFhNGNmNDM5ZTEzYTc2NzBiODdkMTI3NTdiIn19fQ==")
+    val transform = entity.transformation
+    transform.scale.set(0.0, 0.0, 0.0)
+    entity.transformation = transform
+    val loopTime = 10
+    var smoke = true
+
+    smokeRadius[entity] = Pair(loc2.clone().add(range.toDouble(), range.toDouble(), range.toDouble()), loc2.clone().add(-1*range.toDouble(), -1*range.toDouble(), -1*range.toDouble()))
+
+    scheduler.runTaskAsynchronously(plugin, Runnable {
+        for (i in 0 until loopTime) {
+            scheduler.scheduleSyncDelayedTask(plugin, {
+                EffectManager.playSurroundSound(entity.location, Sound.ENTITY_BAT_TAKEOFF, 2.0f, 0.5f)
+                loc2.world.spawnParticle(CLOUD, loc2, 100, 0.0, 0.5, 0.0, 0.3)
+                val scale = ((size*2)/(loopTime.toFloat()))*(i+1)
+                val transform2 = entity.transformation
+                transform2.scale.set(scale, scale, scale)
+                //transform2.translation.set(scale/-2.0, scale/-2.0, scale/-2.0)
+                entity.transformation = transform2
+            }, 0)
+            Thread.sleep(1000/10)
+        }
+    })
+    scheduler.runTaskAsynchronously(plugin, Runnable {
+        while (smoke) {
+            loc2.world.spawnParticle(CLOUD, loc2, 10, range.toDouble(), 0.0, range.toDouble(), 0.1)
+            Thread.sleep(1000 / 10)
+        }
+    })
+
     scheduler.scheduleSyncDelayedTask(plugin, {
-        val entity = loc.world.spawnEntity(loc, EntityType.ITEM_DISPLAY) as ItemDisplay
-        val loc2 = entity.location.clone().set(loc.x, ceil(loc.y), loc.z)
-        val spawnLoc = entity.location.clone().set(loc.x, ceil(loc.y) + size/2, loc.z)
-        entity.teleport(spawnLoc)
-        entity.itemStack = EffectManager.getSkull("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzZiMDNiNDAxNThiYjZlOThiMjA3NjZiMWQ0NmQ5MTgyYzE1YTFhNGNmNDM5ZTEzYTc2NzBiODdkMTI3NTdiIn19fQ==")
-        val transform = entity.transformation
-        transform.scale.set(0.0, 0.0, 0.0)
-        entity.transformation = transform
-        val loopTime = 10
-        var smoke = true
-
-        smokeRadius[entity] = Pair(loc2.clone().add(range.toDouble(), range.toDouble(), range.toDouble()), loc2.clone().add(-1*range.toDouble(), -1*range.toDouble(), -1*range.toDouble()))
-
         scheduler.runTaskAsynchronously(plugin, Runnable {
             for (i in 0 until loopTime) {
                 scheduler.scheduleSyncDelayedTask(plugin, {
-                    EffectManager.playSurroundSound(entity.location, Sound.ENTITY_BAT_TAKEOFF, 2.0f, 0.5f)
+                    EffectManager.playSurroundSound(entity.location, Sound.ENTITY_BAT_TAKEOFF, 2.0f, 1.2f)
                     loc2.world.spawnParticle(CLOUD, loc2, 100, 0.0, 0.5, 0.0, 0.3)
-                    val scale = ((size*2)/(loopTime.toFloat()))*(i+1)
+                    val scale = ((size*2)/(loopTime.toFloat()))*(10 - (i+1))
                     val transform2 = entity.transformation
                     transform2.scale.set(scale, scale, scale)
                     //transform2.translation.set(scale/-2.0, scale/-2.0, scale/-2.0)
@@ -357,84 +447,142 @@ private fun smokeGrenade(loc: Location, p: Player) {
                 }, 0)
                 Thread.sleep(1000/10)
             }
+            scheduler.scheduleSyncDelayedTask(plugin, {
+                smokeRadius.remove(entity)
+                entity.remove()
+                smoke = false
+            }, 0)
         })
-        scheduler.runTaskAsynchronously(plugin, Runnable {
-            while (smoke) {
-                loc2.world.spawnParticle(CLOUD, loc2, 10, range.toDouble(), 0.0, range.toDouble(), 0.1)
-                Thread.sleep(1000 / 10)
-            }
-        })
-
-        scheduler.scheduleSyncDelayedTask(plugin, {
-            scheduler.runTaskAsynchronously(plugin, Runnable {
-                for (i in 0 until loopTime) {
-                    scheduler.scheduleSyncDelayedTask(plugin, {
-                        EffectManager.playSurroundSound(entity.location, Sound.ENTITY_BAT_TAKEOFF, 2.0f, 1.2f)
-                        loc2.world.spawnParticle(CLOUD, loc2, 100, 0.0, 0.5, 0.0, 0.3)
-                        val scale = ((size*2)/(loopTime.toFloat()))*(10 - (i+1))
-                        val transform2 = entity.transformation
-                        transform2.scale.set(scale, scale, scale)
-                        //transform2.translation.set(scale/-2.0, scale/-2.0, scale/-2.0)
-                        entity.transformation = transform2
-                    }, 0)
-                    Thread.sleep(1000/10)
-                }
-                scheduler.scheduleSyncDelayedTask(plugin, {
-                    smokeRadius.remove(entity)
-                    entity.remove()
-                    smoke = false
-                }, 0)
-            })
-        }, 20*40)
-    }, 20*1)
+    }, 20*40)
 }
 private fun molotovCocktail(loc: Location, p: Player) {
     val originLoc = loc.clone()
-    val r = 6
+    val r = 4
 
-    originLoc.y = (originLoc.y + 0.5).roundToInt().toDouble()
-    val particleLoc = originLoc.clone().add(0.0, 0.51, 0.0)
-    EffectManager.playSurroundSound(originLoc, Sound.ITEM_FLINTANDSTEEL_USE, 2.0f, 1.5f)
-    EffectManager.playSurroundSound(originLoc, Sound.BLOCK_ANVIL_PLACE, 0.5f, 2.0f)
-
-    scheduler.scheduleSyncDelayedTask(plugin, {
-        EffectManager.playSurroundSound(originLoc, Sound.ITEM_FLINTANDSTEEL_USE, 2.0f, 2.0f)
-        EffectManager.playSurroundSound(originLoc, Sound.ENTITY_GHAST_SHOOT, 1.5f, 1.5f)
-        scheduler.runTaskAsynchronously(plugin, Runnable {
-            for (i in 0 until 10*6) {
-                scheduler.scheduleSyncDelayedTask(plugin, {
-                    originLoc.getNearbyLivingEntities(r.toDouble() + 3.0).forEach { e->
-                        val distLoc = originLoc.clone()
-                        val deltaY = abs(originLoc.y - e.location.y)
-                        distLoc.y = e.location.y
-                        if (deltaY <= 1.1 && distLoc.distance(e.location) <= r.toDouble()) {
-                            if (TeamManager.isSameTeam(loc.world, p, e)) {
-                                e.fireTicks = 20 * 4
-                            } else {
-                                e.fireTicks = 20 * 8
-                            }
-                            if (i%5 == 0) {
-                                if (e is Player) {
-                                    lastDamager[e] = p
-                                    lastWeapon[e] = LastWeaponData(ItemManager.createNamedItem(Material.STICK, 1, "화염병", null), System.currentTimeMillis()+1000*10)
-                                }
-                                EffectManager.playSurroundSound(originLoc, Sound.BLOCK_FIRE_AMBIENT, 1.0f, 1.5f)
-                            }
+    val particleLoc = originLoc.clone().add(0.0, 0.25, 0.0)
+    EffectManager.playSurroundSound(originLoc, Sound.BLOCK_GLASS_BREAK, 2.0f, 1.5f)
+    EffectManager.playSurroundSound(originLoc, Sound.ITEM_FLINTANDSTEEL_USE, 2.0f, 2.0f)
+    EffectManager.playSurroundSound(originLoc, Sound.ENTITY_GHAST_SHOOT, 1.5f, 1.5f)
+    scheduler.runTaskAsynchronously(plugin, Runnable {
+        for (i in 0 until 10*6) {
+            scheduler.scheduleSyncDelayedTask(plugin, {
+                originLoc.getNearbyLivingEntities(r.toDouble() + 3.0).forEach { e->
+                    val distLoc = originLoc.clone()
+                    val deltaY = abs(originLoc.y - e.location.y)
+                    distLoc.y = e.location.y
+                    if (deltaY <= 1.1 && distLoc.distance(e.location) <= r.toDouble()) {
+                        if (TeamManager.isSameTeam(loc.world, p, e)) {
+                            e.fireTicks = 20 * 2
+                        } else {
+                            e.fireTicks = 20 * 4
                         }
-                        for (n in 0 until 60 - i) {
-                            val tryLoc = particleLoc.clone().add(Random.nextDouble(-r.toDouble(), r.toDouble()), 0.0, Random.nextDouble(-r.toDouble(), r.toDouble()))
-                            if (tryLoc.distance(particleLoc) <= r.toDouble()) {
-                                tryLoc.world.spawnParticle(FLAME, tryLoc, 1, 0.0, 0.0, 0.0, 0.03)
+                        if (i%5 == 0) {
+                            if (e is Player) {
+                                lastDamager[e] = p
+                                lastWeapon[e] = LastWeaponData(ItemManager.createNamedItem(Material.STICK, 1, "화염병", null), System.currentTimeMillis()+1000*10)
                             }
+                            EffectManager.playSurroundSound(originLoc, Sound.BLOCK_FIRE_AMBIENT, 1.0f, 1.5f)
                         }
-                        if (i%5 == 0) drawParticleCircle(particleLoc, r.toDouble(), Color.fromRGB(255, 127, 0))
                     }
-                }, 0)
-                Thread.sleep(100)
-            }
-        })
-    }, 50)
+                }
+                for (n in 0 until 60 - i) {
+                    val tryLoc = particleLoc.clone().add(Random.nextDouble(-r.toDouble(), r.toDouble()), 0.0, Random.nextDouble(-r.toDouble(), r.toDouble()))
+                    if (tryLoc.distance(particleLoc) <= r.toDouble()) {
+                        tryLoc.world.spawnParticle(REDSTONE, tryLoc, 1, 0.0, 0.0, 0.0, 0.0, DustOptions(Color.ORANGE, 2.0f), true)
+                    }
+                }
+                particleLoc.world.spawnParticle(REDSTONE, particleLoc, 2, r.toDouble()/2.0, 1.0, r.toDouble()/2.0, 0.0, DustOptions(Color.ORANGE, 0.5f), true)
+                particleLoc.world.spawnParticle(SMOKE_LARGE, particleLoc, 2, r.toDouble()/2.0, 1.0, r.toDouble()/2.0, 0.0)
+                if (i%5 == 0) drawParticleCircle(particleLoc, r.toDouble(), Color.fromRGB(255, 127, 0))
+            }, 0)
+            Thread.sleep(100)
+        }
+    })
 }
+private fun makeLookAt(player: Player, lookat: Location): Pair<Float, Float> {
+    //Clone the loc to prevent applied changes to the input loc
+    val loc = player.eyeLocation.clone()
+
+    // Values of change in distance (make it relative)
+    val dx = lookat.x - loc.x
+    val dy = lookat.y - loc.y
+    val dz = lookat.z - loc.z
+
+    // Set yaw
+    if (dx != 0.0) {
+        // Set yaw start value based on dx
+        if (dx < 0) {
+            loc.yaw = (1.5 * Math.PI).toFloat()
+        } else {
+            loc.yaw = (0.5 * Math.PI).toFloat()
+        }
+        loc.yaw = loc.yaw - atan(dz / dx).toFloat()
+    } else if (dz < 0) {
+        loc.yaw = Math.PI.toFloat()
+    }
+
+    // Get the distance from dx/dz
+    val dxz = sqrt(dx.pow(2.0) + dz.pow(2.0))
+
+    // Set pitch
+    loc.pitch = (-atan(dy / dxz)).toFloat()
+
+    // Set values, convert to degrees (invert the yaw since Bukkit uses a different yaw dimension format)
+    loc.yaw = -loc.yaw * 180f / Math.PI.toFloat()
+    loc.pitch = loc.pitch * 180f / Math.PI.toFloat()
+    return Pair(loc.yaw, loc.pitch)
+}
+
+//private fun convertTo
+private fun flashBang(loc: Location, p: Player) {
+    EffectManager.playSurroundSound(loc, Sound.ENTITY_FIREWORK_ROCKET_BLAST, 2.0f, 1.2f)
+    loc.world.spawnParticle(FLASH, loc, 5, 0.0, 0.0, 0.0)
+    scheduler.scheduleSyncDelayedTask(plugin, {
+        loc.getNearbyPlayers(50.0).forEach { player ->
+            if (player.gameMode != GameMode.SPECTATOR) {
+                val flashYawPitch = makeLookAt(player, loc)
+                var dYaw = player.yaw - flashYawPitch.first
+                var dPitch = player.pitch - flashYawPitch.second
+                while (dYaw > 180.0f) {
+                    dYaw -= 360.0f
+                }
+                dYaw = abs(dYaw)
+                dPitch = abs(dPitch)
+
+                if (player.hasLineOfSight(loc)) {
+                    if (dYaw <= 60.0f && dPitch <= 45.0f) {
+                        if (TeamManager.isSameTeam(p.world, p, player)) {
+                            player.addPotionEffect(PotionEffect(PotionEffectType.BLINDNESS, 20 * 3, 0, false, true))
+                            scheduler.runTaskAsynchronously(plugin, Runnable {
+                                for (i in 0 until 2) {
+                                    scheduler.scheduleSyncDelayedTask(plugin, {
+                                        player.playSound(player.location, Sound.ITEM_TRIDENT_RETURN, 1.0f, 2.0f - 1.0f*i)
+                                    }, 0)
+                                    Thread.sleep(50)
+                                }
+                            })
+                        } else {
+                            player.addPotionEffect(PotionEffect(PotionEffectType.BLINDNESS, 20 * 6, 0, false, true))
+                            player.addPotionEffect(PotionEffect(PotionEffectType.DARKNESS, 20 * 6, 0, false, true))
+                            scheduler.runTaskAsynchronously(plugin, Runnable {
+                                for (i in 0 until 2) {
+                                    scheduler.scheduleSyncDelayedTask(plugin, {
+                                        player.playSound(player.location, Sound.ITEM_TRIDENT_RETURN, 1.0f, 2.0f - 1.0f*i)
+                                    }, 0)
+                                    Thread.sleep(50)
+                                }
+                            })
+                        }
+                    } else {
+                        player.addPotionEffect(PotionEffect(PotionEffectType.BLINDNESS, 20, 0, false, false))
+                        player.playSound(player.location, Sound.ITEM_TRIDENT_RETURN, 1.0f, 1.8f)
+                    }
+                }
+            }
+        }
+    }, 0)
+}
+
 private fun isDiamond(material: Material): Boolean {
     val list = listOf(
         Material.DIAMOND_HELMET,
@@ -473,35 +621,8 @@ class CustomItemEvent: Listener {
 
             EffectManager.playSurroundSound(player.location, Sound.ENTITY_BAT_TAKEOFF, 1.0F, 1.0F)
 
-            val tick = CustomItemManager.drawOrbital(player, player.eyeLocation, 15, 100, Color.WHITE, false, 9.81)
-            CustomItemManager.throwOrbital(player, player.eyeLocation, 15, tick, Color.GREEN, 9.81)
-            val loc = CustomItemManager.getOrbitalLoc(player, player.eyeLocation, 15, tick, 9.81)
-
-            scheduler.scheduleSyncDelayedTask(Main.plugin, {
-                earthGrenade(loc, player)
-            }, tick.toLong())
-        }
-//        else if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.YELLOW}반중력 수류탄") {
-//            e.isCancelled = true
-//
-//            if ((GrenadeCD[player.uniqueId] ?: 0) >= System.currentTimeMillis()) {
-//                player.sendMessage(Component.text("${ChatColor.RED} 쿨타임 중 입니다. (${((GrenadeCD[player.uniqueId] ?: System.currentTimeMillis()) - System.currentTimeMillis()) / 1000}초)"))
-//                return
-//            }
-//
-//            player.inventory.itemInMainHand.amount -= 1
-//            GrenadeCD[player.uniqueId] = System.currentTimeMillis() + cd * 1000L
-//
-//            EffectManager.playSurroundSound(player.location, Sound.ENTITY_BAT_TAKEOFF, 1.0F, 1.0F)
-//
-//            val tick = CustomItemManager.drawOrbital(player, player.eyeLocation, 15, 100, Color.WHITE, false, 9.81)
-//            CustomItemManager.throwOrbital(player, player.eyeLocation, 15, tick, Color.GREEN, 9.81)
-//            val loc = CustomItemManager.getOrbitalLoc(player, player.eyeLocation, 15, tick, 9.81)
-//            scheduler.scheduleSyncDelayedTask(Main.plugin, {
-//                antiGravityGrenade(loc, player)
-//            }, tick.toLong())
-//        }
-        else if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.YELLOW}중력 수류탄") {
+            throwProjectile(player, 20*2, 20*5, Color.fromRGB(41, 24, 17), !player.isSneaking, ::earthGrenade)
+        } else if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.YELLOW}중력 수류탄") {
             e.isCancelled = true
 
             if ((GrenadeCD[player.uniqueId] ?: 0) >= System.currentTimeMillis()) {
@@ -514,12 +635,7 @@ class CustomItemEvent: Listener {
 
             EffectManager.playSurroundSound(player.location, Sound.ENTITY_BAT_TAKEOFF, 1.0F, 1.0F)
 
-            val tick = CustomItemManager.drawOrbital(player, player.eyeLocation, 15, 100, Color.WHITE, false, 9.81)
-            CustomItemManager.throwOrbital(player, player.eyeLocation, 15, tick, Color.GREEN, 9.81)
-            val loc = CustomItemManager.getOrbitalLoc(player, player.eyeLocation, 15, tick, 9.81)
-            scheduler.scheduleSyncDelayedTask(Main.plugin, {
-                gravityGrenade(loc, player)
-            }, tick.toLong())
+            throwProjectile(player, 20*2, 20*5, Color.fromRGB(37, 13, 39), !player.isSneaking, ::gravityGrenade)
         } else if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.YELLOW}연막탄") {
             e.isCancelled = true
 
@@ -533,12 +649,7 @@ class CustomItemEvent: Listener {
 
             EffectManager.playSurroundSound(player.location, Sound.ENTITY_BAT_TAKEOFF, 1.0F, 1.0F)
 
-            val tick = CustomItemManager.drawOrbital(player, player.eyeLocation, 15, 100, Color.WHITE, false, 9.81)
-            CustomItemManager.throwOrbital(player, player.eyeLocation, 15, tick, Color.GREEN, 9.81)
-            val loc = CustomItemManager.getOrbitalLoc(player, player.eyeLocation, 15, tick, 9.81)
-            scheduler.scheduleSyncDelayedTask(Main.plugin, {
-                smokeGrenade(loc, player)
-            }, tick.toLong())
+            throwProjectile(player, 20*3, 20*8, Color.GRAY, !player.isSneaking, ::smokeGrenade)
         } else if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.YELLOW}화염병") {
             e.isCancelled = true
 
@@ -552,12 +663,21 @@ class CustomItemEvent: Listener {
 
             EffectManager.playSurroundSound(player.location, Sound.ENTITY_BAT_TAKEOFF, 1.0F, 1.0F)
 
-            val tick = CustomItemManager.drawOrbital(player, player.eyeLocation, 15, 100, Color.WHITE, false, 9.81)
-            CustomItemManager.throwOrbital(player, player.eyeLocation, 15, tick, Color.GREEN, 9.81)
-            val loc = CustomItemManager.getOrbitalLoc(player, player.eyeLocation, 15, tick, 9.81)
-            scheduler.scheduleSyncDelayedTask(Main.plugin, {
-                molotovCocktail(loc, player)
-            }, tick.toLong())
+            throwProjectile(player, 0, 20*5, Color.fromRGB(255, 120, 14), !player.isSneaking, ::molotovCocktail)
+        } else if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.YELLOW}섬광탄") {
+            e.isCancelled = true
+
+            if ((GrenadeCD[player.uniqueId] ?: 0) >= System.currentTimeMillis()) {
+                player.sendMessage(Component.text("${ChatColor.RED} 쿨타임 중 입니다. (${((GrenadeCD[player.uniqueId] ?: System.currentTimeMillis()) - System.currentTimeMillis()) / 1000}초)"))
+                return
+            }
+
+            player.inventory.itemInMainHand.amount -= 1
+            GrenadeCD[player.uniqueId] = System.currentTimeMillis() + cd * 1000L
+
+            EffectManager.playSurroundSound(player.location, Sound.ENTITY_BAT_TAKEOFF, 1.0F, 1.0F)
+
+            throwProjectile(player, 20 * 20, 20 * 2, Color.GRAY, !player.isSneaking, ::flashBang)
         }
     }
 
@@ -1660,7 +1780,7 @@ class CustomItemEvent: Listener {
                             loc.getNearbyLivingEntities(5.0).filter { isHittable(player, it) }.forEach {
                                 it.damage(6.0)
 
-                                val directionVel = it.location.toVector().subtract(loc.toVector()).normalize()
+                                val directionVel = it.location.toVector().subtract(loc.toVector()).normalize().setY(0.5)
                                 it.velocity = directionVel.multiply(kb)
 
                             }

@@ -54,7 +54,7 @@ class GameEvent: Listener {
         if (e.block.y <= groundY.toInt()) {
             e.isCancelled = true
             e.player.sendMessage("${ChatColor.RED}바닥의 블럭을 부술 수 없습니다.")
-            e.block.world.spawnParticle(Particle.SMOKE_NORMAL, e.block.location.clone().add(0.0, 0.5, 0.0), 10, 0.0, 0.0, 0.0, 0.0)
+            e.block.world.spawnParticle(Particle.SMOKE_NORMAL, e.block.location.clone().add(0.5, 0.5, 0.5), 10, 0.0, 0.0, 0.0, 0.0)
         }
     }
 

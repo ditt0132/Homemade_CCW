@@ -105,7 +105,7 @@ private fun winPlayers(players: ArrayList<Player>) {
 
     val dataClass = WorldManager.initData(players[0].world)
     players.forEach { p ->
-        RankSystem.updateMMR(p, (dataClass.playerKill[p.uniqueId] ?: 0), dataClass.totalPlayer, 1, dataClass.avgMMR)
+        //RankSystem.updateMMR(p, (dataClass.playerKill[p.uniqueId] ?: 0), dataClass.totalPlayer, 1, dataClass.avgMMR)
         Main.scheduler.scheduleSyncDelayedTask(Main.plugin, {
             p.sendTitle("${ChatColor.GOLD}${ChatColor.BOLD}THE", " ", 1, 20 * 1, 1)
         }, 0)

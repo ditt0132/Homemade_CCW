@@ -104,7 +104,7 @@ object RankSystem {
         if (change > 50) change = 50
         else if (change < -50) change = -50
 
-        if (classData.gamePlayed < 3) {
+        if (classData.gamePlayed < 3 && change > 0) {
             change*=5
         }
         classData.gamePlayed += 1

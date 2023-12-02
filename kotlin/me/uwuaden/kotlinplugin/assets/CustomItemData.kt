@@ -79,7 +79,7 @@ object CustomItemData {
     }
 
     fun getGravityG(): ItemStack {
-        return ItemManager.createNamedItem(Material.CRIMSON_BUTTON, 1, "${ChatColor.YELLOW}중력 수류탄", listOf("§71회용*", "§7접착식 수류탄입니다.", "§7우클릭으로 투척할 수 있습니다.", "${ChatColor.GRAY}폭발시 미니 블랙홀을 생성합니다.", "${ChatColor.GRAY}미니 블랙홀은 주변 플레이어를 천천히 당깁니다.", "§7블랙홀이 사라질때 약한 대미지를 줍니다.", "§2대미지: 2.0"))
+        return ItemManager.createNamedItem(Material.CRIMSON_BUTTON, 1, "${ChatColor.YELLOW}중력 수류탄", listOf("§71회용*", "§7우클릭으로 투척할 수 있습니다.", "${ChatColor.GRAY}폭발시 미니 블랙홀을 생성합니다.", "${ChatColor.GRAY}미니 블랙홀은 주변 플레이어를 천천히 당깁니다.", "§7블랙홀이 사라질때 약한 대미지를 줍니다.", "§2대미지: 2.0"))
     }
 
     fun getAGShotGun(): ItemStack {
@@ -95,7 +95,7 @@ object CustomItemData {
             Material.STONE_BUTTON,
             1,
             "${ChatColor.YELLOW}연막탄",
-            listOf("§71회용*", "§7접착식 연막탄입니다.","${ChatColor.GRAY}우클릭으로 투척시 주변에 연막을 생성합니다.", "${ChatColor.GRAY}연막은 원형 모양으로, 적의 시야를 차단할 수 있습니다.")
+            listOf("§71회용*", "${ChatColor.GRAY}우클릭으로 투척시 주변에 연막을 생성합니다.", "${ChatColor.GRAY}연막은 원형 모양으로, 적의 시야를 차단할 수 있습니다.")
         )
     }
     fun getLiberation(): ItemStack {
@@ -180,7 +180,7 @@ object CustomItemData {
             Material.OAK_BUTTON,
             1,
             "${ChatColor.YELLOW}화염병",
-            listOf("§71회용*", "§7접착식 화염병입니다.","${ChatColor.GRAY}우클릭으로 투척 후 부착시 몇초 후 주변에 지속적인 화염 대미지를 줍니다.")
+            listOf("§71회용*", "${ChatColor.GRAY}우클릭으로 투척 후 화염병이 깨지면, 주변에 지속적인 화염 대미지를 줍니다.")
         )
     }
     fun getSwordOfHealing(): ItemStack {
@@ -214,5 +214,8 @@ object CustomItemData {
         meta.isUnbreakable = true
         item.itemMeta = meta
         return item
+    }
+    fun getFlashBang(): ItemStack {
+        return ItemManager.createNamedItem(Material.WARPED_BUTTON, 1, "${ChatColor.YELLOW}섬광탄", listOf("§71회용*", "§7우클릭으로 투척할 수 있습니다.", "${ChatColor.GRAY}터질 경우 시아 내에 섬광탄이 있으면, 시아가 차단됩니다."))
     }
 }

@@ -6,7 +6,9 @@ import me.uwuaden.kotlinplugin.Main.Companion.scheduler
 import me.uwuaden.kotlinplugin.assets.CustomItemData
 import me.uwuaden.kotlinplugin.assets.EffectManager
 import me.uwuaden.kotlinplugin.itemManager.ItemManager
+import me.uwuaden.kotlinplugin.itemManager.customItem.CustomItemEvent.Companion.GrenadeCD
 import me.uwuaden.kotlinplugin.teamSystem.TeamManager
+import net.kyori.adventure.text.Component
 import org.apache.commons.lang3.Validate
 import org.bukkit.*
 import org.bukkit.Particle.DustOptions
@@ -292,29 +294,21 @@ object CustomItemManager {
         }, 0, 5)
         scheduler.scheduleSyncRepeatingTask(plugin, {
             plugin.server.onlinePlayers.forEach { player ->
-                if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.YELLOW}영역 수류탄") {
-                    drawOrbital(player, player.eyeLocation, 15, 100, Color.WHITE, true, 9.81)
-                }
-                if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.YELLOW}반중력 수류탄") {
-                    drawOrbital(player, player.eyeLocation, 15, 100, Color.WHITE, true, 9.81)
-                }
-                if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.YELLOW}중력 수류탄") {
-                    drawOrbital(player, player.eyeLocation, 15, 100, Color.WHITE, true, 9.81)
-                }
-                if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.YELLOW}연막탄") {
-                    drawOrbital(player, player.eyeLocation, 15, 100, Color.WHITE, true, 9.81)
-                }
-                if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.YELLOW}화염병") {
-                    drawOrbital(player, player.eyeLocation, 15, 100, Color.WHITE, true, 9.81)
-                }
-                if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.AQUA}${ChatColor.BOLD}Prototype V3") {
-                    player.addPotionEffect(PotionEffect(PotionEffectType.SLOW, 15, 2, false, false))
+                val displayName = player.inventory.itemInMainHand.itemMeta?.displayName
+                if (displayName != null) {
+                    if (listOf("§e영역 수류탄", "§e반중력 수류탄", "§e중력 수류탄", "§e연막탄", "§e화염병").contains(displayName)) {
+                        var cd = (((GrenadeCD[player.uniqueId] ?: System.currentTimeMillis()) - System.currentTimeMillis()).toDouble())/1000.0
+                        if (cd < 0) cd = 0.0
+
+                        if (player.isSneaking) player.sendActionBar(Component.text("§a던지기 모드: 가까이 던지기  §c쿨타임: ${(((cd)*10).roundToInt())/10.0}초"))
+                        else player.sendActionBar(Component.text("§a던지기 모드: 멀리 던지기  §c쿨타임: ${(((cd)*10).roundToInt())/10.0}초"))
+                    }
                 }
                 if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.DARK_PURPLE}${ChatColor.BOLD}Liberation" && player.health == player.getAttribute(Attribute.GENERIC_MAX_HEALTH)?.value) {
                     if (player.location.getNearbyPlayers(30.0).filter { isHittable(player, it) }.size >= 3) player.world.spawnParticle(REVERSE_PORTAL, player.location.clone().add(0.0, 0.5, 0.0), 200, 30.0, 0.1, 30.0, 0.0)
                 }
             }
-        }, 0, 10)
+        }, 0, 2)
         scheduler.scheduleSyncRepeatingTask(plugin, {
             plugin.server.worlds.forEach { w->
                 w.entities.filterIsInstance<ArmorStand>().forEach {
