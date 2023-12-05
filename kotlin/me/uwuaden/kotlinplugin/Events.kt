@@ -71,12 +71,12 @@ private fun deathPlayer(p: Player) {
                 }
             }
 
-            var msg = "${ChatColor.RED}☠ ${lastDamager[p]!!.name} ${ChatColor.BOLD}➔ ${ChatColor.RED}${p.name}"
-            if (weaponName != null) msg += "${ChatColor.RED} with ${ChatColor.BOLD}[${weaponName}${ChatColor.RED}${ChatColor.BOLD}]"
+            var msg = Component.text("${ChatColor.RED}☠ ${lastDamager[p]!!.name} ${ChatColor.BOLD}➔ ${ChatColor.RED}${p.name}")
+            if (weaponName != null) msg.append(Component.text("${ChatColor.RED} with")).append(Component.text("${ChatColor.BOLD}[${weaponName}${ChatColor.RED}${ChatColor.BOLD}]").hoverEvent(lastWeapon[p]!!.item))
 
             WorldManager.broadcastWorld(
                 p.world,
-                msg
+                msg.content()
             )
         }
 

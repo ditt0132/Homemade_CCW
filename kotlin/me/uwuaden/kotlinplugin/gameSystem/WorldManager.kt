@@ -135,11 +135,15 @@ object  WorldManager {
 
     fun deleteWorld(world: World) {
         deleteWorldData(world)
-        plugin.server.unloadWorld(world, false)
-        plugin.server.worlds.remove(world)
-        scheduler.scheduleSyncDelayedTask(plugin, {
-            world.worldFolder.deleteRecursively()
-        }, 20*15)
+        scheduler.runTaskAsynchronously(plugin, Runnable {
+            scheduler.scheduleSyncDelayedTask(plugin, {
+                plugin.server.unloadWorld(world, false)
+                plugin.server.worlds.remove(world)
+            }, 0)
+            scheduler.scheduleSyncDelayedTask(plugin, {
+                world.worldFolder.deleteRecursively()
+            }, 20 * 5)
+        })
     }
     fun deleteWorldInstantly(world: World) {
         plugin.server.unloadWorld(world, false)

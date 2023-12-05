@@ -37,6 +37,7 @@ import org.bukkit.potion.PotionEffect
 import org.bukkit.potion.PotionEffectType
 import org.bukkit.scheduler.BukkitScheduler
 import java.io.File
+import java.time.LocalDate
 import java.util.*
 import java.util.logging.Level
 
@@ -170,17 +171,19 @@ class Main: JavaPlugin() {
         FileManager.loadVar()
         FileManager.loadPlayerEItemFromFile()
 
-        val copyDir = File(File(plugin.dataFolder, "maps"), "Sinchon")
-        val pasteDir = File(plugin.server.worldContainer, "death_match")
-        scheduler.runTaskAsynchronously(plugin, Runnable {
-            FileManager.copyDir(copyDir.toPath(), pasteDir.toPath())
-            scheduler.scheduleSyncDelayedTask(plugin, {
-                WorldManager.loadWorld("death_match")
-            }, 0)
-            scheduler.scheduleSyncDelayedTask(plugin, {
-                plugin.server.getWorld("death_match")?.difficulty = Difficulty.HARD
-            }, 0)
-        })
+        scheduler.scheduleSyncDelayedTask(plugin, {
+            val copyDir = File(File(plugin.dataFolder, "maps"), "Sinchon")
+            val pasteDir = File(plugin.server.worldContainer, "death_match")
+            scheduler.runTaskAsynchronously(plugin, Runnable {
+                FileManager.copyDir(copyDir.toPath(), pasteDir.toPath())
+                scheduler.scheduleSyncDelayedTask(plugin, {
+                    WorldManager.loadWorld("death_match")
+                }, 0)
+                scheduler.scheduleSyncDelayedTask(plugin, {
+                    plugin.server.getWorld("death_match")?.difficulty = Difficulty.HARD
+                }, 0)
+            })
+        }, 20*5)
 
         kommand {
             register("join_dm") {
@@ -453,13 +456,14 @@ class Main: JavaPlugin() {
                             val arg: String by it
                             if (arg == "confirm") {
                                 plugin.server.onlinePlayers.forEach { player ->
+                                    val classData = RankSystem.initData(player.uniqueId)
                                     player.sendMessage("${ChatColor.GOLD}=================================================")
                                     player.sendMessage(" ")
-                                    player.sendMessage("${ChatColor.GREEN}2023년 11월 24일, 닭갈비 시즌 1이 종료되었습니다!")
+                                    player.sendMessage("${ChatColor.GREEN}${LocalDate.now().year}년 ${LocalDate.now().monthValue}월 ${LocalDate.now().dayOfMonth}일, 시즌이 종료되었습니다!")
                                     player.sendMessage(" ")
-                                    player.sendMessage("${ChatColor.WHITE}당신의 최종 티어 : ${rgb(201,0,201)}Master 1102p ${ChatColor.GRAY}${ChatColor.ITALIC}(전체 순위 ${ChatColor.GREEN}6${ChatColor.GRAY}등, 전 시즌 대비 ${ChatColor.GREEN}+4${ChatColor.GRAY}등)")
+                                    player.sendMessage("${ChatColor.WHITE}당신의 최종 티어 : ${RankSystem.rateToString(player)} ${classData.playerRank%100}p")
                                     player.sendMessage(" ")
-                                    player.sendMessage("최종 보상 : ${rgb(201,0,201)}[${ChatColor.BOLD}Season 1 ${ChatColor.ITALIC}#${rgb(201,0,201)}${ChatColor.BOLD}6 ${ChatColor.RESET}${rgb(201,0,201)}Master] ${ChatColor.RESET}휘장 ${ChatColor.GREEN}+ ${ChatColor.GOLD}100000 Coin")
+                                    player.sendMessage("최종 보상 : ${rgb(201,0,201)} ${ChatColor.RESET}휘장 ${ChatColor.GREEN}+ ${ChatColor.GOLD}100000 Coin") //TODO
                                     player.sendMessage("${ChatColor.GRAY}${ChatColor.ITALIC}*휘장은 /profix 로 확인 및 수정할 수 있습니다!*")
                                     player.sendMessage(" ")
                                     player.sendMessage("${ChatColor.GOLD}=================================================")
@@ -495,6 +499,8 @@ class Main: JavaPlugin() {
                                             econ.depositPlayer(offlinePlayer, 5000.0)
                                         }
                                     }
+                                    classData.playerRank = 0
+                                    classData.gamePlayed = 0
                                 }
                             } else {
                                 sendResetMessage(player)
