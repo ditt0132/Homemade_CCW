@@ -6,7 +6,9 @@ import me.uwuaden.kotlinplugin.Main.Companion.econ
 import me.uwuaden.kotlinplugin.Main.Companion.lastDamager
 import me.uwuaden.kotlinplugin.Main.Companion.lastWeapon
 import me.uwuaden.kotlinplugin.Main.Companion.lobbyLoc
+import me.uwuaden.kotlinplugin.assets.CustomItemData
 import me.uwuaden.kotlinplugin.assets.EffectManager
+import me.uwuaden.kotlinplugin.assets.ItemManipulator.setCount
 import me.uwuaden.kotlinplugin.gameSystem.LastWeaponData
 import me.uwuaden.kotlinplugin.gameSystem.WorldManager
 import me.uwuaden.kotlinplugin.itemManager.ItemManager
@@ -29,6 +31,7 @@ import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
 import org.bukkit.potion.PotionEffectType
 import kotlin.math.roundToInt
+import kotlin.random.Random
 
 private fun deathPlayer(p: Player) {
     if (p.world.name.contains("Field-")) {
@@ -196,6 +199,31 @@ class Events: Listener {
         e.keepInventory = true
         e.drops.clear()
         deathPlayer(e.player)
+    }
+    @EventHandler
+    fun onPlayerDMDeath(e: PlayerDeathEvent) {
+        if (!e.player.world.name.contains("death_match")) return
+        e.drops.clear()
+        e.player.inventory.clear()
+        e.isCancelled = true
+
+        e.player.world.dropItem(e.player.location, ItemStack(Material.ARROW, 32))
+        e.player.world.dropItem(e.player.location, ItemStack(Material.COOKED_BEEF, 16))
+        val dropItem: ItemStack
+        val random = Random
+        val randomNumber = random.nextInt(0, 5)
+        dropItem = when (randomNumber) {
+            0 -> CustomItemData.getFlashBang().setCount(3)
+            1 -> CustomItemData.getMolt().setCount(3)
+            2 -> CustomItemData.getEarthGr().setCount(3)
+            3 -> CustomItemData.getGravityG().setCount(3)
+            4 -> ItemStack(Material.GOLDEN_APPLE, 3)
+            else -> ItemStack(Material.ARROW)
+        }
+        e.player.world.dropItem(e.player.location, dropItem)
+
+        e.player.health = e.player.maxHealth
+        e.player.teleport(lobbyLoc)
     }
 
     @EventHandler

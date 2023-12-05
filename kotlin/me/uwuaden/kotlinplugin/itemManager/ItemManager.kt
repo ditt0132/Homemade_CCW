@@ -169,17 +169,18 @@ object ItemManager {
             }
 
             if (probabilityTrue(30.0)) {
-                when (random.nextInt(0, 51)) {
+                when (random.nextInt(0, 56)) {
                     in 0..0 -> addDroppedItemSlot(droppedItem, createNamedItem(Material.BLACK_DYE, 1, "§b컨버터", listOf("§7다이아몬드 장비를 대미지를 감소시키는 아이템으로 변환시킵니다.", "§7우클릭하여 컨버터 메뉴를 열 수 있습니다.")))
-                    in 1..8 -> addDroppedItemSlot(droppedItem, createNamedItem(Material.DARK_OAK_BUTTON, 1, "§e영역 수류탄", listOf("§71회용*", "§7폭발시 건물을 붕괴시키는 지진을 일으키고 약한 대미지를 줍니다.", "§7폭발 위치보다 높은 곳의 건물만 파괴할 수 있습니다.", " ", "§2대미지: 1.0 x 3")))
+                    in 1..8 -> addDroppedItemSlot(droppedItem, CustomItemData.getEarthGr())
                     in 9..16 -> addDroppedItemSlot(droppedItem, CustomItemData.getAGShotGun())
                     in 17..24 -> addDroppedItemSlot(droppedItem, CustomItemData.getGravityG())
-                    in 25..28 -> addDroppedItemSlot(droppedItem, createNamedItem(Material.LIGHT_BLUE_DYE, 1, "§b반중력 큐브", listOf("§71회용*", "§7우클릭시 보는 방향의 자신과 주변 플레이어를 밀어냅니다.")))
-                    in 29..36 -> addDroppedItemSlot(droppedItem, CustomItemData.getSmokeG())
-                    in 37..38 -> addDroppedItemSlot(droppedItem, CustomItemData.getVallista())
-                    in 39..40 -> addDroppedItemSlot(droppedItem, CustomItemData.getRevelation())
-                    in 41..42 -> addDroppedItemSlot(droppedItem, CustomItemData.getRocketLauncher())
-                    in 43..50 -> addDroppedItemSlot(droppedItem, CustomItemData.getMolt())
+                    //in 25..28 -> addDroppedItemSlot(droppedItem, createNamedItem(Material.LIGHT_BLUE_DYE, 1, "§b반중력 큐브", listOf("§71회용*", "§7우클릭시 보는 방향의 자신과 주변 플레이어를 밀어냅니다.")))
+                    in 25..32 -> addDroppedItemSlot(droppedItem, CustomItemData.getSmokeG())
+                    in 33..34 -> addDroppedItemSlot(droppedItem, CustomItemData.getVallista())
+                    in 35..36 -> addDroppedItemSlot(droppedItem, CustomItemData.getRevelation())
+                    in 37..38 -> addDroppedItemSlot(droppedItem, CustomItemData.getRocketLauncher())
+                    in 39..47 -> addDroppedItemSlot(droppedItem, CustomItemData.getMolt())
+                    in 48..55 -> addDroppedItemSlot(droppedItem, CustomItemData.getFlashBang())
                 }
             }
             var rn = random.nextInt(0, 19)

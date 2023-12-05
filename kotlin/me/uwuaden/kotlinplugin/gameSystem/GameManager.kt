@@ -405,15 +405,17 @@ object GameManager {
     fun chunkSch() {
         scheduler.scheduleSyncRepeatingTask(plugin, {
             plugin.server.worlds.forEach { world ->
-                if (world.name.contains("Field-")) {
-                    val data = WorldManager.initData(world)
-                    val chunk = chunkItemDisplayGen.filter { it.world == world }
-                        .minByOrNull { chunk -> data.worldDroppedItemData.ItemCount[Pair(chunk.x, chunk.z)]?: 0 }
-
-                    chunkItemDisplayGen.remove(chunk)
-                    if (chunk != null) {
-                        WorldItemManager.createItems(chunk)
-                        initDroppedItemLoc(chunk)
+                for (i in 0 until 100) {
+                    if (world.name.contains("Field-") && world.playerCount > 0) {
+                        val data = WorldManager.initData(world)
+                        val chunk = chunkItemDisplayGen.filter { it.world == world }
+                            .filterNot { chunk -> data.droppedItems.filter { chunk == it.loc.chunk }.isEmpty() }
+                            .maxByOrNull { chunk -> data.worldDroppedItemData.ItemCount[Pair(chunk.x, chunk.z)] ?: 0 }
+                        if (chunk != null) {
+                            chunkItemDisplayGen.remove(chunk)
+                            WorldItemManager.createItems(chunk)
+                            initDroppedItemLoc(chunk)
+                        }
                     }
                 }
             }
@@ -482,13 +484,13 @@ object GameManager {
         val dataClass = WorldManager.initData(toWorld)
         var randomSize = 200.0
         var borderRadius = 500.0
-        var itemCount = 4000
+        var itemCount = 8000
 
         println(dataClass.worldFolderName)
         if (dataClass.worldFolderName == "Sinchon") {
             randomSize = 50.0
             borderRadius = 250.0
-            itemCount = 1000
+            itemCount = 2000
         }
 
         val borderCenter = Location(
@@ -502,13 +504,14 @@ object GameManager {
         toWorld.time = 0
         toWorld.setGameRule(GameRule.DO_TILE_DROPS, false)
         toWorld.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false)
-
-        WorldItemManager.createItemData(
-            toWorld,
-            borderCenter.clone().add(-1 * borderRadius, 0.0, -1 * borderRadius),
-            borderCenter.clone().add(borderRadius, 0.0, borderRadius),
-            itemCount
-        )
+        scheduler.scheduleSyncDelayedTask(plugin, {
+            WorldItemManager.createItemData(
+                toWorld,
+                borderCenter.clone().add(-1 * borderRadius, 0.0, -1 * borderRadius),
+                borderCenter.clone().add(borderRadius, 0.0, borderRadius),
+                itemCount
+            )
+        }, 20*5)
 
         fromWorld.players.forEach { player ->
             initPlayer(player)

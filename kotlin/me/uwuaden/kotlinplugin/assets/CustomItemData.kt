@@ -218,4 +218,18 @@ object CustomItemData {
     fun getFlashBang(): ItemStack {
         return ItemManager.createNamedItem(Material.WARPED_BUTTON, 1, "${ChatColor.YELLOW}섬광탄", listOf("§71회용*", "§7우클릭으로 투척할 수 있습니다.", "${ChatColor.GRAY}터질 경우 시아 내에 섬광탄이 있으면, 시아가 차단됩니다."))
     }
+    fun getEarthGr(): ItemStack {
+        return ItemManager.createNamedItem(
+            Material.DARK_OAK_BUTTON,
+            1,
+            "§e영역 수류탄",
+            listOf(
+                "§71회용*",
+                "§7폭발시 건물을 붕괴시키는 지진을 일으키고 약한 대미지를 줍니다.",
+                "§7폭발 위치보다 높은 곳의 건물만 파괴할 수 있습니다.",
+                " ",
+                "§2대미지: 1.0 x 3"
+            )
+        )
+    }
 }

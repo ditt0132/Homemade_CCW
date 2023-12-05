@@ -304,6 +304,9 @@ object CustomItemManager {
                         else player.sendActionBar(Component.text("§a던지기 모드: 멀리 던지기  §c쿨타임: ${(((cd)*10).roundToInt())/10.0}초"))
                     }
                 }
+                if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.AQUA}${ChatColor.BOLD}Prototype V3") {
+                    player.addPotionEffect(PotionEffect(PotionEffectType.SLOW, 15, 2, false, false))
+                }
                 if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.DARK_PURPLE}${ChatColor.BOLD}Liberation" && player.health == player.getAttribute(Attribute.GENERIC_MAX_HEALTH)?.value) {
                     if (player.location.getNearbyPlayers(30.0).filter { isHittable(player, it) }.size >= 3) player.world.spawnParticle(REVERSE_PORTAL, player.location.clone().add(0.0, 0.5, 0.0), 200, 30.0, 0.1, 30.0, 0.0)
                 }

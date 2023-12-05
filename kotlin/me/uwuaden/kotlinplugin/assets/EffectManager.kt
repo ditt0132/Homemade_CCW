@@ -3,8 +3,13 @@ package me.uwuaden.kotlinplugin.assets
 import com.mojang.authlib.GameProfile
 import com.mojang.authlib.properties.Property
 import me.uwuaden.kotlinplugin.Main
+import me.uwuaden.kotlinplugin.Main.Companion.lastDamager
+import me.uwuaden.kotlinplugin.Main.Companion.lastWeapon
+import me.uwuaden.kotlinplugin.gameSystem.LastWeaponData
 import org.bukkit.*
 import org.bukkit.block.Block
+import org.bukkit.entity.LivingEntity
+import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.SkullMeta
 import java.lang.reflect.Field
@@ -56,7 +61,7 @@ object EffectManager {
     }
     fun breakBlock(blockLoc: Location) {
         if (blockLoc.world.isChunkLoaded(blockLoc.x.roundToInt() shr 4, blockLoc.z.roundToInt() shr 4) && blockLoc.y.roundToInt() > Main.groundY) {
-            if (blockLoc.block.type != Material.AIR) {
+            if (blockLoc.block.type != Material.AIR && blockLoc.block.type != Material.BARRIER) {
                 blockLoc.world.spawnParticle(Particle.BLOCK_CRACK, blockLoc, 5, 0.5, 0.5, 0.5, 0.0, blockLoc.block.blockData)
                 blockLoc.block.type = Material.AIR
             }
@@ -99,5 +104,17 @@ object EffectManager {
         }
 
         return blocksInCircle
+    }
+
+    fun setLastDamager(attacker: LivingEntity, victim: LivingEntity, second: Int = 30, itemStack: ItemStack? = null) {
+        if (attacker is Player && victim is Player) {
+            lastDamager[victim] = attacker
+            if (itemStack == null) {
+                lastWeapon.remove(victim)
+            } else {
+                lastWeapon[victim] = LastWeaponData(itemStack, System.currentTimeMillis() + 1000 * second
+                )
+            }
+        }
     }
 }

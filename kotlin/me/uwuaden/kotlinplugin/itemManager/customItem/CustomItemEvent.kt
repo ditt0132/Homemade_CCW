@@ -44,6 +44,7 @@ private fun throwProjectile(player: Player, delayTick: Int, forceStopTick: Int, 
     val dir: Vector
     var delay = delayTick
     var forceStop = forceStopTick
+    var onGround = false
     if (longThrow) {
         dir = throwLoc.direction.clone().multiply(2.0)
     } else {
@@ -67,14 +68,23 @@ private fun throwProjectile(player: Player, delayTick: Int, forceStopTick: Int, 
     entity.setDisabledSlots(EquipmentSlot.LEGS)
     entity.setDisabledSlots(EquipmentSlot.FEET)
 
-    var isOnGround = false
+    var explode = false
 
     scheduler.runTaskAsynchronously(plugin, Runnable {
         shooting@for (i in 0 until forceStop) {
             scheduler.scheduleSyncDelayedTask(plugin, {
 
-                if (entity.isOnGround && !isOnGround) {
-                    isOnGround = true
+                if (entity.isOnGround) {
+                    if (!onGround) {
+                        EffectManager.playSurroundSound(entity.location, Sound.BLOCK_LANTERN_BREAK, 1.0f, 2.0f)
+                    }
+                    onGround = true
+                } else {
+                    onGround = false
+                }
+
+                if (entity.isOnGround && !explode) {
+                    explode = true
                     forceStop = i + delay //터지는 시간
                 }
 
@@ -534,11 +544,52 @@ private fun makeLookAt(player: Player, lookat: Location): Pair<Float, Float> {
 }
 
 //private fun convertTo
+private fun isPlayerBetweenLocations(loc: Location, loc1: Location, loc2: Location): Boolean {
+    if (loc.world != loc1.world) return false
+
+    val playerLocation = loc
+    val minX = loc1.x.coerceAtMost(loc2.x)
+    val minY = loc1.y.coerceAtMost(loc2.y)
+    val minZ = loc1.z.coerceAtMost(loc2.z)
+    val maxX = loc1.x.coerceAtLeast(loc2.x)
+    val maxY = loc1.y.coerceAtLeast(loc2.y)
+    val maxZ = loc1.z.coerceAtLeast(loc2.z)
+    return (playerLocation.x >= minX) && (playerLocation.x <= maxX) && (playerLocation.y >= minY) && (playerLocation.y <= maxY) && (playerLocation.z >= minZ) && (playerLocation.z <= maxZ)
+}
+
+private fun isLocInSmoke(loc: Location): Boolean {
+    var isInSmoke = false
+    smokeRadius.values.forEach {
+        if (isPlayerBetweenLocations(loc, it.first, it.second)) {
+            if (!isInSmoke) {
+                isInSmoke = true
+            }
+        }
+    }
+    return isInSmoke
+}
+
 private fun flashBang(loc: Location, p: Player) {
+    var isInSmoke = false
+    smokeRadius.values.forEach {
+        if (isPlayerBetweenLocations(loc, it.first, it.second)) {
+            if (!isInSmoke) {
+                isInSmoke = true
+            }
+        }
+    }
+
     EffectManager.playSurroundSound(loc, Sound.ENTITY_FIREWORK_ROCKET_BLAST, 2.0f, 1.2f)
     loc.world.spawnParticle(FLASH, loc, 5, 0.0, 0.0, 0.0)
     scheduler.scheduleSyncDelayedTask(plugin, {
-        loc.getNearbyPlayers(50.0).forEach { player ->
+        val players = loc.getNearbyPlayers(50.0)
+        if (isInSmoke) {
+            players.clear()
+        } else {
+            players.removeIf { isLocInSmoke(it.location) }
+        }
+
+        players.forEach { player ->
             if (player.gameMode != GameMode.SPECTATOR) {
                 val flashYawPitch = makeLookAt(player, loc)
                 var dYaw = player.yaw - flashYawPitch.first
@@ -619,8 +670,6 @@ class CustomItemEvent: Listener {
             GrenadeCD[player.uniqueId] = System.currentTimeMillis() + cd * 1000L
 
 
-            EffectManager.playSurroundSound(player.location, Sound.ENTITY_BAT_TAKEOFF, 1.0F, 1.0F)
-
             throwProjectile(player, 20*2, 20*5, Color.fromRGB(41, 24, 17), !player.isSneaking, ::earthGrenade)
         } else if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.YELLOW}중력 수류탄") {
             e.isCancelled = true
@@ -633,7 +682,6 @@ class CustomItemEvent: Listener {
             player.inventory.itemInMainHand.amount -= 1
             GrenadeCD[player.uniqueId] = System.currentTimeMillis() + cd * 1000L
 
-            EffectManager.playSurroundSound(player.location, Sound.ENTITY_BAT_TAKEOFF, 1.0F, 1.0F)
 
             throwProjectile(player, 20*2, 20*5, Color.fromRGB(37, 13, 39), !player.isSneaking, ::gravityGrenade)
         } else if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.YELLOW}연막탄") {
@@ -647,7 +695,6 @@ class CustomItemEvent: Listener {
             player.inventory.itemInMainHand.amount -= 1
             GrenadeCD[player.uniqueId] = System.currentTimeMillis() + cd * 1000L
 
-            EffectManager.playSurroundSound(player.location, Sound.ENTITY_BAT_TAKEOFF, 1.0F, 1.0F)
 
             throwProjectile(player, 20*3, 20*8, Color.GRAY, !player.isSneaking, ::smokeGrenade)
         } else if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.YELLOW}화염병") {
@@ -661,8 +708,6 @@ class CustomItemEvent: Listener {
             player.inventory.itemInMainHand.amount -= 1
             GrenadeCD[player.uniqueId] = System.currentTimeMillis() + cd * 1000L
 
-            EffectManager.playSurroundSound(player.location, Sound.ENTITY_BAT_TAKEOFF, 1.0F, 1.0F)
-
             throwProjectile(player, 0, 20*5, Color.fromRGB(255, 120, 14), !player.isSneaking, ::molotovCocktail)
         } else if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.YELLOW}섬광탄") {
             e.isCancelled = true
@@ -675,9 +720,7 @@ class CustomItemEvent: Listener {
             player.inventory.itemInMainHand.amount -= 1
             GrenadeCD[player.uniqueId] = System.currentTimeMillis() + cd * 1000L
 
-            EffectManager.playSurroundSound(player.location, Sound.ENTITY_BAT_TAKEOFF, 1.0F, 1.0F)
-
-            throwProjectile(player, 20 * 20, 20 * 2, Color.GRAY, !player.isSneaking, ::flashBang)
+            throwProjectile(player, 20 * 20, 20 * 2, Color.fromRGB(28, 42, 56), !player.isSneaking, ::flashBang)
         }
     }
 

@@ -30,8 +30,11 @@ import net.kyori.adventure.text.event.HoverEvent
 import net.milkbowl.vault.economy.Economy
 import org.bukkit.*
 import org.bukkit.entity.Player
+import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.java.JavaPlugin
+import org.bukkit.potion.PotionEffect
+import org.bukkit.potion.PotionEffectType
 import org.bukkit.scheduler.BukkitScheduler
 import java.io.File
 import java.util.*
@@ -46,6 +49,13 @@ private fun initPluginFolder() {
     if (pluginFolder.exists()) return
     pluginFolder.mkdirs()
 
+}
+private fun ItemStack.unbreakable(): ItemStack {
+    val item = this.clone()
+    val meta = item.itemMeta
+    meta.isUnbreakable = true
+    item.itemMeta = meta
+    return item
 }
 
 class Main: JavaPlugin() {
@@ -141,7 +151,7 @@ class Main: JavaPlugin() {
         }
 
         plugin.server.worlds.forEach {
-            if (it.name.contains("Queue-") || it.name.contains("Field-")) {
+            if (it.name.contains("Queue-") || it.name.contains("Field-") || it.name.contains("death_match")) {
                 WorldManager.deleteWorld(it)
             }
         }
@@ -160,7 +170,42 @@ class Main: JavaPlugin() {
         FileManager.loadVar()
         FileManager.loadPlayerEItemFromFile()
 
+        val copyDir = File(File(plugin.dataFolder, "maps"), "Sinchon")
+        val pasteDir = File(plugin.server.worldContainer, "death_match")
+        scheduler.runTaskAsynchronously(plugin, Runnable {
+            FileManager.copyDir(copyDir.toPath(), pasteDir.toPath())
+            scheduler.scheduleSyncDelayedTask(plugin, {
+                WorldManager.loadWorld("death_match")
+            }, 0)
+            scheduler.scheduleSyncDelayedTask(plugin, {
+                plugin.server.getWorld("death_match")?.difficulty = Difficulty.HARD
+            }, 0)
+        })
+
         kommand {
+            register("join_dm") {
+                requires { isPlayer }
+                executes {
+                    if (player.world.name == "world") {
+                        player.teleport(Location(plugin.server.getWorld("death_match") ?: return@executes, 0.0, 2.0, 0.0))
+                        player.addPotionEffect(PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 20*10, 4))
+                        player.inventory.clear()
+                        player.inventory.setItem(EquipmentSlot.HEAD, ItemStack(Material.IRON_HELMET).unbreakable())
+                        player.inventory.setItem(EquipmentSlot.CHEST, ItemStack(Material.IRON_CHESTPLATE).unbreakable())
+                        player.inventory.setItem(EquipmentSlot.LEGS, ItemStack(Material.IRON_LEGGINGS).unbreakable())
+                        player.inventory.setItem(EquipmentSlot.FEET, ItemStack(Material.IRON_BOOTS).unbreakable())
+                        player.inventory.setItem(EquipmentSlot.OFF_HAND, ItemStack(Material.SHIELD).unbreakable())
+                        player.inventory.addItem(ItemStack(Material.IRON_SWORD).unbreakable())
+                        player.inventory.addItem(ItemStack(Material.BOW).unbreakable())
+                        player.inventory.addItem(ItemStack(Material.ARROW, 64))
+                        player.inventory.addItem(ItemStack(Material.COOKED_BEEF, 64))
+                        player.inventory.addItem(ItemStack(Material.IRON_AXE))
+                        player.inventory.addItem(ItemStack(Material.IRON_PICKAXE))
+                        player.inventory.addItem(CustomItemData.getVallista().unbreakable())
+                        player.sendMessage("§a데스매치에 입장했습니다.")
+                    }
+                }
+            }
             register("setmap") {
                 requires { isOp }
                 then("test") {
@@ -538,6 +583,7 @@ class Main: JavaPlugin() {
                 requires { isPlayer }
                 executes {
                     if (!player.world.name.contains("Field-") || player.gameMode != GameMode.SURVIVAL) {
+                        player.inventory.clear()
                         player.teleport(lobbyLoc)
                     }
                 }
@@ -635,7 +681,8 @@ class Main: JavaPlugin() {
             register("test") {
                 requires { isOp }
                 executes {
-                    player.inventory.addItem(CustomItemData.getFlashBang())
+                    val strComponent = Component.text("asdf").hoverEvent(CustomItemData.getVallista())
+                    player.sendMessage(strComponent)
                 }
             }
             register("queuelist") {
@@ -675,6 +722,7 @@ class Main: JavaPlugin() {
                 }
             }
         }
+
     }
     private fun setupEconomy(): Boolean {
         if (server.pluginManager.getPlugin("Vault") == null) {
