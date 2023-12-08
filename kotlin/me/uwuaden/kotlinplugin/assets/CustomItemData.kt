@@ -232,4 +232,12 @@ object CustomItemData {
             )
         )
     }
+    fun enchantedShield(): ItemStack {
+        return ItemManager.addItemData(
+            ItemManager.enchantItem(ItemStack(Material.SHIELD), Enchantment.DURABILITY, 3),
+            1,
+            "§b§lEnchanted Shield",
+            listOf("§7왼손에 들고 있을 시, 받는 근접 대미지를 20% 감소 시킵니다.")
+        )
+    }
 }

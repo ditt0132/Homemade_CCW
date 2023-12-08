@@ -10,7 +10,10 @@ import me.uwuaden.kotlinplugin.Main.Companion.playerStat
 import me.uwuaden.kotlinplugin.Main.Companion.plugin
 import me.uwuaden.kotlinplugin.Main.Companion.scheduler
 import me.uwuaden.kotlinplugin.Main.Companion.worldDatas
+import me.uwuaden.kotlinplugin.assets.CustomItemData
 import me.uwuaden.kotlinplugin.assets.EffectManager
+import me.uwuaden.kotlinplugin.assets.ItemManipulator.enchant
+import me.uwuaden.kotlinplugin.assets.ItemManipulator.setCount
 import me.uwuaden.kotlinplugin.itemManager.ItemManager
 import me.uwuaden.kotlinplugin.itemManager.itemData.WorldItemManager
 import me.uwuaden.kotlinplugin.itemManager.maps.MapManager
@@ -30,6 +33,7 @@ import org.bukkit.entity.EntityType
 import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
 import org.bukkit.entity.Zombie
+import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
 import org.bukkit.potion.PotionEffect
 import org.bukkit.potion.PotionEffectType
@@ -486,7 +490,6 @@ object GameManager {
         var borderRadius = 500.0
         var itemCount = 8000
 
-        println(dataClass.worldFolderName)
         if (dataClass.worldFolderName == "Sinchon") {
             randomSize = 50.0
             borderRadius = 250.0
@@ -504,6 +507,13 @@ object GameManager {
         toWorld.time = 0
         toWorld.setGameRule(GameRule.DO_TILE_DROPS, false)
         toWorld.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false)
+
+        if (mode == "Quick") {
+            randomSize/=2.0
+            borderRadius/=2.0
+            itemCount/=4
+        }
+
         scheduler.scheduleSyncDelayedTask(plugin, {
             WorldItemManager.createItemData(
                 toWorld,
@@ -683,7 +693,6 @@ object GameManager {
                 i++
             }
             dataClass.teams.add(TeamClass(toWorld, teams))
-
         } else {
             var i = 0
             spawnLocList(borderCenter.clone().add(-0.8*borderRadius, 0.0, -0.8*borderRadius), borderCenter.clone().add(0.8*borderRadius, 0.0, 0.8*borderRadius), fromWorld.players.size, 30).forEach {
@@ -691,8 +700,35 @@ object GameManager {
                 initPlayer(players[i])
                 i++
             }
-        }
 
+            if (mode == "Quick") {
+                players.forEach { player ->
+                    player.inventory.remove(Material.WOODEN_PICKAXE)
+                    player.inventory.remove(Material.WOODEN_AXE)
+                    player.inventory.remove(Material.WOODEN_SWORD)
+
+                    player.inventory.setItem(EquipmentSlot.HEAD, ItemStack(Material.DIAMOND_HELMET))
+                    player.inventory.setItem(EquipmentSlot.CHEST, ItemStack(Material.DIAMOND_CHESTPLATE))
+                    player.inventory.setItem(EquipmentSlot.LEGS, ItemStack(Material.DIAMOND_LEGGINGS))
+                    player.inventory.setItem(EquipmentSlot.FEET, ItemStack(Material.DIAMOND_BOOTS))
+                    player.inventory.setItem(EquipmentSlot.OFF_HAND, CustomItemData.enchantedShield())
+                    player.inventory.addItem(ItemStack(Material.DIAMOND_SWORD))
+                    player.inventory.addItem(ItemStack(Material.IRON_AXE).enchant(Enchantment.DIG_SPEED, 3))
+                    player.inventory.addItem(ItemStack(Material.IRON_PICKAXE).enchant(Enchantment.DIG_SPEED, 3))
+                    player.inventory.addItem(ItemStack(Material.BOW).enchant(Enchantment.ARROW_DAMAGE, 1))
+                    player.inventory.addItem(CustomItemData.getVallista())
+                    player.inventory.addItem(CustomItemData.getGravityG().setCount(5))
+                    player.inventory.addItem(CustomItemData.getEarthGr().setCount(5))
+                    player.inventory.addItem(CustomItemData.getFlashBang().setCount(5))
+                    player.inventory.addItem(CustomItemData.getMolt().setCount(5))
+                    player.inventory.addItem(CustomItemData.getSmokeG().setCount(5))
+                    player.inventory.addItem(CustomItemData.getGoldenCarrot().setCount(3))
+                    player.inventory.addItem(ItemStack(Material.GOLDEN_APPLE, 6))
+                    player.inventory.addItem(ItemStack(Material.COOKED_BEEF, 64))
+                    player.inventory.addItem(ItemStack(Material.ARROW, 128))
+                }
+            }
+        }
 
 
 

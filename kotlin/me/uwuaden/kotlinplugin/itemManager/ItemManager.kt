@@ -228,7 +228,7 @@ object ItemManager {
                     in 7..8 -> addDroppedItemSlot(droppedItem, ItemStack(Material.DIAMOND_LEGGINGS))
                     in 9..10 -> addDroppedItemSlot(droppedItem, ItemStack(Material.DIAMOND_BOOTS))
                     in 11..12 -> addDroppedItemSlot(droppedItem, enchantItem(ItemStack(Material.BOW), Enchantment.ARROW_DAMAGE, 1))
-                    in 13..14 -> addDroppedItemSlot(droppedItem, addItemData(enchantItem(ItemStack(Material.SHIELD), Enchantment.DURABILITY, 3), null, "§b§lEnchanted Shield", listOf("§7왼손에 들고 있을 시, 받는 근접 대미지를 20% 감소 시킵니다.")))
+                    in 13..14 -> addDroppedItemSlot(droppedItem, addItemData(enchantItem(ItemStack(Material.SHIELD), Enchantment.DURABILITY, 3), 1, "§b§lEnchanted Shield", listOf("§7왼손에 들고 있을 시, 받는 근접 대미지를 20% 감소 시킵니다.")))
                     in 15..16 -> addDroppedItemSlot(droppedItem, enchantItem(ItemStack(Material.IRON_AXE), Enchantment.DIG_SPEED, 3))
                     in 17..18 -> addDroppedItemSlot(droppedItem, enchantItem(ItemStack(Material.IRON_PICKAXE), Enchantment.DIG_SPEED, 3))
                 }
