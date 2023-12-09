@@ -118,7 +118,7 @@ class Main: JavaPlugin() {
         scheduler = Bukkit.getScheduler()
         scheduler.cancelTasks(plugin)
         QueueOperator.sch()
-        GameManager.chunkSch() //아이템 생성 등등 여러가지
+        //GameManager.chunkSch() //아이템 생성 등등 여러가지
         GameManager.gameSch()
         ItemManager.updateInventorySch()
         CustomItemManager.itemSch()
@@ -181,7 +181,7 @@ class Main: JavaPlugin() {
                 }, 0)
                 scheduler.scheduleSyncDelayedTask(plugin, {
                     plugin.server.getWorld("death_match")?.difficulty = Difficulty.HARD
-                }, 0)
+                }, 20*5)
             })
         }, 20*5)
 
@@ -447,10 +447,7 @@ class Main: JavaPlugin() {
                     }
                 }
 
-                then("시즌초기화" to string(StringType.GREEDY_PHRASE)) {
-                    requires { isOp }
-                    executes {
-                    }
+                then("시즌초기화") {
                     then("arg" to string(StringType.GREEDY_PHRASE)) {
                         executes {
                             val arg: String by it
@@ -461,10 +458,7 @@ class Main: JavaPlugin() {
                                     player.sendMessage(" ")
                                     player.sendMessage("${ChatColor.GREEN}${LocalDate.now().year}년 ${LocalDate.now().monthValue}월 ${LocalDate.now().dayOfMonth}일, 시즌이 종료되었습니다!")
                                     player.sendMessage(" ")
-                                    player.sendMessage("${ChatColor.WHITE}당신의 최종 티어 : ${RankSystem.rateToString(player)} ${classData.playerRank%100}p")
-                                    player.sendMessage(" ")
-                                    player.sendMessage("최종 보상 : ${rgb(201,0,201)} ${ChatColor.RESET}휘장 ${ChatColor.GREEN}+ ${ChatColor.GOLD}100000 Coin") //TODO
-                                    player.sendMessage("${ChatColor.GRAY}${ChatColor.ITALIC}*휘장은 /profix 로 확인 및 수정할 수 있습니다!*")
+                                    player.sendMessage("${ChatColor.WHITE}당신의 최종 티어 : ${RankSystem.rateToString(player)} ${ChatColor.GREEN}(${RankSystem.rateToScore(classData.playerRank)})")
                                     player.sendMessage(" ")
                                     player.sendMessage("${ChatColor.GOLD}=================================================")
                                 }
@@ -520,8 +514,7 @@ class Main: JavaPlugin() {
                     then("n" to int()) {
                         executes {
                             val n: Int by it
-                            val data = WorldManager.initData(player.world)
-                            data.dataInt = n
+                            RankSystem.changeRate(player, n)
                         }
                     }
                 }

@@ -409,14 +409,16 @@ object GameManager {
     fun chunkSch() {
         scheduler.scheduleSyncRepeatingTask(plugin, {
             plugin.server.worlds.forEach { world ->
-                for (i in 0 until 100) {
-                    if (world.name.contains("Field-") && world.playerCount > 0) {
+                if (world.name.contains("Field-")) {
+                    for (i in 0 until 10) {
                         val data = WorldManager.initData(world)
                         val chunk = chunkItemDisplayGen.filter { it.world == world }
-                            .filterNot { chunk -> data.droppedItems.filter { chunk == it.loc.chunk }.isEmpty() }
+                            .filter { chunk -> chunk.isLoaded }
+                            .filterNot { chunk -> (data.worldDroppedItemData.ItemCount[Pair(chunk.x, chunk.z)] ?: 0) == 0 }
                             .maxByOrNull { chunk -> data.worldDroppedItemData.ItemCount[Pair(chunk.x, chunk.z)] ?: 0 }
+
+                        chunkItemDisplayGen.remove(chunk)
                         if (chunk != null) {
-                            chunkItemDisplayGen.remove(chunk)
                             WorldItemManager.createItems(chunk)
                             initDroppedItemLoc(chunk)
                         }
@@ -862,7 +864,7 @@ object GameManager {
                 }
 
                 if (!dataClass.gameEndedWorld && (System.currentTimeMillis() - (dataClass.worldTimer[world] ?: System.currentTimeMillis())) > 1000 * 10) {
-                    if (dataClass.worldMode == "Solo") {
+                    if (dataClass.worldMode == "Solo" || dataClass.worldMode == "Quick") {
                         val players = world.players.filter { it.gameMode == GameMode.SURVIVAL }
                         if (players.size == 1) {
                             dataClass.gameEndedWorld = true

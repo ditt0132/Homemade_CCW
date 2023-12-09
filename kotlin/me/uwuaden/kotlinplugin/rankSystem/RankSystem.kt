@@ -26,11 +26,40 @@ private fun rgb(R: Int, G: Int, B: Int): net.md_5.bungee.api.ChatColor {
 }
 
 object RankSystem {
+    fun changeRate(player: Player, rate: Int) {
+        val ratePrev = rateToString(player)
+        var change = rate
+        val classData = initData(player.uniqueId)
+        val rank1 = classData.playerRank
+
+        if (change > 50) change = 50
+        else if (change < -50) change = -50
+
+        classData.playerRank += change
+
+        if (classData.playerRank < 0) {
+            classData.playerRank = 0
+        }
+
+        //강등 보정
+        while (rank1/400 > classData.playerRank/400) {
+            classData.playerRank += 1
+            change += 1
+        }
+
+        player.sendMessage("${ChatColor.GOLD}========================================")
+        player.sendMessage(" ")
+        player.sendMessage("${ChatColor.GOLD}${ratePrev} ${ChatColor.GREEN}-> ${rateToString(player)}")
+        player.sendMessage("  ")
+        player.sendMessage("${ChatColor.GREEN}Rate: ${rateToScore(rank1)} -> ${rateToScore(classData.playerRank)} (${change})")
+        player.sendMessage("   ")
+        player.sendMessage("${ChatColor.GOLD}========================================")
+    }
 
     fun rateToScore(rate: Int): Int {
         val masterRate = 2400
         if (rate < masterRate) { //마스터 아래
-            return rate/100
+            return rate%100
         } else {
             return rate - masterRate
         }
@@ -127,7 +156,6 @@ object RankSystem {
     fun updateRank(player: Player, kill: Int, playerTotal: Int, Ranking: Int, AvgMMR: Int) {
         val classData = initData(player.uniqueId)
 
-        val ratePrev = rateToString(player)
 
         val playerRate = classData.playerRank
         val playerMMR = classData.playerMMR
@@ -177,31 +205,7 @@ object RankSystem {
                 change += mergingRate * 10
             }
 
-
-            if (change > 50) change = 50
-            else if (change < -50) change = -50
-
-            val rank1 = classData.playerRank
-
-            classData.playerRank += change
-
-            if (classData.playerRank < 0) {
-                classData.playerRank = 0
-            }
-
-            //강등 보정
-            while (rank1/400 > classData.playerRank/400) {
-                classData.playerRank += 1
-                change += 1
-            }
-
-            player.sendMessage("${ChatColor.GOLD}========================================")
-            player.sendMessage(" ")
-            player.sendMessage("${ChatColor.GOLD}${ratePrev} ${ChatColor.GREEN}-> ${rateToString(player)}")
-            player.sendMessage("  ")
-            player.sendMessage("${ChatColor.GREEN}Rate: ${rateToScore(rank1)} -> ${rateToScore(classData.playerRank)} (${change})")
-            player.sendMessage("   ")
-            player.sendMessage("${ChatColor.GOLD}========================================")
+            changeRate(player, change)
         }
     }
 
