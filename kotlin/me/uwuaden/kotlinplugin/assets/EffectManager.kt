@@ -106,15 +106,17 @@ object EffectManager {
         return blocksInCircle
     }
 
-    fun setLastDamager(attacker: LivingEntity, victim: LivingEntity, second: Int = 30, itemStack: ItemStack? = null) {
+    fun setLastDamager(attacker: LivingEntity, victim: LivingEntity, itemStack: ItemStack? = null, second: Int = 30) {
         if (attacker is Player && victim is Player) {
-            lastDamager[victim] = attacker
             if (itemStack == null) {
-                lastWeapon.remove(victim)
+                if (lastDamager[victim] != attacker) {
+                    lastWeapon.remove(victim)
+                }
             } else {
                 lastWeapon[victim] = LastWeaponData(itemStack, System.currentTimeMillis() + 1000 * second
                 )
             }
+            lastDamager[victim] = attacker
         }
     }
 }

@@ -2,6 +2,8 @@ package me.uwuaden.kotlinplugin.gameSystem
 
 import me.uwuaden.kotlinplugin.Main.Companion.groundY
 import me.uwuaden.kotlinplugin.Main.Companion.plugin
+import me.uwuaden.kotlinplugin.assets.CustomItemData
+import me.uwuaden.kotlinplugin.assets.ItemManipulator.getName
 import org.bukkit.*
 import org.bukkit.block.Chest
 import org.bukkit.enchantments.Enchantment
@@ -138,6 +140,7 @@ class GameEvent: Listener {
         if (e.inventory.type == InventoryType.ANVIL) {
             val worldData = WorldManager.initData(e.view.player.world)
             if (worldData.worldMode == "SoloSurvival") return
+            if (e.inventory.getItem(1)?.getName() == CustomItemData.getBookOfMastery().getName()) return
             val player = e.view.player as Player
             if (e.slot == 2) {
                 val itemLast = e.inventory.getItem(2) ?: return

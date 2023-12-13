@@ -118,7 +118,7 @@ class Main: JavaPlugin() {
         scheduler = Bukkit.getScheduler()
         scheduler.cancelTasks(plugin)
         QueueOperator.sch()
-        //GameManager.chunkSch() //아이템 생성 등등 여러가지
+        GameManager.chunkSch() //아이템 생성 등등 여러가지
         GameManager.gameSch()
         ItemManager.updateInventorySch()
         CustomItemManager.itemSch()
@@ -520,7 +520,8 @@ class Main: JavaPlugin() {
                 }
                 then("test2") {
                     executes {
-                        player.inventory.addItem(CustomItemData.getMolt())
+                        val dataClass = WorldManager.initData(player.world)
+                        player.sendMessage((dataClass.worldDroppedItemData.ItemCount[Pair(player.chunk.x, player.chunk.z)]?: 0).toString())
                     }
                 }
                 then("test3") {
@@ -680,8 +681,7 @@ class Main: JavaPlugin() {
             register("test") {
                 requires { isOp }
                 executes {
-                    val strComponent = Component.text("asdf").hoverEvent(CustomItemData.getVallista())
-                    player.sendMessage(strComponent)
+                    player.inventory.addItem(CustomItemData.getExosist())
                 }
             }
             register("queuelist") {

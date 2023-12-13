@@ -5,14 +5,14 @@ import me.uwuaden.kotlinplugin.Main.Companion.plugin
 import me.uwuaden.kotlinplugin.Main.Companion.scheduler
 import me.uwuaden.kotlinplugin.assets.CustomItemData
 import me.uwuaden.kotlinplugin.assets.EffectManager
+import me.uwuaden.kotlinplugin.assets.ItemManipulator.getName
 import me.uwuaden.kotlinplugin.itemManager.ItemManager
 import me.uwuaden.kotlinplugin.itemManager.customItem.CustomItemEvent.Companion.GrenadeCD
 import me.uwuaden.kotlinplugin.teamSystem.TeamManager
 import net.kyori.adventure.text.Component
 import org.apache.commons.lang3.Validate
 import org.bukkit.*
-import org.bukkit.Particle.DustOptions
-import org.bukkit.Particle.REVERSE_PORTAL
+import org.bukkit.Particle.*
 import org.bukkit.attribute.Attribute
 import org.bukkit.block.Block
 import org.bukkit.block.Chest
@@ -304,6 +304,10 @@ object CustomItemManager {
                         else player.sendActionBar(Component.text("§a던지기 모드: 멀리 던지기  §c쿨타임: ${(((cd)*10).roundToInt())/10.0}초"))
                     }
                 }
+                if (player.inventory.itemInMainHand.itemMeta?.displayName == CustomItemData.getExosist().getName()) {
+                    if (player.name == "uwuaden") player.world.spawnParticle(CHERRY_LEAVES, player.location, 1, 1.0, 1.0, 1.0, 0.0)
+                    if (!player.hasCooldown(Material.PINK_DYE)) player.world.spawnParticle(REDSTONE, player.location, 1, 1.0, 1.0, 1.0, 0.0, DustOptions(Color.fromRGB(242, 189, 205), 1.0f))
+                }
                 if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.AQUA}${ChatColor.BOLD}Prototype V3") {
                     player.addPotionEffect(PotionEffect(PotionEffectType.SLOW, 15, 2, false, false))
                 }
@@ -374,23 +378,9 @@ object CustomItemManager {
                                         addItemToChest(chest, ItemManager.createEnchantedBook(Enchantment.ARROW_KNOCKBACK, 1))
                                     }
                                     5 -> { addItemToChest(chest, ItemManager.createNamedItem(Material.NETHERITE_SHOVEL, 1, "${ChatColor.AQUA}${ChatColor.BOLD}Prototype V3", listOf("${ChatColor.GRAY}매우 강력한 스나이퍼 라이플입니다.", "${ChatColor.GRAY}거리가 멀수록 대미지가 증가합니다!"))) }
-                                    6 -> {
-                                        addItemToChest(
-                                            chest,
-                                            ItemManager.enchantItem(ItemStack(Material.BOW), Enchantment.ARROW_DAMAGE, 1)
-                                        )
-                                        val tippedArrow = ItemStack(Material.TIPPED_ARROW, 32)
-                                        val meta = tippedArrow.itemMeta as PotionMeta
-                                        meta.basePotionData = PotionData(PotionType.POISON, false, true)
-                                        tippedArrow.itemMeta = meta
-                                        addItemToChest(chest, tippedArrow)
-                                    }
-                                    7 -> {
-                                        addItemToChest(chest, CustomItemData.getExplosiveBow())
-                                    }
-                                    8 -> {
-                                        addItemToChest(chest, ItemManager.enchantItem(ItemManager.createNamedItem(Material.BOW, 1, "${ChatColor.YELLOW}${ChatColor.BOLD}Purify", listOf("${ChatColor.GRAY}킬이 0이고 공중에 있을 때 능력이 발동됩니다.", "${ChatColor.GRAY}체력의 일부를 소비해서 폭발하는 히트스캔 화살을 발사합니다.", "${ChatColor.GRAY}풀차징일때 넉백과 기절을 부여합니다.", "${ChatColor.GRAY}화살 발사에는 딜레이가 있으며, 자신도 맞을 수 있습니다.")), Enchantment.ARROW_DAMAGE, 1))
-                                    }
+                                    6 -> { addItemToChest(chest, CustomItemData.getExosist()) }
+                                    7 -> { addItemToChest(chest, CustomItemData.getExplosiveBow()) }
+                                    8 -> { addItemToChest(chest, CustomItemData.getPurify()) }
                                 }
                             }
                         }, 1)

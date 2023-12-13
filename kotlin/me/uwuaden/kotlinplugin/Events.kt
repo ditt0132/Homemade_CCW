@@ -1,7 +1,6 @@
 package me.uwuaden.kotlinplugin
 
 import com.destroystokyo.paper.event.player.PlayerJumpEvent
-import me.uwuaden.kotlinplugin.Main.Companion.chunkItemDisplayGen
 import me.uwuaden.kotlinplugin.Main.Companion.econ
 import me.uwuaden.kotlinplugin.Main.Companion.lastDamager
 import me.uwuaden.kotlinplugin.Main.Companion.lastWeapon
@@ -9,6 +8,7 @@ import me.uwuaden.kotlinplugin.Main.Companion.lobbyLoc
 import me.uwuaden.kotlinplugin.assets.CustomItemData
 import me.uwuaden.kotlinplugin.assets.EffectManager
 import me.uwuaden.kotlinplugin.assets.ItemManipulator.setCount
+import me.uwuaden.kotlinplugin.gameSystem.GameManager
 import me.uwuaden.kotlinplugin.gameSystem.LastWeaponData
 import me.uwuaden.kotlinplugin.gameSystem.WorldManager
 import me.uwuaden.kotlinplugin.itemManager.ItemManager
@@ -123,8 +123,9 @@ class Events: Listener {
     @EventHandler
     fun onChunkLoad(e: ChunkLoadEvent) {
         if (e.world.name.contains("Field-")) {
-            WorldItemManager.createItems(e.chunk)
-            chunkItemDisplayGen.add(e.chunk)
+            WorldItemManager.createItems(e.chunk) //데이터 생성
+            GameManager.initDroppedItemLoc(e.chunk) //위치 설정
+            //chunkItemDisplayGen.add(e.chunk)
         }
     }
     @EventHandler
@@ -169,7 +170,7 @@ class Events: Listener {
         if (e.entity is Player) {
             val player = e.entity as Player
             if (listOf(EntityDamageEvent.DamageCause.ENTITY_ATTACK, EntityDamageEvent.DamageCause.ENTITY_SWEEP_ATTACK).contains(e.cause)) {
-                e.damage*=0.7
+                e.damage*=0.9
             } else if (listOf(EntityDamageEvent.DamageCause.PROJECTILE).contains(e.cause)) {
                 e.damage*=0.8
             }
@@ -336,7 +337,12 @@ class Events: Listener {
             if (chest.customName != "${ChatColor.YELLOW}Supplies") {
                 e.isCancelled = true
             }
-        } else if (clickedBlock.type == Material.TRAPPED_CHEST) {
+        }
+
+        if (e.player.gameMode == GameMode.CREATIVE) {
+            return
+        }
+        if (clickedBlock.type == Material.TRAPPED_CHEST) {
             e.isCancelled = true
         } else if (clickedBlock.type == Material.ENDER_CHEST) {
             e.isCancelled = true

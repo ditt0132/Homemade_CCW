@@ -8,7 +8,9 @@ import me.uwuaden.kotlinplugin.Main.Companion.scheduler
 import me.uwuaden.kotlinplugin.assets.CustomItemData
 import me.uwuaden.kotlinplugin.assets.EffectManager
 import me.uwuaden.kotlinplugin.assets.ItemManipulator
+import me.uwuaden.kotlinplugin.assets.ItemManipulator.getName
 import me.uwuaden.kotlinplugin.assets.ItemManipulator.setCount
+import me.uwuaden.kotlinplugin.assets.ItemManipulator.setName
 import me.uwuaden.kotlinplugin.gameSystem.LastWeaponData
 import me.uwuaden.kotlinplugin.gameSystem.WorldManager
 import me.uwuaden.kotlinplugin.itemManager.ItemManager
@@ -408,6 +410,7 @@ private fun smokeGrenade(loc: Location, p: Player) {
     val size = 6.5f
     loc.yaw = 0.0f
     loc.pitch = 0.0f
+    loc.add(0.0, 1.0, 0.0)
 
     val entity = loc.world.spawnEntity(loc, EntityType.ITEM_DISPLAY) as ItemDisplay
     val loc2 = entity.location.clone().set(loc.x, ceil(loc.y), loc.z)
@@ -772,19 +775,11 @@ class CustomItemEvent: Listener {
 
             // 파티클에 맞은 엔티티에게 대미지 적용
             for (entity in entities) {
+                EffectManager.setLastDamager(shooter, entity, shooter.inventory.itemInMainHand)
                 entity.damage(4.0)
                 val direction = entity.location.toVector().subtract(shooter.location.clone().toVector()).normalize()
                 entity.velocity = direction.multiply(0.5).setY(0.4)
                 if (entity is Player) {
-                    lastDamager[entity] = shooter
-                    lastWeapon[entity] = LastWeaponData(
-                        ItemManager.createNamedItem(
-                            Material.CROSSBOW,
-                            1,
-                            "${ChatColor.YELLOW}${ChatColor.BOLD}Vallista",
-                            null
-                        ), System.currentTimeMillis() + 1000 * 10
-                    )
                     if (entity.isBlocking) {
                         CustomItemManager.disablePlayerShield(entity)
                         entity.setCooldown(Material.SHIELD, 20 * 8)
@@ -1098,35 +1093,15 @@ class CustomItemEvent: Listener {
                         entities.add(it)
 
                         if (i in 0..20 * 10) {
+                            EffectManager.setLastDamager(player, it, player.inventory.itemInMainHand)
                             it.damage(3.0)
-                            if (it is Player) {
-                                lastDamager[it] = e.player
-                                lastWeapon[it] = LastWeaponData(
-                                    ItemManager.createNamedItem(
-                                        Material.NETHERITE_SHOVEL,
-                                        1,
-                                        "${ChatColor.AQUA}${ChatColor.BOLD}Prototype V3",
-                                        null
-                                    ), System.currentTimeMillis() + 1000 * 10
-                                )
-                            }
                             if (dmgType == 0) dmgType = 1
                             player.sendMessage(Component.text("${ChatColor.AQUA}DMG: 3.0"))
                         } else {
+                            EffectManager.setLastDamager(player, it, player.inventory.itemInMainHand.setName("§b§lPrototype V3*"))
                             var am = 2.5 * log(i.toDouble() / 10.0 + 3.0, 3.0)
                             if (am > 10.0) am = 10.0
                             it.damage(am)
-                            if (it is Player) {
-                                lastDamager[it] = e.player
-                                lastWeapon[it] = LastWeaponData(
-                                    ItemManager.createNamedItem(
-                                        Material.NETHERITE_SHOVEL,
-                                        1,
-                                        "${ChatColor.AQUA}${ChatColor.BOLD}Prototype V3*",
-                                        null
-                                    ), System.currentTimeMillis() + 1000 * 10
-                                )
-                            }
                             player.sendMessage(Component.text("${ChatColor.AQUA}DMG: ${(am * 10.0).roundToInt() / 10.0}"))
                             dmgType = 2
                         }
@@ -1462,7 +1437,7 @@ class CustomItemEvent: Listener {
         }
 
         val item = shooter.inventory.itemInMainHand
-        if (item.itemMeta?.displayName == "${ChatColor.YELLOW}${ChatColor.BOLD}Purify") {
+        if (item.itemMeta?.displayName == CustomItemData.getPurify().getName()) {
             var chargeShot = false
             if (shooter.world.name.contains("Field-")) {
                 val dataClass = WorldManager.initData(shooter.world)
@@ -1525,7 +1500,7 @@ class CustomItemEvent: Listener {
                             0.0,
                             0.0,
                             0.0,
-                            DustOptions(Color.WHITE, 1.0F)
+                            DustOptions(Color.WHITE, 2.0F)
                         )
                         if (loc.block.isSolid) {
                             break@sh
@@ -1537,42 +1512,25 @@ class CustomItemEvent: Listener {
                         }
                     }
 
-                    loc.world.spawnParticle(EXPLOSION_HUGE, loc, 10, 1.0, 1.0, 1.0, 0.0)
-                    drawParticleCircle(loc.clone().add(0.0, 1.0, 0.0), 20.0, Color.GRAY)
-                    val random = java.util.Random()
+                    val particleLoc = loc.clone().add(0.0, 0.2, 0.0)
+
+                    loc.world.spawnParticle(EXPLOSION_HUGE, particleLoc, 1, 0.0, 0.0, 0.0, 0.0)
 
 
                     if (e.force == 1.0F) {
-                        for (m in 0 until 8) {
-                            val loc2 = loc.clone()
-                            loc2.yaw = random.nextFloat(0.0F, 360.0F)
-                            loc2.pitch = random.nextFloat(-90.0F, 90.0F)
-                            sh@ for (i in 0 until 10 * 64) {
-                                loc2.add(loc2.direction.multiply(0.1))
-                                if (i > 5) loc2.world.spawnParticle(END_ROD, loc2, 1, 0.0, 0.0, 0.0, 0.0)
-                                if (loc2.block.isSolid && i > 10 * 5) {
-                                    break@sh
-                                }
+                        drawParticleCircle(particleLoc, 8.0, Color.GRAY)
+                        scheduler.runTaskAsynchronously(plugin, Runnable {
+                            Thread.sleep(1000/4)
+                            for (i in 0..5) {
+                                scheduler.scheduleSyncDelayedTask(plugin, {
+                                    drawParticleCircle(particleLoc, 0.5 + i*0.5, Color.WHITE)
+                                }, 0)
+                                Thread.sleep(1000/20)
                             }
-                        }
+                        })
                     }
-                    for (it in loc.getNearbyLivingEntities(20.0).filter { isHittable(shooter, it) }.filter { it != shooter }) {
-                        if (it is Player) {
-                            lastDamager[it] = shooter
-                            lastWeapon[it] = LastWeaponData(
-                                ItemManager.createNamedItem(
-                                    Material.BOW,
-                                    1,
-                                    "${ChatColor.YELLOW}${ChatColor.BOLD}Purify",
-                                    listOf(
-                                        "${ChatColor.GRAY}킬이 0이고 공중에 있을 때 능력이 발동됩니다.",
-                                        "${ChatColor.GRAY}체력의 일부를 소비해서 폭발하는 히트스캔 화살을 발사합니다.",
-                                        "${ChatColor.GRAY}풀차징일때 넉백과 기절을 부여합니다.",
-                                        "${ChatColor.GRAY}화살 발사에는 딜레이가 있으며, 자신도 맞을 수 있습니다."
-                                    )
-                                ), System.currentTimeMillis() + 1000 * 10
-                            )
-                        }
+                    for (it in loc.getNearbyLivingEntities(8.0).filter { isHittable(shooter, it) }.filter { it != shooter }) {
+                        EffectManager.setLastDamager(shooter, it, item)
 
                         if (it.location.distance(loc) <= 4.0) {
 
@@ -1583,15 +1541,18 @@ class CustomItemEvent: Listener {
                                 it.addPotionEffect(PotionEffect(PotionEffectType.BLINDNESS, 20 * 2, 0, false, false))
                                 it.addPotionEffect(PotionEffect(PotionEffectType.DARKNESS, 20 * 2, 0, false, false))
                                 it.addPotionEffect(PotionEffect(PotionEffectType.WEAKNESS, 20 * 2, 4, false, false))
+                                it.world.spawnParticle(REDSTONE, it.location, 600, 0.0, 100.0, 0.0, DustOptions(Color.WHITE, 1.0f))
 
                                 val direction = it.location.toVector().subtract(loc.toVector()).normalize()
                                 it.velocity = direction.multiply(1.5)
                             }
                             it.damage(dmg)
                         } else {
-                            it.damage(0.5)
-                            val direction = it.location.toVector().subtract(loc.toVector()).normalize()
-                            it.velocity = direction.multiply(0.2)
+                            if (e.force == 1.0F) {
+                                it.damage(4.0)
+                                val direction = it.location.toVector().subtract(loc.toVector()).normalize()
+                                it.velocity = direction.multiply(0.5)
+                            }
                         }
                     }
                 }, (delay * 20.0).roundToLong())
@@ -1849,6 +1810,85 @@ class CustomItemEvent: Listener {
                     Thread.sleep(2)
                 }
             })
+        }
+    }
+    @EventHandler
+    fun onUseExosist(event: ProjectileLaunchEvent) {
+        val projectile = event.entity
+        if (projectile is Arrow) {
+            val shooter = projectile.shooter as? Player ?: return
+            if (shooter.inventory.itemInMainHand.itemMeta?.displayName != CustomItemData.getExosist().getName()) {
+                return
+            }
+
+            val entities = LinkedHashSet<LivingEntity>()
+
+            val isGlowing = !shooter.hasCooldown(Material.PINK_DYE)
+            if (isGlowing) shooter.setCooldown(Material.PINK_DYE, 20*15)
+
+            val loc = shooter.eyeLocation
+            val dir = loc.direction
+            EffectManager.playSurroundSound(shooter.location, Sound.ITEM_CROSSBOW_SHOOT, 1.0F, 0.5F)
+            EffectManager.playSurroundSound(shooter.location, Sound.ITEM_CROSSBOW_SHOOT, 1.0F, 1.0F)
+            EffectManager.playSurroundSound(shooter.location, Sound.ITEM_CROSSBOW_SHOOT, 2.0F, 2.0F)
+
+            if (isGlowing) EffectManager.playSurroundSound(shooter.location, Sound.ITEM_TRIDENT_RETURN, 1.0F, 2.0F)
+            var stopTiming = -1
+            shooting@ for (i in 0 until 100 * 10) {
+                val pos = loc.clone().add(dir.clone().multiply(i / 10.0))
+                if (!pos.isChunkLoaded) break@shooting
+
+                if (pos.block.isSolid && stopTiming == -1) {
+                    stopTiming = i + 10*10
+                }
+                if (i >= stopTiming && stopTiming != -1) {
+                    break@shooting
+                }
+                if (i%2 == 0) {
+                    if (isGlowing) pos.world.spawnParticle(Particle.REDSTONE, pos, 1, 0.0, 0.0, 0.0, 0.0, DustOptions(Color.fromRGB(242, 189, 205), 1.0f))
+                    else pos.world.spawnParticle(Particle.REDSTONE, pos, 1, 0.0, 0.0, 0.0, 0.0, DustOptions(Color.fromRGB(200, 200, 200), 1.0f))
+                }
+
+                pos.getNearbyLivingEntities(10.0, 10.0, 10.0).forEach {
+                    if (it is LivingEntity && it.boundingBox.clone().expand(1.1).contains(
+                            pos.x,
+                            pos.y,
+                            pos.z
+                        ) && !(it is Player && it.gameMode == GameMode.SPECTATOR) && !TeamManager.isSameTeam(
+                            shooter.world,
+                            shooter,
+                            it
+                        )
+                    ) {
+                        entities.add(it)
+                    }
+                }
+
+            }
+
+            entities.remove(shooter)
+
+            // 파티클에 맞은 엔티티에게 대미지 적용
+            for (entity in entities) {
+                if (isGlowing) {
+                    entity.addPotionEffect(PotionEffect(PotionEffectType.GLOWING, 20*5, 0, false, false))
+                }
+                val direction = entity.location.toVector().subtract(shooter.location.clone().toVector()).normalize()
+                direction.add(entity.velocity)
+                entity.velocity = direction.multiply(0.2).setY(0.1)
+                if (entity is Player) {
+                    lastDamager[entity] = shooter
+                    lastWeapon[entity] = LastWeaponData(CustomItemData.getExosist(), System.currentTimeMillis() + 1000 * 10)
+                    if (entity.isBlocking) {
+                        CustomItemManager.disablePlayerShield(entity)
+                        entity.setCooldown(Material.SHIELD, 20 * 8)
+                    }
+                }
+                entity.damage(2.0)
+            }
+            if (entities.isNotEmpty()) shooter.playSound(shooter, Sound.ENTITY_ARROW_HIT_PLAYER, 1.0F, 2.0F)
+
+            projectile.remove()
         }
     }
 }

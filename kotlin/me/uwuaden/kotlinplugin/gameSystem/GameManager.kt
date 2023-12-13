@@ -2,7 +2,6 @@ package me.uwuaden.kotlinplugin.gameSystem
 
 import com.destroystokyo.paper.Title
 import me.uwuaden.kotlinplugin.Main
-import me.uwuaden.kotlinplugin.Main.Companion.chunkItemDisplayGen
 import me.uwuaden.kotlinplugin.Main.Companion.defaultMMR
 import me.uwuaden.kotlinplugin.Main.Companion.lastDamager
 import me.uwuaden.kotlinplugin.Main.Companion.playerLocPing
@@ -210,34 +209,7 @@ private fun initDroppedItemLoc(loc: Location, rad: Double) { //Dep
         } catch (e: Exception) {}
     })
 }
-private fun initDroppedItemLoc(chunk: Chunk) {
-    scheduler.runTaskAsynchronously(plugin, Runnable {
-//        try {
-            val data = WorldManager.initData(chunk.world)
-            var loopTime = 0
-            scheduler.scheduleSyncDelayedTask(plugin, {
-                val droppedItems = data.droppedItems.filter { it.loc.chunk == chunk }
 
-                scheduler.runTaskAsynchronously(plugin, Runnable {
-                    droppedItems.forEach { droppedItem ->
-                        loopTime++
-                        if (loopTime % 50 == 0) Thread.sleep(50)
-                        if (!droppedItem.isLocated) {
-                            droppedItem.isLocated = true
-                            scheduler.scheduleSyncDelayedTask(plugin, {
-                                droppedItem.loc = Location(droppedItem.loc.world, floor(droppedItem.loc.x) + 0.5, getHighestBlockBelow(droppedItem.loc).y + 0.5, floor(droppedItem.loc.z) + 0.5)
-                                ItemManager.createDisplay(droppedItem)
-                            }, 0)
-                        }
-                    }
-                })
-            }, 0)
-//        } catch (e: Exception) {
-//            plugin.server.logger.log(Level.WARNING, "Dropped Item Locating Error")
-//            println(e.localizedMessage)
-//        }
-    })
-}
 
 private fun placeItems(loc: Location, rad: Double) {
 
@@ -404,28 +376,70 @@ private fun initPlayer(player: Player) {
     }
     player.addPotionEffect(PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 20*30, 4, false, false))
 }
+private fun initItem(player: Player) {
+    val world = player.world
+    val chunkX = player.location.x.roundToInt() shr 4
+    val chunkZ = player.location.z.roundToInt() shr 4
+    val RANGE = 3
+    scheduler.runTaskAsynchronously(plugin, Runnable {
+        for (x in (chunkX - RANGE)..(chunkX + RANGE)) {
+            for (z in (chunkZ - RANGE)..(chunkZ + RANGE)) {
+                val dataClass = WorldManager.initData(world)
+                val itemCount = dataClass.worldDroppedItemData.ItemCount[Pair(x, z)] ?: 0
+                if (itemCount != 0) {
+                    scheduler.scheduleSyncDelayedTask(plugin, {
+                        val chunk = world.getChunkAt(x, z)
+                        WorldItemManager.createItems(chunk) //데이터 생성
+                        GameManager.initDroppedItemLoc(chunk) //위치 설정
+                    }, 0)
+                }
+            }
+        }
+    })
+}
 
 object GameManager {
-    fun chunkSch() {
-        scheduler.scheduleSyncRepeatingTask(plugin, {
-            plugin.server.worlds.forEach { world ->
-                if (world.name.contains("Field-")) {
-                    for (i in 0 until 10) {
-                        val data = WorldManager.initData(world)
-                        val chunk = chunkItemDisplayGen.filter { it.world == world }
-                            .filter { chunk -> chunk.isLoaded }
-                            .filterNot { chunk -> (data.worldDroppedItemData.ItemCount[Pair(chunk.x, chunk.z)] ?: 0) == 0 }
-                            .maxByOrNull { chunk -> data.worldDroppedItemData.ItemCount[Pair(chunk.x, chunk.z)] ?: 0 }
+    fun initDroppedItemLoc(chunk: Chunk) {
+        scheduler.runTaskAsynchronously(plugin, Runnable {
+//        try {
+            val data = WorldManager.initData(chunk.world)
+            var loopTime = 0
+            scheduler.scheduleSyncDelayedTask(plugin, {
+                val droppedItems = data.droppedItems.filter { it.loc.chunk == chunk }
 
-                        chunkItemDisplayGen.remove(chunk)
-                        if (chunk != null) {
-                            WorldItemManager.createItems(chunk)
-                            initDroppedItemLoc(chunk)
+                scheduler.runTaskAsynchronously(plugin, Runnable {
+                    droppedItems.forEach { droppedItem ->
+                        loopTime++
+                        if (loopTime % 50 == 0) Thread.sleep(50)
+                        if (!droppedItem.isLocated) {
+                            droppedItem.isLocated = true
+                            scheduler.scheduleSyncDelayedTask(plugin, {
+                                droppedItem.loc = Location(droppedItem.loc.world, floor(droppedItem.loc.x) + 0.5, getHighestBlockBelow(droppedItem.loc).y + 0.5, floor(droppedItem.loc.z) + 0.5)
+                                ItemManager.createDisplay(droppedItem)
+                            }, 0)
+                        }
+                    }
+                })
+            }, 0)
+//        } catch (e: Exception) {
+//            plugin.server.logger.log(Level.WARNING, "Dropped Item Locating Error")
+//            println(e.localizedMessage)
+//        }
+        })
+    }
+    fun chunkSch() {
+        scheduler.runTaskAsynchronously(plugin, Runnable {
+            while (true) {
+                plugin.server.worlds.forEach { world ->
+                    if (world.name.contains("Field-")) {
+                        world.players.filter { it.gameMode == GameMode.SURVIVAL }.forEach { player ->
+                            initItem(player)
+                            Thread.sleep(1000/5)
                         }
                     }
                 }
             }
-        }, 0, 2)
+        })
     }
 
 //    fun zombieSch() {

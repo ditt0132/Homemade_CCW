@@ -153,7 +153,8 @@ object CustomItemData {
         val meta = item.itemMeta as EnchantmentStorageMeta
         meta.addStoredEnchant(Enchantment.DAMAGE_ALL, 2, false)
         meta.addStoredEnchant(Enchantment.PROTECTION_ENVIRONMENTAL, 3, false)
-        meta.addStoredEnchant(Enchantment.ARROW_DAMAGE, 3, false)
+        meta.addStoredEnchant(Enchantment.ARROW_DAMAGE, 4, false)
+        meta.addStoredEnchant(Enchantment.QUICK_CHARGE, 3, false)
         item.itemMeta = meta
 
         return item
@@ -239,5 +240,18 @@ object CustomItemData {
             "§b§lEnchanted Shield",
             listOf("§7왼손에 들고 있을 시, 받는 근접 대미지를 20% 감소 시킵니다.")
         )
+    }
+    fun getExosist(): ItemStack {
+        return ItemManager.enchantItem(
+            ItemManager.createNamedItem(
+                Material.CROSSBOW,
+                1,
+                "${ChatColor.LIGHT_PURPLE}${ChatColor.BOLD}Exosist",
+                listOf("${ChatColor.GRAY}벽을 관통하는 히트스캔 방식의 화살을 빠른 속도로 발사합니다.", "${ChatColor.GRAY}15초마다 5초간 적에게 발광효과를 적용시키는 화살을 발사합니다!", " ", "${ChatColor.GREEN}대미지: 2.0")
+            ), Enchantment.QUICK_CHARGE, 3
+        )
+    }
+    fun getPurify(): ItemStack {
+        return ItemManager.enchantItem(ItemManager.createNamedItem(Material.BOW, 1, "${ChatColor.YELLOW}${ChatColor.BOLD}Purify", listOf("${ChatColor.GRAY}킬이 0이고 공중에 있을 때 능력이 발동됩니다.", "${ChatColor.GRAY}체력의 일부를 소비해서 폭발하는 히트스캔 화살을 발사합니다.", "${ChatColor.GRAY}풀차징일때 넉백과 기절을 부여합니다.", "${ChatColor.GRAY}화살 발사에는 딜레이가 있으며, 자신도 맞을 수 있습니다.")), Enchantment.ARROW_DAMAGE, 1)
     }
 }

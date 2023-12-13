@@ -9,6 +9,13 @@ object ItemManipulator {
         cloneItem.amount = amount
         return cloneItem
     }
+    fun ItemStack.setName(name: String): ItemStack {
+        val cloneItem = clone()
+        val meta = cloneItem.itemMeta
+        meta.setDisplayName(name)
+        cloneItem.itemMeta = meta
+        return cloneItem
+    }
     fun ItemStack.enchant(enchantment: Enchantment, level: Int): ItemStack {
         val cloneItem = clone()
         cloneItem.addEnchantment(enchantment, level)
