@@ -161,7 +161,7 @@ class SkillEvent: Listener {
             e.isCancelled = true
 
             if (player.getCooldown(Material.LIGHT_BLUE_DYE) > 0) return
-            player.setCooldown(Material.LIGHT_BLUE_DYE, 20 * 10)
+            player.setCooldown(Material.LIGHT_BLUE_DYE, 20 * 20)
             val loc = player.location
             val exLoc = loc.clone()
             exLoc.add(loc.direction.multiply(2.0))

@@ -1891,4 +1891,35 @@ class CustomItemEvent: Listener {
             projectile.remove()
         }
     }
+    @EventHandler
+    fun onHolyShieldActive(e: EntityDamageEvent) {
+        if (e.entity is Player) {
+            val player = e.entity as Player
+            val itemNameList = mutableSetOf<String>()
+            player.inventory.contents.forEach {
+                if (it != null) itemNameList.add(it.itemMeta.displayName)
+            }
+            if (itemNameList.contains(CustomItemData.getHolyShield().getName())) {
+                if (!player.hasCooldown(Material.NETHER_STAR) && e.finalDamage >= 5) {
+                    player.setCooldown(Material.NETHER_STAR, 60*20)
+                    e.isCancelled = true
+                    EffectManager.playSurroundSound(player.location, Sound.ENTITY_GENERIC_EXPLODE, 0.5F, 2.0F)
+                    EffectManager.playSurroundSound(player.location, Sound.BLOCK_GLASS_BREAK, 1.0F, 1.0F)
+                    EffectManager.playSurroundSound(player.location, Sound.ITEM_TRIDENT_RETURN, 1.0F, 0.5F)
+                    EffectManager.playSurroundSound(player.location, Sound.BLOCK_BEACON_DEACTIVATE, 1.0F, 0.5F)
+                    player.location.world.spawnParticle(END_ROD, player.location, 100, 0.0, 0.0, 0.0, 0.1)
+
+
+                    player.addPotionEffect(PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 20, 4, false, false))
+                    player.location.getNearbyLivingEntities(3.0).filter { it != player }.forEach {
+                        if (CustomItemManager.isHittable(player, it)) {
+                            val direction = it.location.toVector().subtract(player.location.toVector()).normalize()
+                            it.velocity = direction.multiply(1.0)
+                            it.damage(4.0)
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

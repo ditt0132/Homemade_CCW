@@ -22,10 +22,8 @@ import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.PotionMeta
-import org.bukkit.potion.PotionData
 import org.bukkit.potion.PotionEffect
 import org.bukkit.potion.PotionEffectType
-import org.bukkit.potion.PotionType
 import kotlin.math.cos
 import kotlin.math.roundToInt
 import kotlin.math.sin
@@ -351,8 +349,18 @@ object CustomItemManager {
 
                             addItemToChest(chest, ItemManager.createNamedItem(Material.COMPASS, 1, "${ChatColor.RED}Player Tracker", listOf("${ChatColor.GRAY}160블럭 내에 있는 가장 가까운 플레이어를 추적합니다!")))
 
+                            val numList = mutableListOf<Int>()
+                            for (i in 0..8) {
+                                numList.add(i)
+                            }
+
+
+
+
                             for (i in 0 until 2) {
-                                when (random.nextInt(0, 9)) {
+                                val randomNumber = numList.random()
+                                numList.remove(randomNumber)
+                                when (randomNumber) {
                                     0 -> {
                                         addItemToChest(chest, ItemStack(Material.ANVIL))
                                         addItemToChest(chest, ItemManager.createEnchantedBook(Enchantment.DAMAGE_ALL, 1))
@@ -366,12 +374,7 @@ object CustomItemManager {
                                         addItemToChest(chest, ItemManager.createEnchantedBook(Enchantment.PROTECTION_ENVIRONMENTAL, 2))
                                     }
                                     3 -> {
-                                        addItemToChest(chest, ItemManager.enchantItem(ItemStack(Material.BOW), Enchantment.ARROW_DAMAGE, 1))
-                                        val tippedArrow = ItemStack(Material.TIPPED_ARROW, 32)
-                                        val meta = tippedArrow.itemMeta as PotionMeta
-                                        meta.basePotionData = PotionData(PotionType.SLOWNESS, true, false)
-                                        tippedArrow.itemMeta = meta
-                                        addItemToChest(chest, tippedArrow)
+                                        addItemToChest(chest, CustomItemData.getHolyShield())
                                     }
                                     4 -> {
                                         addItemToChest(chest, ItemStack(Material.ANVIL))

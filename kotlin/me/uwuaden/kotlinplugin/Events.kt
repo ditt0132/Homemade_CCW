@@ -5,6 +5,8 @@ import me.uwuaden.kotlinplugin.Main.Companion.econ
 import me.uwuaden.kotlinplugin.Main.Companion.lastDamager
 import me.uwuaden.kotlinplugin.Main.Companion.lastWeapon
 import me.uwuaden.kotlinplugin.Main.Companion.lobbyLoc
+import me.uwuaden.kotlinplugin.Main.Companion.plugin
+import me.uwuaden.kotlinplugin.Main.Companion.scheduler
 import me.uwuaden.kotlinplugin.assets.CustomItemData
 import me.uwuaden.kotlinplugin.assets.EffectManager
 import me.uwuaden.kotlinplugin.assets.ItemManipulator.setCount
@@ -21,6 +23,8 @@ import net.kyori.adventure.text.Component
 import org.bukkit.*
 import org.bukkit.block.Chest
 import org.bukkit.entity.Firework
+import org.bukkit.entity.IronGolem
+import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -29,7 +33,9 @@ import org.bukkit.event.player.*
 import org.bukkit.event.world.ChunkLoadEvent
 import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
+import org.bukkit.potion.PotionEffect
 import org.bukkit.potion.PotionEffectType
+import java.util.*
 import kotlin.math.roundToInt
 import kotlin.random.Random
 
@@ -51,9 +57,11 @@ private fun deathPlayer(p: Player) {
 
         if (killer != null) {
             dataClass.playerKill[killer.uniqueId] = (dataClass.playerKill[killer.uniqueId] ?: 0) + 1
-            SkillManager.addCapacityPoint(killer, 100)
-            econ.depositPlayer(killer, 500.0)
-            killer.sendMessage("§e플레이어 킬! (+500코인)")
+            if (dataClass.worldMode != "Heist") {
+                SkillManager.addCapacityPoint(killer, 100)
+                econ.depositPlayer(killer, 500.0)
+                killer.sendMessage("§e플레이어 킬! (+500코인)")
+            }
         }
         if (lastDamager[p] == null) {
             WorldManager.broadcastWorld(
@@ -71,7 +79,7 @@ private fun deathPlayer(p: Player) {
                 }
             }
 
-            var msg = Component.text("${ChatColor.RED}☠ ${lastDamager[p]!!.name} ${ChatColor.BOLD}➔ ${ChatColor.RED}${p.name}")
+            val msg = Component.text("${ChatColor.RED}☠ ${lastDamager[p]!!.name} ${ChatColor.BOLD}➔ ${ChatColor.RED}${p.name}")
             if (weaponName != null) msg.append(Component.text("${ChatColor.RED} with")).append(Component.text("${ChatColor.BOLD}[${weaponName}${ChatColor.RED}${ChatColor.BOLD}]").hoverEvent(lastWeapon[p]!!.item))
 
             WorldManager.broadcastWorld(
@@ -80,7 +88,36 @@ private fun deathPlayer(p: Player) {
             )
         }
 
+        var coreExist = false
+        val teamId = TeamManager.getTeam(p.world, p)?.id
+        if (teamId == 0) {
+            if (dataClass.dataInt1 == 1) {
+                coreExist = true
+            }
+        }
+        if (teamId == 1) {
+            if (dataClass.dataInt2 == 1) {
+                coreExist = true
+            }
+        }
+
         if (dataClass.worldMode == "SoloSurvival") return
+        if (dataClass.worldMode == "Heist" && coreExist) {
+            p.sendMessage("§a15초 뒤에 부활합니다..")
+            p.sendMessage("§7(코어로 인한 부활)")
+            scheduler.scheduleSyncDelayedTask(plugin, {
+                if (teamId == 0) {
+                    p.teleport(dataClass.dataLoc1)
+                }
+                if (teamId == 1) {
+                    p.teleport(dataClass.dataLoc2)
+                }
+                p.gameMode = GameMode.SURVIVAL
+                p.health = p.maxHealth
+                p.addPotionEffect(PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 20*10, 4, false, false))
+            }, 20*15)
+            return
+        }
 
         val drop = ItemManager.createDroppedItem(p.location, true, 6)
 
@@ -352,5 +389,61 @@ class Events: Listener {
             e.isCancelled = true
         }
     }
+    @EventHandler
+    fun onCoreTakeDamage(e: EntityDamageByEntityEvent) {
+        val attacker = e.damager
+        val victim = e.entity
+        if (victim !is IronGolem) return
+        if (!victim.scoreboardTags.contains("core")) return
+        if (attacker !is Player) {
+            e.isCancelled = true
+            return
+        }
+        if (victim.scoreboardTags.filter { it.contains("team:") }.isEmpty()) return
+        val uuid = UUID.fromString(victim.scoreboardTags.filter { it.contains("team:") }.first().split(":")[1])
 
+        if (victim.scoreboardTags.filter { it.contains("teamid:") }.isEmpty()) return
+        val id = victim.scoreboardTags.filter { it.contains("teamid:") }.first().split(":")[1].toInt()
+
+        if ((TeamManager.getTeam(attacker.world, attacker)?: return).uuid == uuid) {
+            e.isCancelled = true
+            return
+        }
+        val victimTeam = TeamManager.getTeam(victim.world, uuid)?: return
+        attacker.sendActionBar(Component.text("§aCore Health: (${victim.health.roundToInt()}/${victim.maxHealth.roundToInt()})"))
+        victimTeam.players.forEach {
+            it.sendActionBar(Component.text("§a코어가 공격 받고 있습니다! (${victim.health.roundToInt()}/${victim.maxHealth.roundToInt()})"))
+        }
+        EffectManager.playSurroundSound(victim.location, Sound.ENTITY_ZOMBIE_ATTACK_IRON_DOOR, 0.5f, 0.9f)
+
+    }
+    @EventHandler
+    fun onCoreDeath(e: EntityDeathEvent) {
+        val victim = e.entity
+        if (victim !is IronGolem) return
+        if (!victim.scoreboardTags.contains("core")) return
+        if (victim.scoreboardTags.filter { it.contains("team:") }.isEmpty()) return
+        val uuid = UUID.fromString(victim.scoreboardTags.filter { it.contains("team:") }.first().split(":")[1])
+
+        if (victim.scoreboardTags.filter { it.contains("teamid:") }.isEmpty()) return
+        val id = victim.scoreboardTags.filter { it.contains("teamid:") }.first().split(":")[1].toInt()
+        victim.remove()
+        val dataClass = WorldManager.initData(victim.world)
+        if (id == 0) dataClass.dataInt1 = 0
+        if (id == 1) dataClass.dataInt2 = 0
+
+        val victimTeam = TeamManager.getTeam(victim.world, uuid)?: return
+        victimTeam.players.forEach {
+            it.sendTitle("§c§l코어 파괴됨!", "§e더 이상 부활할 수 없습니다.", 5, 20*5, 5)
+            it.sendMessage("§c팀의 코어가 파괴되었습니다. 더 이상 부활할 수 없습니다.")
+            it.playSound(it, Sound.ENTITY_WITHER_DEATH, 1.0f, 1.0f)
+        }
+        victim.world.spawnParticle(Particle.EXPLOSION_HUGE, victim.location, 1, 0.0, 0.0, 0.0)
+        EffectManager.playSurroundSound(victim.location, Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 1.0f)
+        EffectManager.playSurroundSound(victim.location, Sound.BLOCK_BEACON_DEACTIVATE, 2.0f, 1.0f)
+        victim.location.getNearbyEntities(5.0, 5.0, 5.0).filterIsInstance<ItemDisplay>().forEach {
+            if (it.scoreboardTags.contains("core_display")) it.remove()
+        }
+
+    }
 }

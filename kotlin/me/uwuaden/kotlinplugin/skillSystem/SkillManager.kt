@@ -98,7 +98,7 @@ object SkillManager {
         return cloneItem
     }
     fun initData() {
-        skillItem[0] = ItemManager.createNamedItem(Material.LIGHT_BLUE_DYE, 1, "${ChatColor.AQUA}${ChatColor.BOLD}반중력 큐브 V2", listOf("${ChatColor.DARK_GRAY}Charge Capacity: 500", "${ChatColor.DARK_GRAY}Max Use: 1", "${ChatColor.DARK_GRAY}[⚙] Tech", "${ChatColor.GRAY}재사용 가능한 반중력 큐브입니다! 사용시 보는 방향으로 자신과 상대를 밀어냅니다.", " ", "${ChatColor.GRAY}Gadget"))
+        skillItem[0] = ItemManager.createNamedItem(Material.LIGHT_BLUE_DYE, 1, "${ChatColor.AQUA}${ChatColor.BOLD}반중력 큐브 V2", listOf("${ChatColor.DARK_GRAY}Charge Capacity: 500", "${ChatColor.DARK_GRAY}Max Use: 1", "${ChatColor.DARK_GRAY}[⚙] Tech", "${ChatColor.GRAY}재사용 가능한 반중력 큐브입니다! 사용시 보는 방향으로 자신과 상대를 밀어냅니다.", "§2쿨타임: 20초", " ", "${ChatColor.GRAY}Gadget"))
         skillItem[1] = CustomItemData.getGoldenCarrot().addEliteItemLore(200, 5, "nature")
         skillItem[2] = CustomItemData.getDivinityShield().addEliteItemLore(250, 2, "divinity")
         skillItem[3] = ItemManager.createNamedItem(Material.GOLDEN_APPLE, 1, "${ChatColor.GOLD}황금사과", listOf("${ChatColor.DARK_GRAY}Charge Capacity: 100", "${ChatColor.DARK_GRAY}Max Use: 10", "${ChatColor.DARK_GRAY}[🍀] Nature", "${ChatColor.GRAY}평범한 황금사과입니다.", " ", "${ChatColor.GRAY}Gadget"))

@@ -58,7 +58,6 @@ private fun ItemStack.unbreakable(): ItemStack {
     item.itemMeta = meta
     return item
 }
-
 class Main: JavaPlugin() {
     companion object {
         lateinit var plugin: JavaPlugin
@@ -138,12 +137,8 @@ class Main: JavaPlugin() {
         Bukkit.getPluginManager().registerEvents(TeamEvent(), this)
         Bukkit.getPluginManager().registerEvents(SkillEvent(), this)
         Bukkit.getPluginManager().registerEvents(QuickSlotEvent(), this)
-        Bukkit.getPluginManager().registerEvents(SpecEvent(), this)
         Bukkit.getPluginManager().registerEvents(ZombieEvent(), this)
-
-        fun rgb(R: Int, G: Int, B: Int): net.md_5.bungee.api.ChatColor {
-            return net.md_5.bungee.api.ChatColor.of(java.awt.Color(R, G, B))
-        }
+        Bukkit.getPluginManager().registerEvents(GuideBookEvent(), this)
 
         if (!setupEconomy()) {
             server.logger.log(Level.WARNING, "Vault Load Error")
@@ -181,7 +176,7 @@ class Main: JavaPlugin() {
                 }, 0)
                 scheduler.scheduleSyncDelayedTask(plugin, {
                     plugin.server.getWorld("death_match")?.difficulty = Difficulty.HARD
-                }, 20*5)
+                }, 20*10)
             })
         }, 20*5)
 
@@ -495,6 +490,7 @@ class Main: JavaPlugin() {
                                     }
                                     classData.playerRank = 0
                                     classData.gamePlayed = 0
+                                    classData.unRanked = true
                                 }
                             } else {
                                 sendResetMessage(player)
@@ -681,7 +677,6 @@ class Main: JavaPlugin() {
             register("test") {
                 requires { isOp }
                 executes {
-                    player.inventory.addItem(CustomItemData.getExosist())
                 }
             }
             register("queuelist") {

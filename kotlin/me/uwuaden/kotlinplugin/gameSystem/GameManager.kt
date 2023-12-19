@@ -3,6 +3,7 @@ package me.uwuaden.kotlinplugin.gameSystem
 import com.destroystokyo.paper.Title
 import me.uwuaden.kotlinplugin.Main
 import me.uwuaden.kotlinplugin.Main.Companion.defaultMMR
+import me.uwuaden.kotlinplugin.Main.Companion.groundY
 import me.uwuaden.kotlinplugin.Main.Companion.lastDamager
 import me.uwuaden.kotlinplugin.Main.Companion.playerLocPing
 import me.uwuaden.kotlinplugin.Main.Companion.playerStat
@@ -26,12 +27,11 @@ import me.uwuaden.kotlinplugin.zombie.ZombieManager
 import net.kyori.adventure.text.Component
 import org.apache.commons.lang3.Validate
 import org.bukkit.*
+import org.bukkit.Particle.DustOptions
 import org.bukkit.attribute.Attribute
+import org.bukkit.block.Block
 import org.bukkit.enchantments.Enchantment
-import org.bukkit.entity.EntityType
-import org.bukkit.entity.LivingEntity
-import org.bukkit.entity.Player
-import org.bukkit.entity.Zombie
+import org.bukkit.entity.*
 import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
 import org.bukkit.potion.PotionEffect
@@ -40,6 +40,32 @@ import org.bukkit.scoreboard.Team
 import java.util.*
 import kotlin.math.*
 
+
+private fun spawnItemDisplay(loc: Location, type: Material, scale: Double = 1.0) {
+    val world = loc.world
+    val itemDisplay1 = world.spawnEntity(loc.clone(), EntityType.ITEM_DISPLAY) as ItemDisplay
+    itemDisplay1.itemStack = ItemStack(type)
+    val transform = itemDisplay1.transformation
+    transform.scale.set(scale)
+    itemDisplay1.transformation = transform
+    itemDisplay1.scoreboardTags.add("core_display")
+}
+private fun createCoreDisplay(loc: Location) {
+    loc.yaw = 0.0f
+    loc.pitch = 0.0f
+    loc.add(0.0, 0.5, 0.0)
+    spawnItemDisplay(loc.clone().add(0.0, 1.0, 0.0), Material.BEACON, 1.5)
+
+    spawnItemDisplay(loc.clone().add(1.0, 0.0, 1.0), Material.LIGHT_GRAY_CONCRETE, 1.2)
+    spawnItemDisplay(loc.clone().add(1.0, 0.0, -1.0), Material.LIGHT_GRAY_CONCRETE, 1.2)
+    spawnItemDisplay(loc.clone().add(-1.0, 0.0, 1.0), Material.LIGHT_GRAY_CONCRETE, 1.2)
+    spawnItemDisplay(loc.clone().add(-1.0, 0.0, -1.0), Material.LIGHT_GRAY_CONCRETE, 1.2)
+
+    spawnItemDisplay(loc.clone().add(1.0, 2.0, 1.0), Material.LIGHT_GRAY_CONCRETE, 1.2)
+    spawnItemDisplay(loc.clone().add(1.0, 2.0, -1.0), Material.LIGHT_GRAY_CONCRETE, 1.2)
+    spawnItemDisplay(loc.clone().add(-1.0, 2.0, 1.0), Material.LIGHT_GRAY_CONCRETE, 1.2)
+    spawnItemDisplay(loc.clone().add(-1.0, 2.0, -1.0), Material.LIGHT_GRAY_CONCRETE, 1.2)
+}
 private fun shufflePlayers(players: ArrayList<Player>): ArrayList<Player> {
     val random = Random()
     players.shuffle()
@@ -50,6 +76,44 @@ private fun shufflePlayers(players: ArrayList<Player>): ArrayList<Player> {
     }
     players.sortBy { playerHash[it] }
     return players
+}
+private fun probabilityTrue(n: Double): Boolean {
+    require(n in 0.0..100.0) { "확률은 0에서 100 사이의 값이어야 합니다." }
+
+    val randomValue = kotlin.random.Random.nextDouble(0.0, 100.0)
+    return randomValue < n
+}
+private fun earthGrenade(loc: Location) {
+    val originLoc = loc.clone()
+    val particleLoc = loc.clone().add(0.0, 0.25, 0.0)
+    val blocks = mutableSetOf<Block>()
+
+    val r = 8
+    loc.y += 1.0
+    while (loc.y < 320) {
+
+        EffectManager.getBlocksInCircle(loc, r).forEach {
+            blocks.add(it)
+        }
+        loc.y += 1.0
+    }
+    blocks.filter { it.type != Material.AIR }
+
+
+    scheduler.runTaskAsynchronously(plugin, Runnable {
+        for (i in 0 until 3) {
+            scheduler.scheduleSyncDelayedTask(plugin, {
+                blocks.forEach {
+                    if (probabilityTrue((10 + (i+1)*30).toDouble())) {
+                        EffectManager.breakBlock(it.location)
+                    }
+                }
+                EffectManager.drawParticleCircle(particleLoc, 8.0, Color.fromRGB(100, 65, 23))
+                EffectManager.playSurroundSound(originLoc, Sound.ENTITY_ZOMBIE_BREAK_WOODEN_DOOR, 1.0f, 0.5f)
+            }, 0)
+            Thread.sleep(1500)
+        }
+    })
 }
 private fun drawLine( /* Would be your orange wool */
                       point1: Location,  /* Your white wool */
@@ -428,18 +492,21 @@ object GameManager {
         })
     }
     fun chunkSch() {
-        scheduler.runTaskAsynchronously(plugin, Runnable {
-            while (true) {
-                plugin.server.worlds.forEach { world ->
-                    if (world.name.contains("Field-")) {
-                        world.players.filter { it.gameMode == GameMode.SURVIVAL }.forEach { player ->
-                            initItem(player)
-                            Thread.sleep(1000/5)
+        scheduler.scheduleSyncDelayedTask(plugin, {
+            scheduler.runTaskAsynchronously(plugin, Runnable {
+                while (true) {
+                    plugin.server.worlds.forEach { world ->
+                        if (world.name.contains("Field-")) {
+                            world.players.filter { it.gameMode == GameMode.SURVIVAL }.forEach { player ->
+                                initItem(player)
+                                Thread.sleep(1000/2)
+                            }
                         }
                     }
+                    Thread.sleep(4000)
                 }
-            }
-        })
+            })
+        }, 20*10)
     }
 
 //    fun zombieSch() {
@@ -537,7 +604,12 @@ object GameManager {
                 borderCenter.clone().add(borderRadius, 0.0, borderRadius),
                 itemCount
             )
+            
         }, 20*5)
+        
+        //수정시도
+
+
 
         fromWorld.players.forEach { player ->
             initPlayer(player)
@@ -583,7 +655,7 @@ object GameManager {
             }
         }, 20*10)
 
-        if (mode == "TwoTeam") {
+        if (mode == "TwoTeam" || mode == "Heist") {
             val first = ArrayList<Player>()
             val second = ArrayList<Player>()
 
@@ -596,12 +668,16 @@ object GameManager {
                     second.add(players[i])
                 }
             }
-
-            dataClass.teams.add(TeamClass(toWorld, first.toMutableSet()))
-            dataClass.teams.add(TeamClass(toWorld, second.toMutableSet()))
+            val team1 = TeamClass(toWorld, first.toMutableSet())
+            team1.id = 0
+            dataClass.teams.add(team1)
+            val team2 = TeamClass(toWorld, second.toMutableSet())
+            team2.id = 1
+            dataClass.teams.add(team2)
 
             var i = 0
-            spawnLocList(borderCenter.clone().add(-1*borderRadius, 0.0, -1*borderRadius), borderCenter.clone().add(borderRadius, 0.0, borderRadius), 2, 100).forEach {
+            val spawnLocs = spawnLocList(borderCenter.clone().add(-1*borderRadius, 0.0, -1*borderRadius), borderCenter.clone().add(borderRadius, 0.0, borderRadius), 2, 500)
+            spawnLocs.forEach {
                 if (i == 0) {
                     var t = 0
                     first.forEach { p->
@@ -623,7 +699,47 @@ object GameManager {
                 }
                 i++
             }
-
+            if (mode == "Heist") {
+                scheduler.scheduleSyncDelayedTask(plugin, {
+                    WorldManager.broadcastWorld(toWorld, "§a코어가 생성되고 있습니다.")
+                    var n = 0
+                    spawnLocs.forEach { loc ->
+                        val earthG = loc.clone()
+                        earthG.y = groundY
+                        earthGrenade(earthG.clone())
+                        if (n == 0) {
+                            dataClass.dataLoc1 = earthG.clone()
+                        } else {
+                            dataClass.dataLoc2 = earthG.clone()
+                        }
+                        n++
+                    }
+                    scheduler.scheduleSyncDelayedTask(plugin, {
+                        WorldManager.broadcastWorld(toWorld, "§a코어가 생성되었습니다.")
+                        WorldManager.broadcastWorld(toWorld, "§a아군의 코어를 지키고, 적팀의 코어를 파괴하세요!")
+                        WorldManager.broadcastWorld(toWorld, "§a코어가 남아있으면, 죽어도 부활할 수 있습니다.")
+                        dataClass.dataInt1 = 1
+                        dataClass.dataInt2 = 1
+                        var n2 = 0
+                        spawnLocs.forEach { loc ->
+                            val earthG = loc.clone()
+                            earthG.y = groundY
+                            val core = earthG.world.spawnEntity(earthG, EntityType.IRON_GOLEM) as IronGolem
+                            core.setAI(false)
+                            core.isSilent = true
+                            core.maxHealth = 500.0
+                            core.health = 500.0
+                            core.isInvisible = true
+                            core.scoreboardTags.add("core")
+                            core.scoreboardTags.add("teamid:${n2}")
+                            if (n2 == 0) core.scoreboardTags.add("team:${team1.uuid}")
+                            else core.scoreboardTags.add("team:${team2.uuid}")
+                            createCoreDisplay(core.location)
+                            n2++
+                        }
+                    }, 20*5)
+                }, 20*10)
+            }
         } else if (mode.contains("Teams:")) {
             try {
                 val playerPerTeam = mode.split(":")[1].trim().toInt()
@@ -758,6 +874,8 @@ object GameManager {
         if (mode == "SoloSurvival") {
             changeSec = 6
         }
+        if (mode == "Heist") return
+
 
         var delay: Long = 0
         scheduler.scheduleSyncDelayedTask(plugin, {
@@ -776,9 +894,9 @@ object GameManager {
             }
         }, 20*60*5)
 
-        scheduler.scheduleSyncDelayedTask(plugin, {
-            WorldManager.deleteWorld(fromWorld)
-        }, 20*worldDeleteSec)
+//        scheduler.scheduleSyncDelayedTask(plugin, {
+//            WorldManager.deleteWorld(fromWorld)
+//        }, 20*worldDeleteSec)
     }
 
     fun spawnLocList(loc1: Location, loc2: Location, count: Int, dist: Int): ArrayList<Location> {
@@ -830,14 +948,22 @@ object GameManager {
     }
 
     fun gameSch() {
-//        scheduler.scheduleSyncRepeatingTask(plugin, {
-//            plugin.server.worlds.filter { it.name.contains("Field-") }.forEach { world ->
-//                world.players.forEach { player ->
-//                    //initDroppedItemLoc(player.location, 50.0)
-//                    //WorldItemManager.createItems(player.location, 50.0)
-//                }
-//            }
-//        }, 0, 20)
+        scheduler.scheduleSyncRepeatingTask(plugin, {
+            plugin.server.worlds.filter { it.name.contains("Field-") }.forEach { world ->
+                val dataClass = WorldManager.initData(world)
+                if (dataClass.worldMode == "Heist") {
+                    world.players.forEach {
+                        if (TeamManager.getTeam(world, it)?.id == 0) {
+                            it.spawnParticle(Particle.REDSTONE, dataClass.dataLoc1, 400, 0.0, 100.0, 0.0, DustOptions(Color.GREEN, 1.0f))
+                            it.spawnParticle(Particle.REDSTONE, dataClass.dataLoc2, 400, 0.0, 100.0, 0.0, DustOptions(Color.RED, 1.0f))
+                        } else if (TeamManager.getTeam(world, it)?.id == 1) {
+                            it.spawnParticle(Particle.REDSTONE, dataClass.dataLoc2, 400, 0.0, 100.0, 0.0, DustOptions(Color.GREEN, 1.0f))
+                            it.spawnParticle(Particle.REDSTONE, dataClass.dataLoc1, 400, 0.0, 100.0, 0.0, DustOptions(Color.RED, 1.0f))
+                        }
+                    }
+                }
+            }
+        }, 0, 20)
         Main.scheduler.scheduleSyncRepeatingTask(Main.plugin, {
             plugin.server.onlinePlayers.forEach { p ->
                 if (p.gameMode == GameMode.SPECTATOR) {
@@ -905,7 +1031,24 @@ object GameManager {
                             winPlayers(ArrayList(team!!.players))
                             lobbyTeleportWorlds(world)
                         }
-
+                    } else if (dataClass.worldMode == "Heist") {
+                        var team: TeamClass? = null
+                        val players = world.players.filter { it.gameMode == GameMode.SURVIVAL }
+                        val teams = mutableSetOf<TeamClass>()
+                        players.forEach {
+                            val t = TeamManager.getTeam(world, it)
+                            if (t != null) {
+                                teams.add(t)
+                            }
+                        }
+                        teams.forEach {
+                            team = it
+                        }
+                        if ((teams.size == 1 && dataClass.dataInt1 == 0 && teams.first().id == 1) || (teams.size == 1 && dataClass.dataInt2 == 0 && teams.first().id == 0)) {
+                            dataClass.gameEndedWorld = true
+                            winPlayers(ArrayList(team!!.players))
+                            lobbyTeleportWorlds(world)
+                        }
                     } else if (dataClass.worldMode == "SoloSurvival") {
                         val players = world.players.filter { it.gameMode == GameMode.SURVIVAL }
                         val specs = world.players.filter { it.gameMode == GameMode.SPECTATOR }
@@ -914,7 +1057,7 @@ object GameManager {
                             specs.forEach {
                                 it.sendMessage("${ChatColor.RED}        GAME OVER")
                                 it.sendMessage("${ChatColor.RED} ")
-                                it.sendMessage("${ChatColor.RED}      Wave: ${dataClass.dataInt}")
+                                it.sendMessage("${ChatColor.RED}      Wave: ${dataClass.dataInt1}")
                                 it.sendMessage("${ChatColor.RED}  ")
                             }
                             lobbyTeleportWorlds(world)
@@ -949,16 +1092,16 @@ object GameManager {
                     val players = world.players.filter { it.gameMode == GameMode.SURVIVAL }
                     val monsters = world.entities.filter { it.scoreboardTags.contains("Spawned-Zombie") }
                     val time = (System.currentTimeMillis() -(dataClass.worldTimer[world] ?: System.currentTimeMillis()))/1000
-                    if (dataClass.dataInt == 0) dataClass.dataInt = 1
+                    if (dataClass.dataInt1 == 0) dataClass.dataInt1 = 1
                     if (dataClass.dataLong == 0L) dataClass.dataLong = System.currentTimeMillis()
-                    val wave = dataClass.dataInt
+                    val wave = dataClass.dataInt1
                     val waveDelay = dataClass.dataLong
                     if (!dataClass.gameEndedWorld) {
                         if (System.currentTimeMillis() > waveDelay) {
                             if (monsters.isEmpty()) {
                                 dataClass.dataLong = System.currentTimeMillis() + 30 * 1000
                                 startWave(world, wave)
-                                dataClass.dataInt = wave + 1
+                                dataClass.dataInt1 = wave + 1
                             } else if (monsters.size <= 10) {
                                 monsters.forEach { monster ->
                                     (monster as LivingEntity).addPotionEffect(PotionEffect(PotionEffectType.GLOWING, 20*3, 0, false,false))

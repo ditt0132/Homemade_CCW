@@ -16,6 +16,7 @@ import org.bukkit.inventory.meta.LeatherArmorMeta
 import org.bukkit.inventory.meta.trim.ArmorTrim
 import org.bukkit.inventory.meta.trim.TrimMaterial
 import org.bukkit.inventory.meta.trim.TrimPattern
+import java.util.*
 
 private fun setHelmet(player: Player, target: Player, color: Color) {
     if (target.equipment.helmet != null && target.equipment.helmet.type.toString().contains("HELMET")) {
@@ -58,7 +59,14 @@ object TeamManager {
         }
         return null
     }
-
+    fun getTeam(world: World, uuid: UUID): TeamClass? {
+        val teams = worldDatas[world]?.teams ?: return null
+        val t = teams.filter { it.uuid == uuid }
+        if (t.isNotEmpty()) {
+            return t[0]
+        }
+        return null
+    }
     fun sch() {
         scheduler.scheduleSyncRepeatingTask(plugin, {
             plugin.server.worlds.filter { it.name.contains("Field-")}.forEach { world ->

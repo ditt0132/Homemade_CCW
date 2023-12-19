@@ -1,5 +1,6 @@
 package me.uwuaden.kotlinplugin
 
+import me.uwuaden.kotlinplugin.Main.Companion.playerStat
 import me.uwuaden.kotlinplugin.Main.Companion.plugin
 import me.uwuaden.kotlinplugin.Main.Companion.scheduler
 import me.uwuaden.kotlinplugin.quickSlot.PlayerQuickSlotData
@@ -64,13 +65,30 @@ object FileManager {
             e.printStackTrace()
         }
 
-        config = YamlConfiguration()
         file = File(plugin.dataFolder, "PlayerQuickslotData.yml")
+        config = YamlConfiguration()
 
         playerQuickSlot.forEach { (uuid, data) ->
             data.slotData.forEach { (idx, item) ->
                 config.set(uuid.toString() + "_$idx", item)
             }
+        }
+        try {
+            config.save(file)
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+
+        file = File(plugin.dataFolder, "PlayerRank.yml")
+        config = YamlConfiguration()
+
+        playerStat.forEach { (uuid, data) ->
+            config.set(uuid.toString() + "_playerMMR", data.playerMMR)
+            config.set(uuid.toString() + "_PlayerRank", data.playerRank)
+            config.set(uuid.toString() + "_Rank", data.rank)
+            config.set(uuid.toString() + "_GamePlayed", data.gamePlayed)
+            config.set(uuid.toString() + "_IsUnranked", data.unRanked)
+
         }
         try {
             config.save(file)
