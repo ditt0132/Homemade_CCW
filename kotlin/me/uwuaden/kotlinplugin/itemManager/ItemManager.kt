@@ -167,7 +167,13 @@ object ItemManager {
             if (probabilityTrue(2.0)) {
                 addDroppedItemSlot(droppedItem, CustomItemData.getEnergyDrink())
             }
+            val dataClass = WorldManager.initData(player.world)
 
+            if (dataClass.worldMode == "Heist") {
+                if (probabilityTrue(30.0)) {
+                    addDroppedItemSlot(droppedItem, CustomItemData.getCompass())
+                }
+            }
             if (probabilityTrue(30.0)) {
                 when (random.nextInt(0, 56)) {
                     in 0..0 -> addDroppedItemSlot(droppedItem, createNamedItem(Material.BLACK_DYE, 1, "§b컨버터", listOf("§7다이아몬드 장비를 대미지를 감소시키는 아이템으로 변환시킵니다.", "§7우클릭하여 컨버터 메뉴를 열 수 있습니다.")))

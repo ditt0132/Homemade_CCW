@@ -255,6 +255,9 @@ object CustomItemData {
         return ItemManager.enchantItem(ItemManager.createNamedItem(Material.BOW, 1, "${ChatColor.YELLOW}${ChatColor.BOLD}Purify", listOf("${ChatColor.GRAY}킬이 0이고 공중에 있을 때 능력이 발동됩니다.", "${ChatColor.GRAY}체력의 일부를 소비해서 폭발하는 히트스캔 화살을 발사합니다.", "${ChatColor.GRAY}풀차징일때 넉백과 기절을 부여합니다.", "${ChatColor.GRAY}화살 발사에는 딜레이가 있으며, 자신도 맞을 수 있습니다.")), Enchantment.ARROW_DAMAGE, 1)
     }
     fun getHolyShield(): ItemStack {
-        return ItemManager.createNamedItem(Material.NETHER_STAR, 1, "§bHoly Shield", listOf("§7받는 피해량이 5를 넘으면, 대미지를 무효화 시키고, 1초간 무적효과를 부여하고", "§7주변에 약한 대미지를 주며, 적을 밀쳐냅니다.", "§2쿨타임: 60초"))
+        return ItemManager.createNamedItem(Material.NETHER_STAR, 1, "§bHoly Shield", listOf("§7인벤토리에 소지시,", "§7받는 피해량이 5를 넘으면 대미지를 무효화 시키고, 1초간 무적효과를 부여합니다", "§7또한 주변에 약한 대미지를 주며, 적을 밀쳐냅니다.", "§2쿨타임: 60초"))
+    }
+    fun getCompass(): ItemStack {
+        return ItemManager.createNamedItem(Material.COMPASS, 1, "${ChatColor.RED}Player Tracker", listOf("${ChatColor.GRAY}160블럭 내에 있는 가장 가까운 플레이어를 추적합니다!"))
     }
 }

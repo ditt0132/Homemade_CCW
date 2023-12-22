@@ -10,12 +10,10 @@ import me.uwuaden.kotlinplugin.Main.Companion.scheduler
 import me.uwuaden.kotlinplugin.assets.CustomItemData
 import me.uwuaden.kotlinplugin.assets.EffectManager
 import me.uwuaden.kotlinplugin.assets.ItemManipulator.setCount
-import me.uwuaden.kotlinplugin.gameSystem.GameManager
 import me.uwuaden.kotlinplugin.gameSystem.LastWeaponData
 import me.uwuaden.kotlinplugin.gameSystem.WorldManager
 import me.uwuaden.kotlinplugin.itemManager.ItemManager
 import me.uwuaden.kotlinplugin.itemManager.customItem.CustomItemManager
-import me.uwuaden.kotlinplugin.itemManager.itemData.WorldItemManager
 import me.uwuaden.kotlinplugin.rankSystem.RankSystem
 import me.uwuaden.kotlinplugin.skillSystem.SkillManager
 import me.uwuaden.kotlinplugin.teamSystem.TeamManager
@@ -30,7 +28,6 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.*
 import org.bukkit.event.player.*
-import org.bukkit.event.world.ChunkLoadEvent
 import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
 import org.bukkit.potion.PotionEffect
@@ -57,7 +54,12 @@ private fun deathPlayer(p: Player) {
 
         if (killer != null) {
             dataClass.playerKill[killer.uniqueId] = (dataClass.playerKill[killer.uniqueId] ?: 0) + 1
-            if (dataClass.worldMode != "Heist") {
+            if (dataClass.worldMode == "Heist") {
+                SkillManager.addCapacityPoint(killer, 100)
+                econ.depositPlayer(killer, 100.0)
+                killer.sendMessage("§e플레이어 킬! (+100코인)")
+            }
+            else {
                 SkillManager.addCapacityPoint(killer, 100)
                 econ.depositPlayer(killer, 500.0)
                 killer.sendMessage("§e플레이어 킬! (+500코인)")
@@ -79,12 +81,12 @@ private fun deathPlayer(p: Player) {
                 }
             }
 
-            val msg = Component.text("${ChatColor.RED}☠ ${lastDamager[p]!!.name} ${ChatColor.BOLD}➔ ${ChatColor.RED}${p.name}")
-            if (weaponName != null) msg.append(Component.text("${ChatColor.RED} with")).append(Component.text("${ChatColor.BOLD}[${weaponName}${ChatColor.RED}${ChatColor.BOLD}]").hoverEvent(lastWeapon[p]!!.item))
+            val msg = Component.text("${ChatColor.RED}☠ ${lastDamager[p]!!.name} ${ChatColor.BOLD}➔ ${ChatColor.RED}${p.name}").content()
+            if (weaponName != null) msg + (Component.text("${ChatColor.RED} with")).append(Component.text("${ChatColor.BOLD}[${weaponName}${ChatColor.RED}${ChatColor.BOLD}]").hoverEvent(lastWeapon[p]!!.item)).content()
 
             WorldManager.broadcastWorld(
                 p.world,
-                msg.content()
+                msg
             )
         }
 
@@ -157,14 +159,14 @@ private fun deathPlayer(p: Player) {
 }
 
 class Events: Listener {
-    @EventHandler
-    fun onChunkLoad(e: ChunkLoadEvent) {
-        if (e.world.name.contains("Field-")) {
-            WorldItemManager.createItems(e.chunk) //데이터 생성
-            GameManager.initDroppedItemLoc(e.chunk) //위치 설정
-            //chunkItemDisplayGen.add(e.chunk)
-        }
-    }
+//    @EventHandler
+//    fun onChunkLoad(e: ChunkLoadEvent) {
+//        if (e.world.name.contains("Field-")) {
+//            WorldItemManager.createItems(e.chunk) //데이터 생성
+//            GameManager.initDroppedItemLoc(e.chunk) //위치 설정
+//            //chunkItemDisplayGen.add(e.chunk)
+//        }
+//    }
     @EventHandler
     fun slotChange(e: PlayerItemHeldEvent) {
         val item = e.player.inventory.getItem(e.newSlot) ?: return
@@ -429,8 +431,24 @@ class Events: Listener {
         val id = victim.scoreboardTags.filter { it.contains("teamid:") }.first().split(":")[1].toInt()
         victim.remove()
         val dataClass = WorldManager.initData(victim.world)
-        if (id == 0) dataClass.dataInt1 = 0
-        if (id == 1) dataClass.dataInt2 = 0
+        if (id == 0) {
+            dataClass.dataInt1 = 0
+            dataClass.teams.filter { it.id == 1 }.first().players.forEach {
+                it.sendMessage("§e적팀의 코어가 파괴되었습니다.")
+                it.sendMessage("§e적팀은 이제 부활할 수 없습니다!")
+                it.sendTitle("§e§l적 코어 파괴됨!", " ", 5, 20*5, 5)
+                it.playSound(it, Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 0.5f)
+            }
+        }
+        if (id == 1) {
+            dataClass.dataInt2 = 0
+            dataClass.teams.filter { it.id == 0 }.first().players.forEach {
+                it.sendMessage("§e적팀의 코어가 파괴되었습니다.")
+                it.sendMessage("§e적팀은 이제 부활할 수 없습니다!")
+                it.sendTitle("§e§l적 코어 파괴됨!", " ", 5, 20*5, 5)
+                it.playSound(it, Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 0.5f)
+            }
+        }
 
         val victimTeam = TeamManager.getTeam(victim.world, uuid)?: return
         victimTeam.players.forEach {
@@ -438,6 +456,7 @@ class Events: Listener {
             it.sendMessage("§c팀의 코어가 파괴되었습니다. 더 이상 부활할 수 없습니다.")
             it.playSound(it, Sound.ENTITY_WITHER_DEATH, 1.0f, 1.0f)
         }
+
         victim.world.spawnParticle(Particle.EXPLOSION_HUGE, victim.location, 1, 0.0, 0.0, 0.0)
         EffectManager.playSurroundSound(victim.location, Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 1.0f)
         EffectManager.playSurroundSound(victim.location, Sound.BLOCK_BEACON_DEACTIVATE, 2.0f, 1.0f)

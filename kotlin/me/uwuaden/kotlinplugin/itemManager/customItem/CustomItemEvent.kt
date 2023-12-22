@@ -1907,7 +1907,7 @@ class CustomItemEvent: Listener {
                     EffectManager.playSurroundSound(player.location, Sound.BLOCK_GLASS_BREAK, 1.0F, 1.0F)
                     EffectManager.playSurroundSound(player.location, Sound.ITEM_TRIDENT_RETURN, 1.0F, 0.5F)
                     EffectManager.playSurroundSound(player.location, Sound.BLOCK_BEACON_DEACTIVATE, 1.0F, 0.5F)
-                    player.location.world.spawnParticle(END_ROD, player.location, 100, 0.0, 0.0, 0.0, 0.1)
+                    player.location.world.spawnParticle(END_ROD, player.location, 100, 0.0, 0.0, 0.0, 1.0)
 
 
                     player.addPotionEffect(PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 20, 4, false, false))

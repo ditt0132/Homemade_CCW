@@ -38,6 +38,8 @@ import org.bukkit.potion.PotionEffect
 import org.bukkit.potion.PotionEffectType
 import org.bukkit.scoreboard.Team
 import java.util.*
+import java.util.logging.Level
+import kotlin.concurrent.thread
 import kotlin.math.*
 
 
@@ -464,6 +466,7 @@ private fun initItem(player: Player) {
 
 object GameManager {
     fun initDroppedItemLoc(chunk: Chunk) {
+
         scheduler.runTaskAsynchronously(plugin, Runnable {
 //        try {
             val data = WorldManager.initData(chunk.world)
@@ -491,23 +494,23 @@ object GameManager {
 //        }
         })
     }
-    fun chunkSch() {
-        scheduler.scheduleSyncDelayedTask(plugin, {
-            scheduler.runTaskAsynchronously(plugin, Runnable {
-                while (true) {
-                    plugin.server.worlds.forEach { world ->
-                        if (world.name.contains("Field-")) {
-                            world.players.filter { it.gameMode == GameMode.SURVIVAL }.forEach { player ->
-                                initItem(player)
-                                Thread.sleep(1000/2)
-                            }
-                        }
-                    }
-                    Thread.sleep(4000)
-                }
-            })
-        }, 20*10)
-    }
+//    fun chunkSch() {
+//        scheduler.scheduleSyncDelayedTask(plugin, {
+//            scheduler.runTaskAsynchronously(plugin, Runnable {
+//                while (true) {
+//                    plugin.server.worlds.forEach { world ->
+//                        if (world.name.contains("Field-")) {
+//                            world.players.filter { it.gameMode == GameMode.SURVIVAL }.forEach { player ->
+//                                initItem(player)
+//                                Thread.sleep(1000/2)
+//                            }
+//                        }
+//                    }
+//                    Thread.sleep(4000)
+//                }
+//            })
+//        }, 20*10)
+//    }
 
 //    fun zombieSch() {
 //        scheduler.scheduleSyncRepeatingTask(plugin, {
@@ -597,15 +600,37 @@ object GameManager {
             itemCount/=4
         }
 
-        scheduler.scheduleSyncDelayedTask(plugin, {
-            WorldItemManager.createItemData(
-                toWorld,
-                borderCenter.clone().add(-1 * borderRadius, 0.0, -1 * borderRadius),
-                borderCenter.clone().add(borderRadius, 0.0, borderRadius),
-                itemCount
-            )
-            
-        }, 20*5)
+
+        WorldItemManager.createItemData(
+            toWorld,
+            borderCenter.clone().add(-borderRadius, 0.0, -borderRadius),
+            borderCenter.clone().add(borderRadius, 0.0, borderRadius),
+            itemCount
+        )
+
+        val thread = thread(false) {
+            plugin.logger.log(Level.WARNING, "Item Creating Started")
+            scheduler.runTaskAsynchronously(plugin, Runnable {
+                var r = 0
+                dataClass.worldDroppedItemData.ItemCount.filter { it.value != 0 }.keys.forEach {
+                    r++
+                    scheduler.scheduleSyncDelayedTask(plugin, {
+                        val chunk = toWorld.getChunkAt(it.first, it.second)
+                        WorldItemManager.createItems(chunk) //데이터 생성
+                        GameManager.initDroppedItemLoc(chunk) //위치 설정
+                    }, 0)
+                    if (r % 400 == 0) {
+                        val tps =
+                            plugin.server.tps.first().coerceAtLeast(0.5)
+                                .coerceAtMost(19.5) //0.0~20.0 -> 0.5 ~ 19.5(서버 성능)
+                        Thread.sleep(((20.0 - tps) * 10.0).toLong()) //서버 성능에 따른 딜레이
+                    }
+                }
+                plugin.logger.log(Level.WARNING, "Item Creating Done")
+            })
+        }
+        thread.start()
+
         
         //수정시도
 

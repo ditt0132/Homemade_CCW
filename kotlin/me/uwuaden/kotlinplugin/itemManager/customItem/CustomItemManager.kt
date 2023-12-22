@@ -347,7 +347,7 @@ object CustomItemManager {
                                 addItemToChest(chest, ItemStack(Material.COOKED_BEEF, random.nextInt(1, 3)))
                             }
 
-                            addItemToChest(chest, ItemManager.createNamedItem(Material.COMPASS, 1, "${ChatColor.RED}Player Tracker", listOf("${ChatColor.GRAY}160블럭 내에 있는 가장 가까운 플레이어를 추적합니다!")))
+                            addItemToChest(chest, CustomItemData.getCompass())
 
                             val numList = mutableListOf<Int>()
                             for (i in 0..8) {
