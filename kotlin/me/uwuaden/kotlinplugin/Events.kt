@@ -5,6 +5,7 @@ import me.uwuaden.kotlinplugin.Main.Companion.econ
 import me.uwuaden.kotlinplugin.Main.Companion.lastDamager
 import me.uwuaden.kotlinplugin.Main.Companion.lastWeapon
 import me.uwuaden.kotlinplugin.Main.Companion.lobbyLoc
+import me.uwuaden.kotlinplugin.Main.Companion.luckpermAPI
 import me.uwuaden.kotlinplugin.Main.Companion.plugin
 import me.uwuaden.kotlinplugin.Main.Companion.scheduler
 import me.uwuaden.kotlinplugin.assets.CustomItemData
@@ -72,17 +73,22 @@ private fun deathPlayer(p: Player) {
             )
         } else {
             var weaponName: String? = null
+            var weapon: ItemStack? = null
 
             if (lastWeapon[p] != null) {
                 val data = lastWeapon[p]!!
                 if (data.effTimeMilli > System.currentTimeMillis() && data.item.itemMeta?.displayName != "") {
                     weaponName = data.item.itemMeta?.displayName
+                    weapon = data.item.clone()
 
                 }
             }
 
-            val msg = Component.text("${ChatColor.RED}☠ ${lastDamager[p]!!.name} ${ChatColor.BOLD}➔ ${ChatColor.RED}${p.name}").content()
-            if (weaponName != null) msg + (Component.text("${ChatColor.RED} with")).append(Component.text("${ChatColor.BOLD}[${weaponName}${ChatColor.RED}${ChatColor.BOLD}]").hoverEvent(lastWeapon[p]!!.item)).content()
+            var msg = Component.text("${ChatColor.RED}☠ ${lastDamager[p]!!.name} ${ChatColor.BOLD}➔ ${ChatColor.RED}${p.name}")
+            if (weaponName != null) {
+                msg = msg.append(Component.text("${ChatColor.RED} with ").append(Component.text("${ChatColor.RED}${ChatColor.BOLD}[${weaponName}${ChatColor.RED}${ChatColor.BOLD}]").hoverEvent(
+                    weapon)))
+            }
 
             WorldManager.broadcastWorld(
                 p.world,
@@ -148,7 +154,7 @@ private fun deathPlayer(p: Player) {
 
         lastDamager.remove(p)
 
-        if (!dataClass.deadPlayer.contains(p) && dataClass.worldMode == "Solo") {
+        if (!dataClass.deadPlayer.contains(p) && dataClass.worldMode == "Solo" && !dataClass.gameEndedWorld) {
             dataClass.deadPlayer.add(p)
 
             RankSystem.updateMMR(p, dataClass.playerKill[p.uniqueId]?: 0, dataClass.totalPlayer, p.world.players.filter { it.gameMode == GameMode.SURVIVAL }.size + 1, dataClass.avgMMR)
@@ -268,6 +274,7 @@ class Events: Listener {
 
     @EventHandler
     fun onJoin(e: PlayerJoinEvent) {
+        e.joinMessage = ""
         e.player.teleport(lobbyLoc)
         e.player.gameMode = GameMode.SURVIVAL
         e.player.inventory.clear()
@@ -277,12 +284,25 @@ class Events: Listener {
 
     @EventHandler
     fun onQuit(e: PlayerQuitEvent) {
+        e.quitMessage = ""
         deathPlayer(e.player)
     }
 
     @EventHandler
     fun onChat(e: PlayerChatEvent) {
         val player = e.player
+        val user = luckpermAPI.getPlayerAdapter(Player::class.java).getUser(player)
+        val prefix = user.cachedData.metaData.prefix ?: ""
+        e.format = "§f${prefix}${player.name}§f: ${e.message}"
+        if (!player.hasPermission("CCW.Chat")) {
+            if (player.hasCooldown(Material.PAPER)){
+                e.isCancelled = true
+                player.sendMessage("§c채팅이 쿨타임 중 입니다. (${(player.getCooldown(Material.PAPER)/20.0).roundToInt()}초)")
+            } else {
+                player.setCooldown(Material.PAPER, 20*3)
+            }
+            return
+        }
         val world = player.world
         val msg = e.message
         val team = TeamManager.getTeam(world, player) ?: return
@@ -366,6 +386,13 @@ class Events: Listener {
             if (entity != shooter) lastDamager[entity] = shooter
         }
     }
+    @EventHandler
+    fun onWorldChange(e: PlayerChangedWorldEvent) {
+        if (e.player.world.name == "world") {
+            e.player.inventory.clear()
+        }
+    }
+
     @EventHandler
     fun interactWorldItems(e: PlayerInteractEvent) {
         val clickedBlock = e.clickedBlock ?: return

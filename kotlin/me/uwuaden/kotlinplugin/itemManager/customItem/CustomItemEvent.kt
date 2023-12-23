@@ -311,10 +311,7 @@ private fun earthGrenade(loc: Location, p: Player) {
                 }
 
                 originLoc.getNearbyLivingEntities(r.toDouble()).forEach { e->
-                    if (e is Player) {
-                        lastDamager[e] = p
-                        lastWeapon[e] = LastWeaponData(ItemManager.createNamedItem(Material.STICK, 1, "영역 수류탄", null), System.currentTimeMillis()+1000*10)
-                    }
+                    EffectManager.setLastDamager(p, e, CustomItemData.getEarthGr())
                     e.addPotionEffect(PotionEffect(PotionEffectType.SLOW, 2, 2, false, false))
                     e.damage(0.5)
                 }
@@ -396,10 +393,7 @@ private fun gravityGrenade(loc: Location, p: Player) {
             loc.world.spawnParticle(Particle.REDSTONE, loc.clone().add(0.0, 0.25, 0.0), 40, 2.0, 2.0, 2.0, 0.0, DustOptions(Color.fromRGB(255, 255, 112), 2.0f))
 
             loc.getNearbyLivingEntities(6.0).forEach {
-                if (it is Player) {
-                    lastDamager[it] = p
-                    lastWeapon[it] = LastWeaponData(ItemManager.createNamedItem(Material.STICK, 1, "중력 수류탄", null), System.currentTimeMillis()+1000*10)
-                }
+                EffectManager.setLastDamager(p, it, CustomItemData.getGravityG())
                 it.damage(2.0)
             }
         }, 20*5)
@@ -490,10 +484,7 @@ private fun molotovCocktail(loc: Location, p: Player) {
                             e.fireTicks = 20 * 4
                         }
                         if (i%5 == 0) {
-                            if (e is Player) {
-                                lastDamager[e] = p
-                                lastWeapon[e] = LastWeaponData(ItemManager.createNamedItem(Material.STICK, 1, "화염병", null), System.currentTimeMillis()+1000*10)
-                            }
+                            EffectManager.setLastDamager(p, e, CustomItemData.getMolt())
                             EffectManager.playSurroundSound(originLoc, Sound.BLOCK_FIRE_AMBIENT, 1.0f, 1.5f)
                         }
                     }
@@ -1782,6 +1773,7 @@ class CustomItemEvent: Listener {
                             EffectManager.playSurroundSound(loc, Sound.ENTITY_GENERIC_EXPLODE, 2.0F, 1.0F)
                             loc.world.spawnParticle(EXPLOSION_HUGE, loc, 1, 0.0, 0.0, 0.0, 0.0)
                             loc.getNearbyLivingEntities(5.0).filter { isHittable(player, it) }.forEach {
+                                EffectManager.setLastDamager(player, it, CustomItemData.getRocketLauncher())
                                 it.damage(6.0)
 
                                 val directionVel = it.location.toVector().subtract(loc.toVector()).normalize().setY(0.5)

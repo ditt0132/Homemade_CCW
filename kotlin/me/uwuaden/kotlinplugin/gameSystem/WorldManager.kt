@@ -8,6 +8,7 @@ import me.uwuaden.kotlinplugin.Main.Companion.worldDatas
 import me.uwuaden.kotlinplugin.Main.Companion.worldLoaded
 import me.uwuaden.kotlinplugin.WorldDataManager
 import me.uwuaden.kotlinplugin.itemManager.maps.MapRenderer.Companion.blockTypeCach
+import net.kyori.adventure.text.Component
 import org.bukkit.Chunk
 import org.bukkit.Location
 import org.bukkit.World
@@ -130,6 +131,11 @@ object  WorldManager {
     fun broadcastWorld(world: World, message: String) {
         world.players.forEach { player ->
             player.sendMessage(message)
+        }
+    }
+    fun broadcastWorld(world: World, component: Component) {
+        world.players.forEach { player ->
+            player.sendMessage(component)
         }
     }
 

@@ -1,5 +1,6 @@
 package me.uwuaden.kotlinplugin.quickSlot
 
+import me.uwuaden.kotlinplugin.assets.ItemManipulator.setName
 import me.uwuaden.kotlinplugin.itemManager.ItemManager
 import me.uwuaden.kotlinplugin.quickSlot.QuickSlotEvent.Companion.playerQuickSlot
 import org.bukkit.Bukkit
@@ -31,10 +32,17 @@ object QuickSlotManager {
 
         val data = initData(player.uniqueId)
 
-        data.slotData.forEach { (slot, item) ->
+        for (slot in 0..17) {
+            val item: ItemStack
+            if (data.slotData.containsKey(slot)) {
+                item = data.slotData[slot]!!
+            } else {
+                item = ItemStack(Material.BARRIER).setName("§c지정되지 않음")
+            }
             val itemUsing = item.clone()
             itemUsing.lore?.clear()
-            addLoreLine(itemUsing, "${ChatColor.GREEN}Click to Quick Equip")
+            if (itemUsing.type != Material.BARRIER) addLoreLine(itemUsing, "${ChatColor.GREEN}Click to Quick Equip")
+            addLoreLine(itemUsing, "${ChatColor.YELLOW}휠클릭으로 현재 들고 있는 아이템으로 퀵슬롯을 지정할 수 있습니다.")
             if (slot <= 8) {
                 val invSlot = slot + 9
 
@@ -57,9 +65,11 @@ object QuickSlotManager {
         if (player.inventory.itemInMainHand.type == Material.AIR) {
             player.sendMessage("${ChatColor.RED}퀵슬롯 ${slot}번이 삭제되었습니다.")
             data.slotData.remove(slot)
+            player.inventory.close()
             return
         }
-        val item = player.inventory.itemInMainHand.clone()
+        val item = ItemStack(player.inventory.itemInMainHand.type)
+
         if (item.itemMeta.displayName().toString().contains("/-&-/")) {
             player.sendMessage("${ChatColor.RED}이름에 /-&-/기호가 들어가면 안됩니다.")
             return
@@ -73,11 +83,10 @@ object QuickSlotManager {
             return
         }
 
-        item.itemMeta.lore?.clear()
-        item.amount = 1
         data.slotData[slot] = item
 
-        player.sendMessage("${ChatColor.GREEN}해당 아이템이 퀵슬롯 ${slot}번에 추가되었습니다.")
+        player.sendMessage("${ChatColor.GREEN}해당 아이템이 퀵슬롯 ${slot}번으로 설정되었습니다..")
+        player.inventory.close()
     }
     fun initData(playerUUID: UUID): PlayerQuickSlotData {
         if (playerQuickSlot[playerUUID] == null) {

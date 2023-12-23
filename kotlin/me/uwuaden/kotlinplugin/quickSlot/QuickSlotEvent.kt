@@ -5,6 +5,7 @@ import org.bukkit.Sound
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
+import org.bukkit.event.inventory.ClickType
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.player.PlayerSwapHandItemsEvent
 import org.bukkit.inventory.Inventory
@@ -53,12 +54,17 @@ class QuickSlotEvent: Listener {
 
             val data = QuickSlotManager.initData(player.uniqueId)
 
+            if (e.click == ClickType.SHIFT_LEFT) {
+                QuickSlotManager.setQuickSlot(player, slotIndex)
+                return
+            }
+
             if (data.slotData.containsKey(slotIndex)) {
                 swapPlayerItem(player, data.slotData[slotIndex]!!)
                 player.inventory.close()
             } else {
-                player.sendMessage("${ChatColor.RED}아이템이 지정되지 않았습니다.")
-                player.sendMessage("${ChatColor.RED}/닭갈비 퀵슬롯 $slotIndex 명령어로 지정해주세요.")
+                player.sendMessage("${ChatColor.GREEN}아이템이 지정되지 않았습니다.")
+                player.sendMessage("${ChatColor.GREEN}쉬프트 좌클릭으로 들고 있는 아이템을 퀵슬롯으로 지정할 수 있습니다.")
             }
         }
     }

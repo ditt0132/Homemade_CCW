@@ -4,7 +4,6 @@ import me.uwuaden.kotlinplugin.Main.Companion.groundY
 import me.uwuaden.kotlinplugin.Main.Companion.underItemRange
 import me.uwuaden.kotlinplugin.gameSystem.WorldManager
 import me.uwuaden.kotlinplugin.itemManager.ItemManager
-import org.bukkit.Chunk
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.World
@@ -101,12 +100,12 @@ object WorldItemManager {
             }
         }
     }
-    fun createItems(chunk: Chunk) {
-        val worldData = WorldManager.initData(chunk.world)
+    fun createItems(world: World, x: Int, y: Int) { //청크 좌표 사용
+        val worldData = WorldManager.initData(world)
         val dataClass = worldData.worldDroppedItemData
         val random = Random()
-        val pairChunk = Pair(chunk.x, chunk.z)
-        if (dataClass.ItemCount.keys.contains(pairChunk) && chunk.isLoaded) {
+        val pairChunk = Pair(x, y)
+        if (dataClass.ItemCount.keys.contains(pairChunk)) {
             // 여기부터
             for (i in 0 until (dataClass.ItemCount[pairChunk] ?: 0)) {
 
@@ -117,10 +116,10 @@ object WorldItemManager {
                 var create = false
 
                 //아이템 생성
-                if (!WorldManager.isOutsideBorder(Location(chunk.world, (pairChunk.first shl 4).toDouble(), 0.0, (pairChunk.second shl 4).toDouble()))) {
+                if (!WorldManager.isOutsideBorder(Location(world, (pairChunk.first shl 4).toDouble(), 0.0, (pairChunk.second shl 4).toDouble()))) {
                     spawnTry@ for (t in 0 until 50) {
                         val selLoc = Location(
-                            chunk.world,
+                            world,
                             (pairChunk.first shl 4) + random.nextInt(0, 16).toDouble(),
                             random.nextInt(groundY.toInt() - underItemRange, groundY.toInt() + 30).toDouble(),
                             (pairChunk.second shl 4) + random.nextInt(0, 16).toDouble()

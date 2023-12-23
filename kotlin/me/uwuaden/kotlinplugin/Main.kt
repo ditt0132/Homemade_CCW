@@ -27,6 +27,7 @@ import me.uwuaden.kotlinplugin.zombie.ZombieManager
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.event.HoverEvent
+import net.luckperms.api.LuckPerms
 import net.milkbowl.vault.economy.Economy
 import org.bukkit.*
 import org.bukkit.entity.Player
@@ -37,9 +38,11 @@ import org.bukkit.potion.PotionEffect
 import org.bukkit.potion.PotionEffectType
 import org.bukkit.scheduler.BukkitScheduler
 import java.io.File
+import java.net.URL
 import java.time.LocalDate
 import java.util.*
 import java.util.logging.Level
+
 
 private fun sendResetMessage(player: Player) {
     player.sendMessage("§a시즌을 초기화하시겠습니까?")
@@ -62,6 +65,7 @@ class Main: JavaPlugin() {
     companion object {
         lateinit var plugin: JavaPlugin
         lateinit var scheduler: BukkitScheduler
+        lateinit var luckpermAPI: LuckPerms
         val worldLoaded = ArrayList<String>()
         val queueStartIn = HashMap<String, Long>()
         val queueClosed = ArrayList<String>()
@@ -117,7 +121,7 @@ class Main: JavaPlugin() {
         scheduler = Bukkit.getScheduler()
         scheduler.cancelTasks(plugin)
         QueueOperator.sch()
-        //GameManager.chunkSch() //아이템 생성 등등 여러가지
+        GameManager.chunkSch() //아이템 생성 등등 여러가지
         GameManager.gameSch()
         ItemManager.updateInventorySch()
         CustomItemManager.itemSch()
@@ -144,6 +148,12 @@ class Main: JavaPlugin() {
             server.logger.log(Level.WARNING, "Vault Load Error")
             server.pluginManager.disablePlugin(plugin)
             return
+        }
+        val provider = Bukkit.getServicesManager().getRegistration(
+            LuckPerms::class.java
+        )
+        if (provider != null) {
+            luckpermAPI = provider.provider
         }
 
         plugin.server.worlds.forEach {
@@ -178,7 +188,7 @@ class Main: JavaPlugin() {
                     plugin.server.getWorld("death_match")?.difficulty = Difficulty.HARD
                 }, 20*10)
             })
-        }, 20*5)
+        }, 20*30)
 
         kommand {
             register("join_dm") {
@@ -585,6 +595,12 @@ class Main: JavaPlugin() {
                 }
             }
             register("닭갈비") {
+                then("디스코드") {
+                    executes {
+                        val text = Component.text("§e디스코드: §nhttps://discord.gg/YSHuMRMyY6").clickEvent(ClickEvent.openUrl(URL("https://discord.gg/YSHuMRMyY6")))
+                        player.sendMessage(text)
+                    }
+                }
                 then("돈") {
                     executes {
                         player.sendMessage("${ChatColor.GREEN}${player.name}님의 돈: ${econ.getBalance(player)}")

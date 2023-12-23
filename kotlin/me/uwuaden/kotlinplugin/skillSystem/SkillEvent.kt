@@ -630,6 +630,7 @@ class SkillEvent: Listener {
                                     it
                                 )
                             }.forEach {
+                                EffectManager.setLastDamager(player, it, CustomItemData.getQuickRocketLauncher())
                                 it.damage(4.0)
 
                                 val directionVel = it.location.toVector().subtract(loc.toVector()).normalize().setY(0.5)
