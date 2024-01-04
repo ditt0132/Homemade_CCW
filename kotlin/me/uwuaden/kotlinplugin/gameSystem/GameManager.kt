@@ -5,6 +5,7 @@ import me.uwuaden.kotlinplugin.Main
 import me.uwuaden.kotlinplugin.Main.Companion.defaultMMR
 import me.uwuaden.kotlinplugin.Main.Companion.groundY
 import me.uwuaden.kotlinplugin.Main.Companion.lastDamager
+import me.uwuaden.kotlinplugin.Main.Companion.lobbyLoc
 import me.uwuaden.kotlinplugin.Main.Companion.playerLocPing
 import me.uwuaden.kotlinplugin.Main.Companion.playerStat
 import me.uwuaden.kotlinplugin.Main.Companion.plugin
@@ -16,11 +17,9 @@ import me.uwuaden.kotlinplugin.assets.ItemManipulator.enchant
 import me.uwuaden.kotlinplugin.assets.ItemManipulator.setCount
 import me.uwuaden.kotlinplugin.itemManager.ItemManager
 import me.uwuaden.kotlinplugin.itemManager.itemData.WorldItemManager
-import me.uwuaden.kotlinplugin.itemManager.maps.MapManager
 import me.uwuaden.kotlinplugin.rankSystem.RankSystem
 import me.uwuaden.kotlinplugin.skillSystem.SkillEvent.Companion.playerCapacityPoint
 import me.uwuaden.kotlinplugin.skillSystem.SkillEvent.Companion.playerMaxUse
-import me.uwuaden.kotlinplugin.skillSystem.SkillEvent.Companion.score
 import me.uwuaden.kotlinplugin.teamSystem.TeamClass
 import me.uwuaden.kotlinplugin.teamSystem.TeamManager
 import me.uwuaden.kotlinplugin.zombie.ZombieManager
@@ -36,9 +35,11 @@ import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
 import org.bukkit.potion.PotionEffect
 import org.bukkit.potion.PotionEffectType
-import org.bukkit.scoreboard.Team
 import java.util.*
-import kotlin.math.*
+import kotlin.math.ceil
+import kotlin.math.floor
+import kotlin.math.roundToInt
+import kotlin.math.sqrt
 
 
 private fun spawnItemDisplay(loc: Location, type: Material, scale: Double = 1.0) {
@@ -223,7 +224,7 @@ private fun winPlayer(p: Player) {
     broadcastWorld(p.world, "${ChatColor.GOLD}${ChatColor.BOLD}KILL: ${(dataClass.playerKill[p.uniqueId] ?: 0)}")
     broadcastWorld(p.world, " ")
     broadcastWorld(p.world, "${ChatColor.GOLD}${ChatColor.BOLD}==============================")
-
+    if (dataClass.worldMode == "Solo" || dataClass.worldMode == "Quick")
     RankSystem.updateMMR(p, dataClass.playerKill[p.uniqueId]?: 0, dataClass.totalPlayer, 1, dataClass.avgMMR)
     RankSystem.updateRank(p, dataClass.playerKill[p.uniqueId]?: 0, dataClass.totalPlayer, 1, dataClass.avgMMR)
     dataClass.deadPlayer.add(p)
@@ -293,11 +294,10 @@ private fun lobbyTeleportWorlds(world: World) {
                 p.teleport(Main.lobbyLoc)
             }
         }, 20*10)
-        WorldManager.deleteWorld(world)
         scheduler.scheduleSyncDelayedTask(plugin, {
-           worldDatas.remove(world)
-
-        }, 20*30)
+            WorldManager.deleteWorld(world)
+            worldDatas.remove(world)
+        }, 20*15)
     }, 20*10)
 }
 
@@ -430,7 +430,7 @@ private fun initPlayer(player: Player) {
     playerCapacityPoint[player.uniqueId] = 0
     playerMaxUse[player.uniqueId] = 0
     lastDamager.remove(player)
-    player.inventory.setItem(8, MapManager.createMapView(player))
+    //player.inventory.setItem(8, MapManager.createMapView(player))
     player.inventory.addItem(ItemStack(Material.WOODEN_SWORD))
     player.inventory.addItem(ItemStack(Material.WOODEN_PICKAXE))
     player.inventory.addItem(ItemStack(Material.WOODEN_AXE))
@@ -439,6 +439,16 @@ private fun initPlayer(player: Player) {
         player.sendMessage("${ChatColor.GRAY}팁: ${EffectManager.randomTip()}")
     }
     player.addPotionEffect(PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 20*30, 4, false, false))
+    scheduler.scheduleSyncDelayedTask(plugin, {
+        val team = TeamManager.getTeam(player.world, player)
+        if (team != null) {
+            val names = mutableListOf<String>()
+            team.players.forEach { player ->
+                names.add(player.name)
+            }
+            player.sendMessage("${ChatColor.GOLD}팀원: ${names.joinToString(", ")}")
+        }
+    }, 20*10)
 }
 private fun initItem(player: Player) {
     val world = player.world
@@ -572,6 +582,12 @@ object GameManager {
         var randomSize = 200.0
         var borderRadius = 500.0
         var itemCount = 8000
+
+        if (dataClass.worldFolderName == "test") {
+            randomSize = 200.0
+            borderRadius = 600.0
+            itemCount = 9000
+        }
 
         if (dataClass.worldFolderName == "Sinchon") {
             randomSize = 50.0
@@ -888,37 +904,37 @@ object GameManager {
 
         val worldDeleteSec: Long = 10
 
-        var borderSize = borderRadius*2
+        val borderSize = borderRadius*2
 
+        var changedBorderSize = borderSize
         val min = 1.0 //min분 마다 자기장 축소
 
-        var changeSec = 12
+        var changeAmount = 12
         if (mode == "SoloSurvival") {
-            changeSec = 6
+            changeAmount = 6
         }
         if (mode == "Heist") return
 
-
-        var delay: Long = 0
         scheduler.scheduleSyncDelayedTask(plugin, {
-            for (n in 1..changeSec) {
-                val changedBorderSize = borderSize*((0.8).pow(n))
-                val gab = borderSize*((0.8).pow(n-1)) - borderSize*((0.8).pow(n))
-
-                if (n != 1) {
-                    delay += ((20 * gab.roundToInt())/2 + 20*min*60).toLong()
-                }
-                scheduler.scheduleSyncDelayedTask(plugin, {
-                    WorldManager.broadcastWorld(toWorld, msg(gab, changedBorderSize))
-                    BorderManager.changeInSec(toWorld, changedBorderSize, gab.roundToInt() / 2)
-
-                }, delay)
+            fromWorld.players.forEach {
+                it.teleport(lobbyLoc)
             }
+            WorldManager.deleteWorld(fromWorld)
+        }, 20*10)
+        scheduler.scheduleSyncDelayedTask(plugin, {
+            scheduler.runTaskAsynchronously(plugin, Runnable {
+                for (n in 0 until changeAmount) {
+                    val origin = changedBorderSize
+                    changedBorderSize *= 0.8
+                    val gab = origin - changedBorderSize
+                    scheduler.scheduleSyncDelayedTask(plugin, {
+                        WorldManager.broadcastWorld(toWorld, msg(gab, changedBorderSize))
+                        BorderManager.changeInSec(toWorld, changedBorderSize, gab.roundToInt() / 2)
+                    }, 0)
+                    Thread.sleep(((min*60 + gab.roundToInt() / 2 )*1000).toLong())
+                }
+            })
         }, 20*60*5)
-
-//        scheduler.scheduleSyncDelayedTask(plugin, {
-//            WorldManager.deleteWorld(fromWorld)
-//        }, 20*worldDeleteSec)
     }
 
     fun spawnLocList(loc1: Location, loc2: Location, count: Int, dist: Int): ArrayList<Location> {
@@ -1014,14 +1030,6 @@ object GameManager {
 
                     if (!player.world.name.contains("Field-")) {
                         lastDamager.remove(player)
-                    }
-                    var t = score.getTeam("nameTagHide")
-                    if (t == null) {
-                        t = score.registerNewTeam("nameTagHide")
-                        t.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.NEVER)
-                    }
-                    if(!t.hasPlayer(player)) {
-                        t.addPlayer(player)
                     }
                 }
 

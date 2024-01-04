@@ -82,6 +82,7 @@ class Main: JavaPlugin() {
 
         var worldDatas = HashMap<World, WorldDataManager>()
         var queueDatas = HashMap<World, QueueData>()
+        var queueStatue = true
         val chunkItemDisplayGen = mutableSetOf<Chunk>()
         val chunkItemLocInit = mutableSetOf<Chunk>()
 
@@ -162,7 +163,7 @@ class Main: JavaPlugin() {
             }
         }
 
-        plugin.server.worldContainer.listFiles { file-> (file.name.contains("Queue-") || file.name.contains("Field-"))}.forEach {
+        plugin.server.worldContainer.listFiles { file-> (file.name.contains("Queue-") || file.name.contains("Field-")) || file.name.contains("death_match") }.forEach {
             it.deleteRecursively()
         }
 
@@ -173,8 +174,8 @@ class Main: JavaPlugin() {
         plugin.server.onlinePlayers.forEach {
             it.teleport(lobbyLoc)
         }
+
         FileManager.loadVar()
-        FileManager.loadPlayerEItemFromFile()
 
         scheduler.scheduleSyncDelayedTask(plugin, {
             val copyDir = File(File(plugin.dataFolder, "maps"), "Sinchon")
@@ -414,6 +415,18 @@ class Main: JavaPlugin() {
                 executes {
 
                 }
+                then("큐비활성화") {
+                    executes {
+                        player.sendMessage("§a큐가 비활성화 되었습니다")
+                        queueStatue = false
+                    }
+                }
+                then("큐활성화") {
+                    executes {
+                        player.sendMessage("§a큐가 활성화 되었습니다")
+                        queueStatue = true
+                    }
+                }
                 then("저장") {
                     executes {
                         FileManager.saveVar()
@@ -445,8 +458,8 @@ class Main: JavaPlugin() {
                             if (p != null) {
                                 val classData = RankSystem.initData(p.uniqueId)
 
-                                val rankStr = RankSystem.rateToString(player)
-                                player.sendMessage("${ChatColor.GREEN}${PlayerName}님의 랭크: ${rankStr} ${ChatColor.GREEN}(${classData.playerRank % 100}/100)")
+                                val rankStr = RankSystem.rateToString(p)
+                                player.sendMessage("${ChatColor.GREEN}${PlayerName}님의 랭크: ${rankStr} ${ChatColor.GREEN}(${RankSystem.rateToScore(classData.playerRank)}/100)")
                             }
                         }
                     }
@@ -489,17 +502,19 @@ class Main: JavaPlugin() {
                                         }
                                         //플레티넘
                                         4 -> {
-                                            econ.depositPlayer(offlinePlayer, 2500.0)
+                                            econ.depositPlayer(offlinePlayer, 2000.0)
                                         }//다이아
                                         5 -> {
-                                            econ.depositPlayer(offlinePlayer, 4000.0)
+                                            econ.depositPlayer(offlinePlayer, 3000.0)
                                         }//마스터
                                         in 6..10 -> {
-                                            econ.depositPlayer(offlinePlayer, 5000.0)
+                                            econ.depositPlayer(offlinePlayer, 4000.0)
                                         }
                                     }
                                     classData.playerRank = 0
                                     classData.gamePlayed = 0
+                                    classData.playerMMR -= 375
+                                    if (classData.playerMMR < 0) classData.playerMMR = 0 //배치 관련 mmr 패치
                                     classData.unRanked = true
                                 }
                             } else {
@@ -526,8 +541,7 @@ class Main: JavaPlugin() {
                 }
                 then("test2") {
                     executes {
-                        val dataClass = WorldManager.initData(player.world)
-                        player.sendMessage((dataClass.worldDroppedItemData.ItemCount[Pair(player.chunk.x, player.chunk.z)]?: 0).toString())
+                        player.inventory.addItem(CustomItemData.getDevineSword())
                     }
                 }
                 then("test3") {
@@ -610,7 +624,7 @@ class Main: JavaPlugin() {
                     executes {
                         val classData = RankSystem.initData(player.uniqueId)
                         val rankStr = RankSystem.rateToString(player)
-                        player.sendMessage("${rankStr} ${ChatColor.GREEN}(${classData.playerRank%100}/100)")
+                        player.sendMessage("${rankStr} ${ChatColor.GREEN}(${RankSystem.rateToScore(classData.playerRank)}/100)")
                     }
                     then("활성화") {
                         executes {
@@ -704,9 +718,13 @@ class Main: JavaPlugin() {
             register("joinqueue") {
                 requires { isPlayer }
                 executes {
-                    val worlds = plugin.server.worlds.filter { it.name.contains("Queue-") }.sortedByDescending { it.playerCount }
-                    if (worlds.isNotEmpty()) {
-                        player.teleport(Location(worlds[0], 14.5, 106.5, -40.5))
+                    if (queueStatue) {
+                        val worlds = plugin.server.worlds.filter { it.name.contains("Queue-") }.sortedByDescending { it.playerCount }
+                        if (worlds.isNotEmpty()) {
+                            player.teleport(Location(worlds[0], 14.5, 106.5, -40.5))
+                        }
+                    } else {
+                        player.sendMessage("§c큐가 비활성화 되었습니다.")
                     }
                 }
             }
@@ -724,7 +742,6 @@ class Main: JavaPlugin() {
         //니얼굴
 
         FileManager.saveVar()
-        FileManager.savePlayerEItemToFile()
         plugin.server.worlds.forEach { w->
             w.entities.forEach { e->
                 if (e.scoreboardTags.contains("tmp-display")) {

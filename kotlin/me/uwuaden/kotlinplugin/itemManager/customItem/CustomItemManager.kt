@@ -13,7 +13,6 @@ import net.kyori.adventure.text.Component
 import org.apache.commons.lang3.Validate
 import org.bukkit.*
 import org.bukkit.Particle.*
-import org.bukkit.attribute.Attribute
 import org.bukkit.block.Block
 import org.bukkit.block.Chest
 import org.bukkit.enchantments.Enchantment
@@ -166,7 +165,17 @@ private fun findFirstBlockBetweenTwoLocations(loc1: Location, loc2: Location): L
 
     return null
 }
-
+private fun isInSmoke(player: Player): Boolean {
+    var blind = false
+    CustomItemEvent.smokeRadius.values.forEach {
+        if (isPlayerBetweenLocations(player, it.first, it.second)) {
+            if (!blind) {
+                blind = true
+            }
+        }
+    }
+    return blind
+}
 private fun isPlayerBetweenLocations(player: Player, loc1: Location, loc2: Location): Boolean {
     if (player.world != loc1.world) return false
 
@@ -276,133 +285,113 @@ object CustomItemManager {
     }
     fun itemSch() {
         scheduler.scheduleSyncRepeatingTask(plugin, {
-            plugin.server.onlinePlayers.forEach { player ->
-                var blind = false
-                CustomItemEvent.smokeRadius.values.forEach {
-                    if (isPlayerBetweenLocations(player, it.first, it.second)) {
-                        if (!blind) {
-                            blind = true
-                        }
-                    }
-                    if (blind) {
-                        player.addPotionEffect(PotionEffect(PotionEffectType.BLINDNESS, 30, 0, false, false))
-                    }
-                }
+            plugin.server.onlinePlayers.filter { isInSmoke(it) }.forEach { player ->
+                player.addPotionEffect(PotionEffect(PotionEffectType.BLINDNESS, 30, 0, false, false))
             }
-        }, 0, 5)
+        }, 0, 10)
         scheduler.scheduleSyncRepeatingTask(plugin, {
-            plugin.server.onlinePlayers.forEach { player ->
-                val displayName = player.inventory.itemInMainHand.itemMeta?.displayName
-                if (displayName != null) {
-                    if (listOf("§e영역 수류탄", "§e반중력 수류탄", "§e중력 수류탄", "§e연막탄", "§e화염병").contains(displayName)) {
-                        var cd = (((GrenadeCD[player.uniqueId] ?: System.currentTimeMillis()) - System.currentTimeMillis()).toDouble())/1000.0
-                        if (cd < 0) cd = 0.0
+            plugin.server.onlinePlayers.filter { listOf("§e영역 수류탄", "§e반중력 수류탄", "§e중력 수류탄", "§e연막탄", "§e화염병").contains(it.inventory.itemInMainHand.itemMeta?.displayName ?: "") }.forEach { player ->
+                var cd = (((GrenadeCD[player.uniqueId] ?: System.currentTimeMillis()) - System.currentTimeMillis()).toDouble())/1000.0
+                if (cd < 0) cd = 0.0
 
-                        if (player.isSneaking) player.sendActionBar(Component.text("§a던지기 모드: 가까이 던지기  §c쿨타임: ${(((cd)*10).roundToInt())/10.0}초"))
-                        else player.sendActionBar(Component.text("§a던지기 모드: 멀리 던지기  §c쿨타임: ${(((cd)*10).roundToInt())/10.0}초"))
-                    }
-                }
-                if (player.inventory.itemInMainHand.itemMeta?.displayName == CustomItemData.getExosist().getName()) {
-                    if (player.name == "uwuaden") player.world.spawnParticle(CHERRY_LEAVES, player.location, 1, 1.0, 1.0, 1.0, 0.0)
-                    if (!player.hasCooldown(Material.PINK_DYE)) player.world.spawnParticle(REDSTONE, player.location, 1, 1.0, 1.0, 1.0, 0.0, DustOptions(Color.fromRGB(242, 189, 205), 1.0f))
-                }
-                if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.AQUA}${ChatColor.BOLD}Prototype V3") {
-                    player.addPotionEffect(PotionEffect(PotionEffectType.SLOW, 15, 2, false, false))
-                }
-                if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.DARK_PURPLE}${ChatColor.BOLD}Liberation" && player.health == player.getAttribute(Attribute.GENERIC_MAX_HEALTH)?.value) {
-                    if (player.location.getNearbyPlayers(30.0).filter { isHittable(player, it) }.size >= 3) player.world.spawnParticle(REVERSE_PORTAL, player.location.clone().add(0.0, 0.5, 0.0), 200, 30.0, 0.1, 30.0, 0.0)
-                }
+                if (player.isSneaking) player.sendActionBar(Component.text("§a던지기 모드: 가까이 던지기  §c쿨타임: ${(((cd)*10).roundToInt())/10.0}초"))
+                else player.sendActionBar(Component.text("§a던지기 모드: 멀리 던지기  §c쿨타임: ${(((cd)*10).roundToInt())/10.0}초"))
             }
-        }, 0, 2)
+
+            plugin.server.onlinePlayers.filter { (it.inventory.itemInMainHand.itemMeta?.displayName ?: "") == CustomItemData.getExosist().getName() }.forEach { player ->
+                if (player.name == "uwuaden") player.world.spawnParticle(CHERRY_LEAVES, player.location, 1, 1.0, 1.0, 1.0, 0.0)
+                if (!player.hasCooldown(Material.PINK_DYE)) player.world.spawnParticle(REDSTONE, player.location, 1, 1.0, 1.0, 1.0, 0.0, DustOptions(Color.fromRGB(242, 189, 205), 1.0f))
+            }
+
+            plugin.server.onlinePlayers.filter { (it.inventory.itemInMainHand.itemMeta?.displayName ?: "") == CustomItemData.getPrototypeV3().getName() }.forEach { player ->
+                player.addPotionEffect(PotionEffect(PotionEffectType.SLOW, 15, 2, false, false))
+            }
+        }, 0, 10)
         scheduler.scheduleSyncRepeatingTask(plugin, {
-            plugin.server.worlds.forEach { w->
-                w.entities.filterIsInstance<ArmorStand>().forEach {
-                    if (it.scoreboardTags.contains("Entity-Supplies") && it.isOnGround) {
-                        it.location.getNearbyLivingEntities(0.5).filterNot { e-> it == e }.forEach { e->
-                            e.damage(15.0)
-                            EffectManager.playSurroundSound(e.location, Sound.ENTITY_ZOMBIE_ATTACK_WOODEN_DOOR, 1.0f, 2.0f)
+            plugin.server.worlds.filter { it.name.contains("Field") }.forEach { w->
+                w.livingEntities.filterIsInstance<ArmorStand>().filter { it.scoreboardTags.contains("Entity-Supplies") && it.isOnGround }.forEach {
+
+                    it.location.getNearbyLivingEntities(0.5).filterNot { e-> it == e }.forEach { e->
+                        e.damage(15.0)
+                        EffectManager.playSurroundSound(e.location, Sound.ENTITY_ZOMBIE_ATTACK_WOODEN_DOOR, 1.0f, 2.0f)
+                    }
+                    val chest = it.location.block
+
+                    chest.type = Material.CHEST
+
+                    val random = Random
+
+                    scheduler.scheduleSyncDelayedTask(plugin, {
+                        val chestMeta = chest.state as Chest
+                        chestMeta.customName = "${ChatColor.YELLOW}Supplies"
+                        chestMeta.update()
+
+
+                        for (i in 0 until random.nextInt(2, 4)) {
+                            addItemToChest(chest, CustomItemData.getGoldenCarrot())
                         }
-                        val chest = it.location.block
+                        for (i in 0 until random.nextInt(4, 5)) {
+                            addItemToChest(chest, ItemStack(Material.GOLDEN_APPLE))
+                        }
+                        for (i in 0 until random.nextInt(2, 4)) {
+                            addItemToChest(chest, ItemStack(Material.COOKED_BEEF, random.nextInt(1, 3)))
+                        }
 
-                        chest.type = Material.CHEST
+                        addItemToChest(chest, CustomItemData.getCompass())
 
-                        val random = Random
-
-
-
-
-                        scheduler.scheduleSyncDelayedTask(plugin, {
-                            val chestMeta = chest.state as Chest
-                            chestMeta.customName = "${ChatColor.YELLOW}Supplies"
-                            chestMeta.update()
-
-
-                            for (i in 0 until random.nextInt(2, 4)) {
-                                addItemToChest(chest, CustomItemData.getGoldenCarrot())
-                            }
-                            for (i in 0 until random.nextInt(4, 5)) {
-                                addItemToChest(chest, ItemStack(Material.GOLDEN_APPLE))
-                            }
-                            for (i in 0 until random.nextInt(2, 4)) {
-                                addItemToChest(chest, ItemStack(Material.COOKED_BEEF, random.nextInt(1, 3)))
-                            }
-
-                            addItemToChest(chest, CustomItemData.getCompass())
-
-                            val numList = mutableListOf<Int>()
-                            for (i in 0..8) {
-                                numList.add(i)
-                            }
+                        val numList = mutableListOf<Int>()
+                        for (i in 0..8) {
+                            numList.add(i)
+                        }
 
 
 
 
-                            for (i in 0 until 2) {
-                                val randomNumber = numList.random()
-                                numList.remove(randomNumber)
-                                when (randomNumber) {
-                                    0 -> {
-                                        addItemToChest(chest, ItemStack(Material.ANVIL))
-                                        addItemToChest(chest, ItemManager.createEnchantedBook(Enchantment.DAMAGE_ALL, 1))
-                                    }
-                                    1 -> {
-                                        addItemToChest(chest, ItemStack(Material.ANVIL))
-                                        addItemToChest(chest, ItemManager.createEnchantedBook(Enchantment.ARROW_DAMAGE, 2))
-                                    }
-                                    2 -> {
-                                        addItemToChest(chest, ItemStack(Material.ANVIL))
-                                        addItemToChest(chest, ItemManager.createEnchantedBook(Enchantment.PROTECTION_ENVIRONMENTAL, 2))
-                                    }
-                                    3 -> {
-                                        addItemToChest(chest, CustomItemData.getHolyShield())
-                                    }
-                                    4 -> {
-                                        addItemToChest(chest, ItemStack(Material.ANVIL))
-                                        addItemToChest(chest, ItemManager.createEnchantedBook(Enchantment.ARROW_KNOCKBACK, 1))
-                                    }
-                                    5 -> { addItemToChest(chest, ItemManager.createNamedItem(Material.NETHERITE_SHOVEL, 1, "${ChatColor.AQUA}${ChatColor.BOLD}Prototype V3", listOf("${ChatColor.GRAY}매우 강력한 스나이퍼 라이플입니다.", "${ChatColor.GRAY}거리가 멀수록 대미지가 증가합니다!"))) }
-                                    6 -> { addItemToChest(chest, CustomItemData.getExosist()) }
-                                    7 -> { addItemToChest(chest, CustomItemData.getExplosiveBow()) }
-                                    8 -> { addItemToChest(chest, CustomItemData.getPurify()) }
+                        for (i in 0 until 2) {
+                            val randomNumber = numList.random()
+                            numList.remove(randomNumber)
+                            when (randomNumber) {
+                                0 -> {
+                                    addItemToChest(chest, ItemStack(Material.ANVIL))
+                                    addItemToChest(chest, ItemManager.createEnchantedBook(Enchantment.DAMAGE_ALL, 1))
                                 }
-                            }
-                        }, 1)
-
-                        it.location.getNearbyPlayers(80.0).filter { pl -> pl.gameMode == GameMode.SURVIVAL || pl.gameMode == GameMode.ADVENTURE }.forEach { pl ->
-                            val loc = pl.eyeLocation.clone()
-                            pl.sendMessage("${ChatColor.GREEN}주변에 보급품이 떨어졌습니다! (파티클로 방향이 표시됩니다.)")
-                            pl.playSound(pl, Sound.ENTITY_ZOMBIE_ATTACK_WOODEN_DOOR, 1.0f, 0.5f)
-                            for (i in 0 until 10) {
-                                scheduler.scheduleSyncDelayedTask(plugin, {
-                                    drawLine(it.location, loc, 0.2, 128, 128, 128, pl)
-                                }, i*10L)
+                                1 -> {
+                                    addItemToChest(chest, ItemStack(Material.ANVIL))
+                                    addItemToChest(chest, ItemManager.createEnchantedBook(Enchantment.ARROW_DAMAGE, 2))
+                                }
+                                2 -> {
+                                    addItemToChest(chest, ItemStack(Material.ANVIL))
+                                    addItemToChest(chest, ItemManager.createEnchantedBook(Enchantment.PROTECTION_ENVIRONMENTAL, 2))
+                                }
+                                3 -> {
+                                    addItemToChest(chest, CustomItemData.getHolyShield())
+                                }
+                                4 -> {
+                                    addItemToChest(chest, ItemStack(Material.ANVIL))
+                                    addItemToChest(chest, ItemManager.createEnchantedBook(Enchantment.ARROW_KNOCKBACK, 1))
+                                }
+                                5 -> { addItemToChest(chest, CustomItemData.getPrototypeV3()) }
+                                6 -> { addItemToChest(chest, CustomItemData.getExosist()) }
+                                7 -> { addItemToChest(chest, CustomItemData.getExplosiveBow()) }
+                                8 -> { addItemToChest(chest, CustomItemData.getPurify()) }
                             }
                         }
-                        it.remove()
+                    }, 1)
+
+                    it.location.getNearbyPlayers(80.0).filter { pl -> pl.gameMode == GameMode.SURVIVAL || pl.gameMode == GameMode.ADVENTURE }.forEach { pl ->
+                        val loc = pl.eyeLocation.clone()
+                        pl.sendMessage("${ChatColor.GREEN}주변에 보급품이 떨어졌습니다! (파티클로 방향이 표시됩니다.)")
+                        pl.playSound(pl, Sound.ENTITY_ZOMBIE_ATTACK_WOODEN_DOOR, 1.0f, 0.5f)
+                        for (i in 0 until 10) {
+                            scheduler.scheduleSyncDelayedTask(plugin, {
+                                drawLine(it.location, loc, 0.2, 128, 128, 128, pl)
+                            }, i*10L)
+                        }
                     }
+                    it.remove()
                 }
             }
-        }, 0, 5)
+        }, 0, 10)
 
     }
     fun lockPlayer(player: Player) {

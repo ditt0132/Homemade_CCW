@@ -1,5 +1,6 @@
 package me.uwuaden.kotlinplugin.assets
 
+import me.uwuaden.kotlinplugin.assets.ItemManipulator.addCustomModelData
 import me.uwuaden.kotlinplugin.itemManager.ItemManager
 import org.bukkit.ChatColor
 import org.bukkit.Color
@@ -23,7 +24,7 @@ object CustomItemData {
             1,
             "${ChatColor.AQUA}${ChatColor.BOLD}Revelation",
             listOf("${ChatColor.GRAY}적을 공격시 5초의 쿨타임으로 적에게 관통 대미지를 넣습니다!", "${ChatColor.GRAY}킬이 높을수록 대미지가 감소하며, 킬이 3을 넘어가면 능력을 잃습니다.")
-        )
+        ).addCustomModelData(10002)
         val m = item.itemMeta
         m.isUnbreakable = true
         item.itemMeta = m
@@ -53,7 +54,7 @@ object CustomItemData {
     }
 
     fun getExplosiveBow(): ItemStack {
-        return ItemManager.createNamedItem(Material.BOW, 1, "${ChatColor.YELLOW}Explosive Bow", listOf("${ChatColor.GRAY}폭발하는 화살을 발사합니다!"))
+        return ItemManager.createNamedItem(Material.BOW, 1, "${ChatColor.YELLOW}Explosive Bow", listOf("${ChatColor.GRAY}폭발하는 화살을 발사합니다!")).addCustomModelData(1)
     }
 
     fun getFlareGun(): ItemStack {
@@ -67,7 +68,7 @@ object CustomItemData {
                 " ",
                 "${ChatColor.GRAY}보급품에 깔리지 않게 조심하세요!"
             )
-        )
+        ).addCustomModelData(10001)
     }
     fun getAntiGravityG(): ItemStack {
         return ItemManager.createNamedItem(
@@ -79,7 +80,7 @@ object CustomItemData {
     }
 
     fun getGravityG(): ItemStack {
-        return ItemManager.createNamedItem(Material.CRIMSON_BUTTON, 1, "${ChatColor.YELLOW}중력 수류탄", listOf("§71회용*", "§7우클릭으로 투척할 수 있습니다.", "${ChatColor.GRAY}폭발시 미니 블랙홀을 생성합니다.", "${ChatColor.GRAY}미니 블랙홀은 주변 플레이어를 천천히 당깁니다.", "§7블랙홀이 사라질때 약한 대미지를 줍니다.", "§2대미지: 2.0"))
+        return ItemManager.createNamedItem(Material.CRIMSON_BUTTON, 1, "${ChatColor.YELLOW}중력 수류탄", listOf("§71회용*", "§7우클릭으로 투척할 수 있습니다.", "${ChatColor.GRAY}폭발시 미니 블랙홀을 생성합니다.", "${ChatColor.GRAY}미니 블랙홀은 주변 플레이어를 천천히 당깁니다.", "§7블랙홀이 사라질때 약한 대미지를 줍니다.", "§2대미지: 2.0")).addCustomModelData(10008)
     }
 
     fun getAGShotGun(): ItemStack {
@@ -88,7 +89,7 @@ object CustomItemData {
             1,
             "${ChatColor.YELLOW}반중력 샷건",
             listOf("${ChatColor.GRAY}1회용*", "${ChatColor.GRAY}우클릭시 탄환을 발사하며, 강한 반동과 함께 적과 자신을 밀쳐냅니다.", "${ChatColor.GRAY}탄환에 맞은 적은 스턴이 적용됩니다.", "§2대미지: 0.25 x 12")
-        )
+        ).addCustomModelData(10011)
     }
     fun getSmokeG(): ItemStack {
         return ItemManager.createNamedItem(
@@ -96,7 +97,7 @@ object CustomItemData {
             1,
             "${ChatColor.YELLOW}연막탄",
             listOf("§71회용*", "${ChatColor.GRAY}우클릭으로 투척시 주변에 연막을 생성합니다.", "${ChatColor.GRAY}연막은 원형 모양으로, 적의 시야를 차단할 수 있습니다.")
-        )
+        ).addCustomModelData(10009)
     }
     fun getLiberation(): ItemStack {
         val item = ItemManager.createNamedItem(
@@ -128,7 +129,7 @@ object CustomItemData {
         return item
     }
     fun getStinger(): ItemStack {
-        return ItemManager.enchantItem(ItemManager.createNamedItem(Material.BOW, 1, "${ChatColor.AQUA}${ChatColor.BOLD}Stinger", listOf("${ChatColor.DARK_GRAY}Charge Capacity: 200", "${ChatColor.DARK_GRAY}Max Use: 1", "${ChatColor.DARK_GRAY}[⚙] Tech", "${ChatColor.GRAY}투사체 속도가 더 빠른 활입니다!", " ", "${ChatColor.GRAY}Gadget")), Enchantment.ARROW_DAMAGE, 1)
+        return ItemManager.enchantItem(ItemManager.createNamedItem(Material.BOW, 1, "${ChatColor.AQUA}${ChatColor.BOLD}Stinger", listOf("${ChatColor.DARK_GRAY}Charge Capacity: 200", "${ChatColor.DARK_GRAY}Max Use: 1", "${ChatColor.DARK_GRAY}[⚙] Tech", "${ChatColor.GRAY}투사체 속도가 더 빠른 활입니다!", " ", "${ChatColor.GRAY}Gadget")), Enchantment.ARROW_DAMAGE, 1).addCustomModelData(3)
     }
     fun getDivinityShield(): ItemStack {
         return ItemManager.createNamedItem(
@@ -139,7 +140,7 @@ object CustomItemData {
         )
     }
     fun getEnergyDrink(): ItemStack {
-        val item = ItemManager.createNamedItem(Material.POTION, 1, "§b§lPOWER INIZER", listOf("§7마실 수 있는 에너지 드링크입니다!", "§7마시면 30초간 신속, 대미지 증가, 성급함 등의 효과를 얻습니다!", "§8THE NEW ENERGY DRINK", "§8 ", "§8  *NO SUGAR", "§8  *NO ADDICTION", "§8  *NO BALANCE"))
+        val item = ItemManager.createNamedItem(Material.POTION, 1, "§b§lPOWER INIZER", listOf("§7마실 수 있는 에너지 드링크입니다!", "§7마시면 30초간 신속, 대미지 증가, 성급함 등의 효과를 얻습니다!", "§8THE NEW ENERGY DRINK", "§8 ", "§8  *NO SUGAR", "§8  *NO ADDICTION", "§8  *NO BALANCE")).addCustomModelData(10004)
         val meta = item.itemMeta as PotionMeta
         meta.addCustomEffect(PotionEffect(PotionEffectType.SPEED, 20*30, 0, false, true), true)
         meta.addCustomEffect(PotionEffect(PotionEffectType.FAST_DIGGING, 20*30, 0, false, true), true)
@@ -163,7 +164,7 @@ object CustomItemData {
         return ItemManager.createNamedItem(Material.GOLDEN_CARROT, 1, "${ChatColor.GOLD}Golden Carrot", listOf("${ChatColor.GRAY}작아서 휴대하기 편합니다!", " ", "${ChatColor.GRAY}우클릭하면 즉시 hp를 회복합니다."))
     }
     fun getRocketLauncher(): ItemStack {
-        val item = ItemManager.createNamedItem(Material.WOODEN_SHOVEL, 1, "§e§lRocket Launcher", listOf("§7우클릭시 높은 대미지의 로켓을 발사합니다.", "§7로켓은 건물을 파괴시킬 수 있습니다.", " ", "§2대미지: 6.0  §2쿨타임: 30초"))
+        val item = ItemManager.createNamedItem(Material.WOODEN_SHOVEL, 1, "§e§lRocket Launcher", listOf("§7우클릭시 높은 대미지의 로켓을 발사합니다.", "§7로켓은 건물을 파괴시킬 수 있습니다.", " ", "§2대미지: 6.0  §2쿨타임: 30초")).addCustomModelData(10003)
         val meta = item.itemMeta
         meta.isUnbreakable = true
         item.itemMeta = meta
@@ -181,8 +182,8 @@ object CustomItemData {
             Material.OAK_BUTTON,
             1,
             "${ChatColor.YELLOW}화염병",
-            listOf("§71회용*", "${ChatColor.GRAY}우클릭으로 투척 후 화염병이 깨지면, 주변에 지속적인 화염 대미지를 줍니다.")
-        )
+            listOf("§71회용*", "${ChatColor.GRAY}우클릭으로 투척 후 화염병이 깨지면, 주변에 지속적인 화염 대미지를 줍니다.", "§7불에 탈 때 회복불가 상태가 됩니다.")
+        ).addCustomModelData(10006)
     }
     fun getSwordOfHealing(): ItemStack {
         val item = ItemManager.createNamedItem(
@@ -217,7 +218,7 @@ object CustomItemData {
         return item
     }
     fun getFlashBang(): ItemStack {
-        return ItemManager.createNamedItem(Material.WARPED_BUTTON, 1, "${ChatColor.YELLOW}섬광탄", listOf("§71회용*", "§7우클릭으로 투척할 수 있습니다.", "${ChatColor.GRAY}터질 경우 시아 내에 섬광탄이 있으면, 시아가 차단됩니다."))
+        return ItemManager.createNamedItem(Material.WARPED_BUTTON, 1, "${ChatColor.YELLOW}섬광탄", listOf("§71회용*", "§7우클릭으로 투척할 수 있습니다.", "${ChatColor.GRAY}터질 경우 시아 내에 섬광탄이 있으면, 시아가 차단됩니다.")).addCustomModelData(10007)
     }
     fun getEarthGr(): ItemStack {
         return ItemManager.createNamedItem(
@@ -231,7 +232,7 @@ object CustomItemData {
                 " ",
                 "§2대미지: 1.0 x 3"
             )
-        )
+        ).addCustomModelData(10010)
     }
     fun enchantedShield(): ItemStack {
         return ItemManager.addItemData(
@@ -247,17 +248,23 @@ object CustomItemData {
                 Material.CROSSBOW,
                 1,
                 "${ChatColor.LIGHT_PURPLE}${ChatColor.BOLD}Exosist",
-                listOf("${ChatColor.GRAY}벽을 관통하는 히트스캔 방식의 화살을 빠른 속도로 발사합니다.", "${ChatColor.GRAY}15초마다 5초간 적에게 발광효과를 적용시키는 화살을 발사합니다!", " ", "${ChatColor.GREEN}대미지: 2.0")
+                listOf("${ChatColor.GRAY}벽을 관통하는 히트스캔 방식의 화살을 빠른 속도로 발사합니다.", "${ChatColor.GRAY}15초마다 5초간 적에게 발광효과를 적용시키는 화살을 발사합니다!", "${ChatColor.GRAY}벽을 관통 후 최대 5블럭까지 날아가며, 대미지가 절반으로 감소됩니다.", "${ChatColor.GREEN}대미지: 1.6")
             ), Enchantment.QUICK_CHARGE, 3
         )
     }
     fun getPurify(): ItemStack {
-        return ItemManager.enchantItem(ItemManager.createNamedItem(Material.BOW, 1, "${ChatColor.YELLOW}${ChatColor.BOLD}Purify", listOf("${ChatColor.GRAY}킬이 0이고 공중에 있을 때 능력이 발동됩니다.", "${ChatColor.GRAY}체력의 일부를 소비해서 폭발하는 히트스캔 화살을 발사합니다.", "${ChatColor.GRAY}풀차징일때 넉백과 기절을 부여합니다.", "${ChatColor.GRAY}화살 발사에는 딜레이가 있으며, 자신도 맞을 수 있습니다.")), Enchantment.ARROW_DAMAGE, 1)
+        return ItemManager.enchantItem(ItemManager.createNamedItem(Material.BOW, 1, "${ChatColor.YELLOW}${ChatColor.BOLD}Purify", listOf("${ChatColor.GRAY}킬이 0이고 공중에 있을 때 능력이 발동됩니다.", "${ChatColor.GRAY}폭발하는 히트스캔 화살을 발사합니다.", "${ChatColor.GRAY}풀차징일때 넉백과 기절을 부여합니다.", "§2폭발 대미지 (최대): 8  충격파 대미지 (최대): 4")), Enchantment.ARROW_DAMAGE, 1).addCustomModelData(2)
     }
     fun getHolyShield(): ItemStack {
-        return ItemManager.createNamedItem(Material.NETHER_STAR, 1, "§bHoly Shield", listOf("§7인벤토리에 소지시,", "§7받는 피해량이 5를 넘으면 대미지를 무효화 시키고, 1초간 무적효과를 부여합니다", "§7또한 주변에 약한 대미지를 주며, 적을 밀쳐냅니다.", "§2쿨타임: 60초"))
+        return ItemManager.createNamedItem(Material.NETHER_STAR, 1, "§bHoly Shield", listOf("§7인벤토리에 소지시,", "§7받는 피해량이 5를 넘으면 대미지를 무효화 시키고, 1초간 무적효과를 부여합니다", "§7또한 주변에 약한 대미지를 주며, 적을 밀쳐냅니다.", "§2쿨타임: 60초")).addCustomModelData(10005)
     }
     fun getCompass(): ItemStack {
         return ItemManager.createNamedItem(Material.COMPASS, 1, "${ChatColor.RED}Player Tracker", listOf("${ChatColor.GRAY}160블럭 내에 있는 가장 가까운 플레이어를 추적합니다!"))
+    }
+    fun getDevineSword(): ItemStack {
+        return ItemManager.createNamedItem(Material.IRON_SWORD, 1, "${ChatColor.AQUA}${ChatColor.BOLD}Divine Sword", listOf("${ChatColor.GRAY}들고 있는 동안 속도가 20% 증가합니다.", " ", "${ChatColor.GRAY}Gadget"))
+    }
+    fun getPrototypeV3(): ItemStack {
+        return ItemManager.createNamedItem(Material.NETHERITE_SHOVEL, 1, "${ChatColor.AQUA}${ChatColor.BOLD}Prototype V3", listOf("${ChatColor.GRAY}매우 강력한 스나이퍼 라이플입니다.", "${ChatColor.GRAY}거리가 멀수록 대미지가 증가합니다!"))
     }
 }

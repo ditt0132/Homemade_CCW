@@ -13,13 +13,6 @@ import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
-/**
- *
- * 점수, MMR은 +- 최대 50점까지 오름
- * 점수는 순위 기반 (킬도 영향 받긴 받음)
- * MMR은 개인 성적 (순위보단 킬의 영향을 많이 받음)
- *
- */
 
 private fun rgb(R: Int, G: Int, B: Int): net.md_5.bungee.api.ChatColor {
     return net.md_5.bungee.api.ChatColor.of(Color(R, G, B))
@@ -57,7 +50,7 @@ object RankSystem {
     }
 
     fun rateToScore(rate: Int): Int {
-        val masterRate = 2400
+        val masterRate = 3200
         if (rate < masterRate) { //마스터 아래
             return rate%100
         } else {
@@ -96,9 +89,18 @@ object RankSystem {
             21 -> "${rgb(73, 159, 198)}Diamond II"
             22 -> "${rgb(73, 159, 198)}Diamond III"
             23 -> "${rgb(73, 159, 198)}Diamond IV"
-            in 24..Int.MAX_VALUE -> "${rgb(222, 0, 0)}Master"
+            24 -> "${rgb(215, 153, 255)}Master I"
+            25 -> "${rgb(215, 153, 255)}Master II"
+            26 -> "${rgb(215, 153, 255)}Master III"
+            27 -> "${rgb(215, 153, 255)}Master IV"
+            28 -> "${rgb(222, 0, 0)}Grand Master I"
+            29 -> "${rgb(222, 0, 0)}Grand Master II"
+            30 -> "${rgb(222, 0, 0)}Grand Master II"
+            31 -> "${rgb(222, 0, 0)}Grand Master IV"
+            32 -> "${rgb(197, 250, 250)}Eternel"
             else -> "Error"
         }
+
     }
 
     fun initData(playerUUID: UUID): PlayerStats {
@@ -108,6 +110,13 @@ object RankSystem {
         return playerStat[playerUUID]!!
     }
 
+    /**
+     *
+     * 점수, MMR은 +- 최대 50점까지 오름
+     * 점수는 순위 기반 (킬도 영향 받긴 받음)
+     * MMR은 개인 성적 (순위보단 킬의 영향을 많이 받음)
+     *
+     */
     fun updateMMR(player: Player, kill: Int, playerTotal: Int, Ranking: Int, AvgMMR: Int) {
         val classData = initData(player.uniqueId)
 

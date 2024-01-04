@@ -6,6 +6,7 @@ import me.uwuaden.kotlinplugin.Main.Companion.isOpening
 import me.uwuaden.kotlinplugin.Main.Companion.plugin
 import me.uwuaden.kotlinplugin.Main.Companion.scheduler
 import me.uwuaden.kotlinplugin.assets.CustomItemData
+import me.uwuaden.kotlinplugin.assets.ItemManipulator.setCount
 import me.uwuaden.kotlinplugin.gameSystem.WorldManager
 import me.uwuaden.kotlinplugin.skillSystem.SkillManager
 import net.kyori.adventure.text.Component
@@ -157,10 +158,10 @@ object ItemManager {
                 plugin.logger.log(Level.WARNING, e.message)
             }
             if (hasAnyFlareGun(player)) {
-                if (probabilityTrue(0.5)) addDroppedItemSlot(droppedItem, createNamedItem(Material.REDSTONE_TORCH, 1, "§cFlare Gun", listOf("§7하늘에 발사시", "§7보급품이 떨어집니다!", " ", "§7보급품에 깔리지 않게 조심하세요!")))
+                if (probabilityTrue(0.5)) addDroppedItemSlot(droppedItem, CustomItemData.getFlareGun())
             } else {
                 if (probabilityTrue(2.0)) {
-                    addDroppedItemSlot(droppedItem, createNamedItem(Material.REDSTONE_TORCH, 1, "§cFlare Gun", listOf("§7하늘에 발사시", "§7보급품이 떨어집니다!", " ", "§7보급품에 깔리지 않게 조심하세요!")))
+                    addDroppedItemSlot(droppedItem, CustomItemData.getFlareGun())
                     worldData.playerItemList[player.uniqueId]!!.add("flare_gun")
                 }
             }
@@ -326,7 +327,7 @@ object ItemManager {
                     }
                 }
             }
-        }, 0, 2)
+        }, 0, 10)
     }
 
     fun createDisplay(item: DroppedItem) {
@@ -349,14 +350,14 @@ object ItemManager {
         val m = 1.0
 
         if (item.itemGenerated) {
-            val types = mutableSetOf<Material>()
+            val itemSet = mutableSetOf<ItemStack>()
             item.items.forEach { (k, v) ->
-                types.add(v.type)
+                itemSet.add(v.setCount(1))
             }
-            types.forEach { k ->
+            itemSet.forEach { droppingItem ->
                 val rf = (random.nextFloat() * 360.0 - 180.0).toFloat()
                 val itemDisplay = loc.world.spawnEntity(loc.clone().add((random.nextDouble() -0.5)*m, random.nextDouble() * 0.01, (random.nextDouble() -0.5)*m), EntityType.ITEM_DISPLAY) as ItemDisplay
-                itemDisplay.itemStack = ItemStack(k)
+                itemDisplay.itemStack = droppingItem
                 itemDisplay.setRotation(rf, 90.0F)
 
                 itemDisplay.addScoreboardTag("$uuid")
@@ -364,6 +365,10 @@ object ItemManager {
                 val display = itemDisplay.transformation
                 display.scale.set(0.5, 0.5, 0.5)
                 itemDisplay.transformation = display
+                val displayLoc = itemDisplay.location.clone()
+                if (droppingItem.type == Material.SHIELD) {
+                    itemDisplay.teleport(displayLoc.add(0.0, 0.25, 0.0))
+                }
             }
         } else {
             for (i in 0..random.nextInt(2, 5)) {

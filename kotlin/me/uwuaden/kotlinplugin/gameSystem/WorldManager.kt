@@ -26,6 +26,7 @@ object  WorldManager {
     }
 
     fun deleteWorldData(world: World) {
+        plugin.server.unloadWorld(world, false)
         worldDatas.keys.removeIf { world == it }
         blockTypeCach.keys.removeIf { world == it.world }
     }
@@ -147,7 +148,9 @@ object  WorldManager {
                 plugin.server.worlds.remove(world)
             }, 0)
             scheduler.scheduleSyncDelayedTask(plugin, {
-                world.worldFolder.deleteRecursively()
+                scheduler.runTaskAsynchronously(plugin, Runnable {
+                    world.worldFolder.deleteRecursively()
+                })
             }, 20 * 5)
         })
     }

@@ -16,7 +16,7 @@ object MapManager {
         val mapItem = ItemStack(Material.FILLED_MAP)
         val meta = mapItem.itemMeta as MapMeta
 
-        map.addRenderer(MapRenderer())
+        //map.addRenderer(MapRenderer())
         map.scale = MapView.Scale.FARTHEST
 
         meta.mapView = map

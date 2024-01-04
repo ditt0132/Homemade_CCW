@@ -39,28 +39,14 @@ private fun addLoreLine(item: ItemStack, loreLine: String) {
 object SkillManager {
     fun sch() {
         scheduler.scheduleSyncRepeatingTask(plugin, {
-            plugin.server.onlinePlayers.forEach { player ->
-                if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.AQUA}${ChatColor.BOLD}Divine Sword") {
-                    player.addPotionEffect(PotionEffect(PotionEffectType.SPEED, 4, 0, false, false))
-                    player.addPotionEffect(PotionEffect(PotionEffectType.WEAKNESS, 4, 0, false, false))
-                }
-                if (player.inventory.itemInMainHand.itemMeta?.displayName == CustomItemData.getSwordOfHealing().getName()) {
-                    player.addPotionEffect(PotionEffect(PotionEffectType.REGENERATION, 4, 0, false, false))
-                }
+
+            plugin.server.onlinePlayers.filter { (it.inventory.itemInMainHand.itemMeta?.displayName ?: "") == CustomItemData.getDevineSword().getName() }.forEach { player ->
+                player.addPotionEffect(PotionEffect(PotionEffectType.SPEED, 15, 0, false, false))
             }
-        }, 0, 2)
-        scheduler.scheduleSyncRepeatingTask(plugin, {
-            plugin.server.onlinePlayers.forEach { player ->
-                val item = player.inventory.itemInMainHand
-                if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.AQUA}${ChatColor.BOLD}Prototype E-XI") {
-                    val before = getChargeValue(item)
-                    if (before - 2 > 0) {
-                        changeChargeValue(item, before - 2)
-                    } else {
-                        changeChargeValue(item, 0)
-                    }
-                }
+            plugin.server.onlinePlayers.filter { (it.inventory.itemInMainHand.itemMeta?.displayName ?: "") == CustomItemData.getSwordOfHealing().getName() }.forEach { player ->
+                player.addPotionEffect(PotionEffect(PotionEffectType.REGENERATION, 15, 0, false, false))
             }
+
         }, 0, 10)
     }
     private fun ItemStack.addEliteItemLore(cap: Int, maxUse: Int, type: String): ItemStack {
@@ -103,8 +89,8 @@ object SkillManager {
         skillItem[2] = CustomItemData.getDivinityShield().addEliteItemLore(250, 2, "divinity")
         skillItem[3] = ItemManager.createNamedItem(Material.GOLDEN_APPLE, 1, "${ChatColor.GOLD}황금사과", listOf("${ChatColor.DARK_GRAY}Charge Capacity: 100", "${ChatColor.DARK_GRAY}Max Use: 10", "${ChatColor.DARK_GRAY}[🍀] Nature", "${ChatColor.GRAY}평범한 황금사과입니다.", " ", "${ChatColor.GRAY}Gadget"))
         skillItem[4] = ItemManager.createNamedItem(Material.RED_DYE, 1, "${ChatColor.RED}${ChatColor.BOLD}ILLUSIONIZE", listOf("${ChatColor.DARK_GRAY}Charge Capacity: 500", "${ChatColor.DARK_GRAY}Max Use: 1", "${ChatColor.DARK_GRAY}[🧨] Chaos", "${ChatColor.GRAY}바라본 위치에 넓은 범위 안에 있는 플레이어에게 대미지를 주고, 그 플레이어와 위치를 바꿉니다.", "${ChatColor.GRAY}쿨타임: 30초", " ", "${ChatColor.GRAY}Gadget"))
-        skillItem[5] = ItemManager.createNamedItem(Material.IRON_SWORD, 1, "${ChatColor.AQUA}${ChatColor.BOLD}Divine Sword", listOf("${ChatColor.DARK_GRAY}Charge Capacity: 300", "${ChatColor.DARK_GRAY}Max Use: 1", "${ChatColor.DARK_GRAY}[🛡] Divinity", "${ChatColor.GRAY}들고 있는 동안 신속1을 얻는 대신 나약함2를 받습니다.", " ", "${ChatColor.GRAY}Gadget"))
-        skillItem[6] = ItemManager.createNamedItem(Material.REDSTONE_TORCH, 1, "${ChatColor.RED}Flare Gun", listOf("${ChatColor.DARK_GRAY}Charge Capacity: 500", "${ChatColor.DARK_GRAY}Max Use: 1", "${ChatColor.DARK_GRAY}[⚙] Tech", "${ChatColor.GRAY}하늘에 발사시", "${ChatColor.GRAY}보급품이 떨어집니다!", " ", "${ChatColor.GRAY}보급품에 깔리지 않게 조심하세요!"))
+        skillItem[5] = CustomItemData.getDevineSword().addEliteItemLore(600, 1, "divinity")
+        skillItem[6] = CustomItemData.getFlareGun().addEliteItemLore(700, 1, "tech")
         skillItem[7] = CustomItemData.getTeleportLeggings()
         skillItem[8] = CustomItemData.getStinger()
         skillItem[9] = CustomItemData.getBookOfMastery().addEliteItemLore(1000, 1, "divinity")
@@ -148,7 +134,7 @@ object SkillManager {
     fun inv(holder: InventoryHolder, page: Int, player: Player?): Inventory {
         val createdSkillList = skillItem.keys
         val invSlotSize = 54
-        val inv = Bukkit.createInventory(holder, invSlotSize, "skills")
+        val inv = Bukkit.createInventory(holder, invSlotSize, "Elite Item")
 
 
 
@@ -212,8 +198,10 @@ object SkillManager {
                 }
             }
         }
-        val item = ItemManager.createNamedItem(Material.REDSTONE_TORCH, 1, "${ChatColor.GREEN}Money: ${econ.getBalance(player)}", null)
-        inv.setItem(invSlotSize-1, item)
+        val itemM = ItemManager.createNamedItem(Material.LIME_DYE, 1, "${ChatColor.GREEN}Money: ${econ.getBalance(player)}", null)
+        val itemH = ItemManager.createNamedItem(Material.REDSTONE_TORCH, 1, "${ChatColor.GREEN}도움말", listOf("§7아이템을 파밍하거나 플레이어 킬을 하면, Charge Capacity라는 포인트를 획득합니다. (이하 CC)", "§7지정된 CC를 전부 채우면, 선택한 아이템을 얻을 수 있습니다.", "§7플레이어 킬을 한 이후로는 아이템을 파밍했을 때 CC를 얻을 수 없습니다."))
+        inv.setItem(8, itemM)
+        inv.setItem(invSlotSize-1, itemH)
 
         if (createdSkillList.size - invSlotSize*(page+1) >= 0) {
             inv.setItem(invSlotSize-4, ItemManager.createNamedItem(Material.ARROW, 1, "${ChatColor.GREEN}Next Page", null))

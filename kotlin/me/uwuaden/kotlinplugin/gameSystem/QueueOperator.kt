@@ -36,27 +36,27 @@ private fun playerHolder(world: World) {
             WorldManager.broadcastWorld(world, "${ChatColor.GREEN}게임이 ${startSec}초 뒤에 시작합니다")
         }
     }
-    if (world.players.size >= 10 && !queueStartIn.containsKey(world.name)) {
+    if (world.players.size >= 20 && !queueStartIn.containsKey(world.name)) {
+        val startSec = 300
+
+        queueStartIn[world.name] = System.currentTimeMillis() + startSec*1000
+        WorldManager.broadcastWorld(world, "${ChatColor.GREEN}게임이 ${startSec}초 뒤에 시작합니다")
+    }
+
+    if (world.players.size >= 40 && ((queueStartIn[world.name] ?: 0)- System.currentTimeMillis())/1000 >= 180) {
+        val startSec = 180
+
+        queueStartIn[world.name] = System.currentTimeMillis() + startSec*1000
+        WorldManager.broadcastWorld(world, "${ChatColor.GREEN}게임이 ${startSec}초 뒤에 시작합니다")
+    }
+    if (world.players.size >= 60 && ((queueStartIn[world.name] ?: 0)- System.currentTimeMillis())/1000 >= 120) {
         val startSec = 120
-
-        queueStartIn[world.name] = System.currentTimeMillis() + startSec*1000
-        WorldManager.broadcastWorld(world, "${ChatColor.GREEN}게임이 ${startSec}초 뒤에 시작합니다")
-    }
-
-    if (world.players.size >= 30 && ((queueStartIn[world.name] ?: 0)- System.currentTimeMillis())/1000 >= 60) {
-        val startSec = 60
-
-        queueStartIn[world.name] = System.currentTimeMillis() + startSec*1000
-        WorldManager.broadcastWorld(world, "${ChatColor.GREEN}게임이 ${startSec}초 뒤에 시작합니다")
-    }
-    if (world.players.size >= 50 && ((queueStartIn[world.name] ?: 0)- System.currentTimeMillis())/1000 >= 30) {
-        val startSec = 30
 
         queueStartIn[world.name] = System.currentTimeMillis() + startSec*1000
         WorldManager.broadcastWorld(world, "${ChatColor.GREEN}게임이 ${startSec}초 뒤에 시작합니다!")
     }
-    if (world.players.size >= 70 && ((queueStartIn[world.name] ?: 0)- System.currentTimeMillis())/1000 >= 10) {
-        val startSec = 10
+    if (world.players.size >= 80 && ((queueStartIn[world.name] ?: 0)- System.currentTimeMillis())/1000 >= 60) {
+        val startSec = 60
 
         queueStartIn[world.name] = System.currentTimeMillis() + startSec*1000
         WorldManager.broadcastWorld(world, "${ChatColor.GREEN}게임이 ${startSec}초 뒤에 시작합니다!")
@@ -98,7 +98,7 @@ object QueueOperator {
             }
         }, 0, 20)
         scheduler.scheduleSyncRepeatingTask(plugin, {
-            if (queueList().size < 2 && WorldManager.getInGameWorldCount() == 0) {
+            if (queueList().size < 1 && WorldManager.getInGameWorldCount() == 0) { //큐 개수 수정
                 createQueue("Solo", map) //Sinchon
             }
         }, 0, 20*60)

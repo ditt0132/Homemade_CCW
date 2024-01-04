@@ -98,16 +98,14 @@ object ZombieManager {
     fun zombieSkillSch() {
         scheduler.scheduleSyncRepeatingTask(plugin, {
             plugin.server.worlds.forEach { world ->
-                world.livingEntities.forEach { entity ->
-                    if (entity.scoreboardTags.contains("Spawned-Zombie")) {
-                        entity as Zombie
-                        if (null == entity.target) {
-                            val players = entity.location.world.players.filter { it.location.distance(entity.location) <= 320.0 }.filter { p -> p.gameMode != GameMode.SPECTATOR }.sortedBy { p -> entity.location.distance(p.location) }
-                            if (players.isNotEmpty()) entity.target = players[0]
-                        }
-                        if(WorldManager.isOutsideBorder(entity.location)) {
-                            entity.damage(0.5)
-                        }
+                world.livingEntities.filter { it.scoreboardTags.contains("Spawned-Zombie") }.forEach { entity ->
+                    entity as Zombie
+                    if (null == entity.target) {
+                        val players = entity.location.world.players.filter { it.location.distance(entity.location) <= 320.0 }.filter { p -> p.gameMode != GameMode.SPECTATOR }.sortedBy { p -> entity.location.distance(p.location) }
+                        if (players.isNotEmpty()) entity.target = players[0]
+                    }
+                    if(WorldManager.isOutsideBorder(entity.location)) {
+                        entity.damage(0.5)
                     }
 
                     if (entity.customName == "§0Shadow" && entity.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
@@ -180,10 +178,9 @@ object ZombieManager {
                             }
                         }
                     }
-
                 }
             }
-        }, 0, 5)
+        }, 0, 10)
     }
     fun spawnZombie(name: String, loc: Location): Entity {
         val world = loc.world

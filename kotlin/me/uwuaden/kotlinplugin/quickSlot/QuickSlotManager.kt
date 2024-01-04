@@ -42,7 +42,7 @@ object QuickSlotManager {
             val itemUsing = item.clone()
             itemUsing.lore?.clear()
             if (itemUsing.type != Material.BARRIER) addLoreLine(itemUsing, "${ChatColor.GREEN}Click to Quick Equip")
-            addLoreLine(itemUsing, "${ChatColor.YELLOW}휠클릭으로 현재 들고 있는 아이템으로 퀵슬롯을 지정할 수 있습니다.")
+            addLoreLine(itemUsing, "${ChatColor.YELLOW}쉬프트 + 좌클릭으로 현재 들고 있는 아이템으로 퀵슬롯을 지정할 수 있습니다.")
             if (slot <= 8) {
                 val invSlot = slot + 9
 
@@ -68,7 +68,7 @@ object QuickSlotManager {
             player.inventory.close()
             return
         }
-        val item = ItemStack(player.inventory.itemInMainHand.type)
+        val item = ItemStack(player.inventory.itemInMainHand.type).setName(player.inventory.itemInMainHand.itemMeta.displayName)
 
         if (item.itemMeta.displayName().toString().contains("/-&-/")) {
             player.sendMessage("${ChatColor.RED}이름에 /-&-/기호가 들어가면 안됩니다.")

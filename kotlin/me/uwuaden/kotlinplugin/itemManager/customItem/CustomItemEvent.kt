@@ -719,13 +719,15 @@ class CustomItemEvent: Listener {
     }
 
     @EventHandler
-    fun onProjectileLaunch(event: ProjectileLaunchEvent) {
-        val projectile = event.entity
+    fun onProjectileLaunch(e: ProjectileLaunchEvent) {
+        val projectile = e.entity
         if (projectile is Arrow) {
             val shooter = projectile.shooter as? Player ?: return
             if (shooter.inventory.itemInMainHand.itemMeta?.displayName != "${ChatColor.YELLOW}${ChatColor.BOLD}Vallista") {
                 return
             }
+            if (shooter.inventory.itemInOffHand.type == Material.BOW) return
+
             if (shooter.getCooldown(Material.CROSSBOW) > 0) return
             shooter.setCooldown(Material.CROSSBOW, 20 * 1)
 
@@ -1055,7 +1057,7 @@ class CustomItemEvent: Listener {
         val player = e.player
         if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.AQUA}${ChatColor.BOLD}Prototype V3") {
             if (player.getCooldown(Material.NETHERITE_SHOVEL) > 0) return
-            player.setCooldown(Material.NETHERITE_SHOVEL, 20 * 4)
+            player.setCooldown(Material.NETHERITE_SHOVEL, 20 * 8)
 
             val loc = player.eyeLocation
             val entities = ArrayList<LivingEntity>()
@@ -1540,7 +1542,7 @@ class CustomItemEvent: Listener {
                             it.damage(dmg)
                         } else {
                             if (e.force == 1.0F) {
-                                it.damage(4.0)
+                                it.damage(4.0*e.force)
                                 val direction = it.location.toVector().subtract(loc.toVector()).normalize()
                                 it.velocity = direction.multiply(0.5)
                             }
@@ -1619,7 +1621,9 @@ class CustomItemEvent: Listener {
             exLoc.add(loc.direction.multiply(2.0))
             exLoc.getNearbyLivingEntities(2.5).forEach {
                 val direction = it.location.toVector().subtract(exLoc.toVector()).normalize()
-                it.velocity = direction.multiply(1.2)
+                val vel = it.velocity.clone()
+                vel.add(direction.multiply(1.2))
+                it.velocity = vel
             }
 
             for (n in 0 until 12) {
@@ -1666,8 +1670,10 @@ class CustomItemEvent: Listener {
             dmgEntities.forEach { entity ->
                 entity.damage(entities.filter { it == entity }.size * 0.25)
                 val direction = entity.location.toVector().subtract(exLoc.clone().toVector()).normalize()
+                val vel = entity.velocity.clone()
+                vel.add(direction.multiply(1.2))
+                entity.velocity = vel.setY(0.4)
 
-                entity.velocity = direction.multiply(2.0).setY(0.4)
                 if (entity is Player) {
                     lastDamager[entity] = player
                     lastWeapon[entity] = LastWeaponData(
@@ -1812,13 +1818,20 @@ class CustomItemEvent: Listener {
             if (shooter.inventory.itemInMainHand.itemMeta?.displayName != CustomItemData.getExosist().getName()) {
                 return
             }
+            if (shooter.inventory.itemInOffHand.type == Material.BOW) return
 
             val entities = LinkedHashSet<LivingEntity>()
 
             val isGlowing = !shooter.hasCooldown(Material.PINK_DYE)
             if (isGlowing) shooter.setCooldown(Material.PINK_DYE, 20*15)
 
-            val loc = shooter.eyeLocation
+            val loc = shooter.eyeLocation.clone()
+            val random = java.util.Random()
+            if (!isGlowing) {
+                loc.yaw += random.nextFloat(-4.0F, 4.0F)
+                loc.pitch += random.nextFloat(-2.0F, 2.0F)
+            }
+
             val dir = loc.direction
             EffectManager.playSurroundSound(shooter.location, Sound.ITEM_CROSSBOW_SHOOT, 1.0F, 0.5F)
             EffectManager.playSurroundSound(shooter.location, Sound.ITEM_CROSSBOW_SHOOT, 1.0F, 1.0F)
@@ -1826,11 +1839,13 @@ class CustomItemEvent: Listener {
 
             if (isGlowing) EffectManager.playSurroundSound(shooter.location, Sound.ITEM_TRIDENT_RETURN, 1.0F, 2.0F)
             var stopTiming = -1
+            var isWallBang = false
             shooting@ for (i in 0 until 100 * 10) {
                 val pos = loc.clone().add(dir.clone().multiply(i / 10.0))
                 if (!pos.isChunkLoaded) break@shooting
 
                 if (pos.block.isSolid && stopTiming == -1) {
+                    isWallBang = true
                     stopTiming = i + 10*10
                 }
                 if (i >= stopTiming && stopTiming != -1) {
@@ -1876,7 +1891,11 @@ class CustomItemEvent: Listener {
                         entity.setCooldown(Material.SHIELD, 20 * 8)
                     }
                 }
-                entity.damage(2.0)
+                if (isWallBang) {
+                    entity.damage(0.8)
+                } else {
+                    entity.damage(1.6)
+                }
             }
             if (entities.isNotEmpty()) shooter.playSound(shooter, Sound.ENTITY_ARROW_HIT_PLAYER, 1.0F, 2.0F)
 

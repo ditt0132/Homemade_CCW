@@ -5,7 +5,7 @@ import me.uwuaden.kotlinplugin.Main.Companion.plugin
 import me.uwuaden.kotlinplugin.Main.Companion.scheduler
 import me.uwuaden.kotlinplugin.quickSlot.PlayerQuickSlotData
 import me.uwuaden.kotlinplugin.quickSlot.QuickSlotEvent.Companion.playerQuickSlot
-import me.uwuaden.kotlinplugin.rankSystem.RankSystem
+import me.uwuaden.kotlinplugin.rankSystem.PlayerStats
 import me.uwuaden.kotlinplugin.skillSystem.PlayerSkillHolder
 import me.uwuaden.kotlinplugin.skillSystem.SkillEvent.Companion.playerEItem
 import me.uwuaden.kotlinplugin.skillSystem.SkillEvent.Companion.playerEItemList
@@ -36,7 +36,7 @@ object FileManager {
             }
         })
     }
-    fun savePlayerEItemToFile() {
+    fun saveVar() {
         var file = File(plugin.dataFolder, "PlayerEItem.yml")
         var config = YamlConfiguration()
 
@@ -96,7 +96,7 @@ object FileManager {
             e.printStackTrace()
         }
     }
-    fun loadPlayerEItemFromFile() {
+    fun loadVar() {
         var file = File(plugin.dataFolder, "PlayerEItem.yml")
         var config = YamlConfiguration()
 
@@ -162,76 +162,95 @@ object FileManager {
             if (item != null) data3[uuid]?.slotData?.set(itemIdx, item)
         }
         playerQuickSlot = data3
-    }
-    fun saveVar() {
-        var f = File(plugin.dataFolder, "PlayerMMR.yml")
-        var t = ""
-        Main.playerStat.forEach {
-            t += "${it.key}: ${it.value.playerMMR}, ${it.value.playerRank}, ${it.value.rank}, ${it.value.gamePlayed}, ${it.value.unRanked}\n"
-        }
-        f.writeText(t)
 
-//        f = File(plugin.dataFolder, "PlayerQuickSlot.yml")
-//        t = ""
-//        playerQuickSlot.forEach { (uuid, data) ->
-//            t += "${uuid}/-:-/ "
-//            data.slotData.forEach { (idx, item) ->
-//                val displayName = item.itemMeta.displayName //Todo: 모르겠음
-//
-//                t += "${idx}/-&-/${displayName}/-&-/${item.type}/-,-/ "
-//            }
-//            t = removeLastChars(t, 6)
-//            t += "\n"
+        val data4 = HashMap<UUID, PlayerStats>()
+        file = File(plugin.dataFolder, "PlayerRank.yml")
+        config = YamlConfiguration()
+
+        try {
+            config.load(file)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        val loopList = mutableSetOf<UUID>()
+        config.getKeys(false).forEach {
+            loopList.add(UUID.fromString(it.split("_")[0]))
+        }
+        loopList.forEach {
+            data4[it] = PlayerStats(config.get(it.toString()+"_playerMMR") as Int, config.get(it.toString()+"_PlayerRank") as Int, config.get(it.toString()+"_Rank") as Boolean, config.get(it.toString()+"_GamePlayed") as Int, config.get(it.toString()+"_IsUnranked") as Boolean)
+        }
+        playerStat = data4
+    }
+//    fun saveVar() {
+//        var f = File(plugin.dataFolder, "PlayerMMR.yml")
+//        var t = ""
+//        Main.playerStat.forEach {
+//            t += "${it.key}: ${it.value.playerMMR}, ${it.value.playerRank}, ${it.value.rank}, ${it.value.gamePlayed}, ${it.value.unRanked}\n"
 //        }
 //        f.writeText(t)
-    }
+//
+////        f = File(plugin.dataFolder, "PlayerQuickSlot.yml")
+////        t = ""
+////        playerQuickSlot.forEach { (uuid, data) ->
+////            t += "${uuid}/-:-/ "
+////            data.slotData.forEach { (idx, item) ->
+////                val displayName = item.itemMeta.displayName //Todo: 모르겠음
+////
+////                t += "${idx}/-&-/${displayName}/-&-/${item.type}/-,-/ "
+////            }
+////            t = removeLastChars(t, 6)
+////            t += "\n"
+////        }
+////        f.writeText(t)
+//    }
 
-    fun loadVar() {
-        var f = File(plugin.dataFolder.path)
-        if (!f.exists()) {
-            f.mkdirs()
-        }
-        f = File(plugin.dataFolder, "PlayerMMR.yml")
-        if (f.exists()) {
-            f.readText(Charsets.UTF_8).split("\n").forEach {
-                if (it.trim() != "") {
-                    try {
-                        val key = (UUID.fromString(it.split(": ")[0].trim()))
-                        if (key != null) {
-
-                            val classData = RankSystem.initData(key)
-                            val text = it.split(": ")[1]
-                            val t = StringTokenizer(text, ",")
-                            if (t.hasMoreTokens()) {
-                                val mmr = t.nextToken().trim().toInt()
-                                classData.playerMMR = mmr
-                            }
-                            if (t.hasMoreTokens()) {
-                                val rank = t.nextToken().trim().toInt()
-                                classData.playerRank = rank
-                            }
-                            if (t.hasMoreTokens()) {
-                                val bool = t.nextToken().trim().toBoolean()
-                                classData.rank = bool
-
-                            }
-                            if (t.hasMoreTokens()) {
-                                val gamePlayed = t.nextToken().trim().toInt()
-                                classData.gamePlayed = gamePlayed
-                            }
-                            if (t.hasMoreTokens()) {
-                                val unranked = t.nextToken().trim().toBoolean()
-                                classData.unRanked = unranked
-                            }
-                        }
-                    } catch (e: Exception) {
-                        println(e)
-                    }
-                }
-            }
-        } else {
-            f.createNewFile()
-        }
+//    fun loadVar() {
+//        var f = File(plugin.dataFolder.path)
+//        if (!f.exists()) {
+//            f.mkdirs()
+//        }
+//        f = File(plugin.dataFolder, "PlayerMMR.yml")
+//        if (f.exists()) {
+//            f.readText(Charsets.UTF_8).split("\n").forEach {
+//                if (it.trim() != "") {
+//                    try {
+//                        val key = (UUID.fromString(it.split(": ")[0].trim()))
+//                        if (key != null) {
+//
+//                            val classData = RankSystem.initData(key)
+//                            val text = it.split(": ")[1]
+//                            val t = StringTokenizer(text, ",")
+//                            if (t.hasMoreTokens()) {
+//                                val mmr = t.nextToken().trim().toInt()
+//                                classData.playerMMR = mmr
+//                            }
+//                            if (t.hasMoreTokens()) {
+//                                val rank = t.nextToken().trim().toInt()
+//                                classData.playerRank = rank
+//                            }
+//                            if (t.hasMoreTokens()) {
+//                                val bool = t.nextToken().trim().toBoolean()
+//                                classData.rank = bool
+//
+//                            }
+//                            if (t.hasMoreTokens()) {
+//                                val gamePlayed = t.nextToken().trim().toInt()
+//                                classData.gamePlayed = gamePlayed
+//                            }
+//                            if (t.hasMoreTokens()) {
+//                                val unranked = t.nextToken().trim().toBoolean()
+//                                classData.unRanked = unranked
+//                            }
+//                        }
+//                    } catch (e: Exception) {
+//                        println(e)
+//                    }
+//                }
+//            }
+//        } else {
+//            f.createNewFile()
+//        }
 //        f = File(plugin.dataFolder, "PlayerQuickSlot.yml")
 //        if (f.exists()) {
 //            f.readText(Charsets.UTF_8).split("\n").forEach {
@@ -263,5 +282,5 @@ object FileManager {
 //        } else {
 //            f.createNewFile()
 //        }
-    }
+//    }
 }

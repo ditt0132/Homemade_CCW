@@ -16,6 +16,7 @@ import me.uwuaden.kotlinplugin.gameSystem.WorldManager
 import me.uwuaden.kotlinplugin.itemManager.ItemManager
 import me.uwuaden.kotlinplugin.itemManager.customItem.CustomItemManager
 import me.uwuaden.kotlinplugin.rankSystem.RankSystem
+import me.uwuaden.kotlinplugin.skillSystem.SkillEvent
 import me.uwuaden.kotlinplugin.skillSystem.SkillManager
 import me.uwuaden.kotlinplugin.teamSystem.TeamManager
 import net.kyori.adventure.text.Component
@@ -33,9 +34,17 @@ import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
 import org.bukkit.potion.PotionEffect
 import org.bukkit.potion.PotionEffectType
+import org.bukkit.scoreboard.Team
+import org.bukkit.util.Vector
 import java.util.*
 import kotlin.math.roundToInt
 import kotlin.random.Random
+
+//e.player.world.name.contains("Field-")
+//isBattleWorld(e.player.world)
+private fun isBattleWorld(world: World): Boolean {
+    return world.name.contains("Field-") || world.name.contains("death_match")
+}
 
 private fun deathPlayer(p: Player) {
     if (p.world.name.contains("Field-")) {
@@ -154,7 +163,7 @@ private fun deathPlayer(p: Player) {
 
         lastDamager.remove(p)
 
-        if (!dataClass.deadPlayer.contains(p) && dataClass.worldMode == "Solo" && !dataClass.gameEndedWorld) {
+        if (!dataClass.deadPlayer.contains(p) && (listOf("Solo", "Quick").contains(dataClass.worldMode)) && !dataClass.gameEndedWorld) {
             dataClass.deadPlayer.add(p)
 
             RankSystem.updateMMR(p, dataClass.playerKill[p.uniqueId]?: 0, dataClass.totalPlayer, p.world.players.filter { it.gameMode == GameMode.SURVIVAL }.size + 1, dataClass.avgMMR)
@@ -217,7 +226,7 @@ class Events: Listener {
             if (listOf(EntityDamageEvent.DamageCause.ENTITY_ATTACK, EntityDamageEvent.DamageCause.ENTITY_SWEEP_ATTACK).contains(e.cause)) {
                 e.damage*=0.9
             } else if (listOf(EntityDamageEvent.DamageCause.PROJECTILE).contains(e.cause)) {
-                e.damage*=0.8
+                e.damage*=0.7
             }
             if ((player.getPotionEffect(PotionEffectType.DAMAGE_RESISTANCE)?: return).amplifier >= 4) {
                 e.isCancelled = true
@@ -228,8 +237,21 @@ class Events: Listener {
     fun onPlayerJump(e: PlayerJumpEvent) {
         val player = e.player
         if ((player.getPotionEffect(PotionEffectType.SLOW)?: return).amplifier >= 2) { //3보다 크거나 같다.
-            e.isCancelled = true
             player.sendActionBar("${ChatColor.GRAY}구속 효과로 인해 점프가 불가능합니다.")
+            scheduler.runTaskAsynchronously(plugin, Runnable {
+                for (i in 0 until 20) {
+                    scheduler.scheduleSyncDelayedTask(plugin, {
+                        if (!e.player.isOnGround) {
+                            val vector = Vector(0.0, player.velocity.y, 0.0)
+                            if (player.velocity.y > 0) {
+                                vector.setY(-0.1)
+                            }
+                            player.velocity = vector
+                        }
+                    }, 0)
+                    Thread.sleep(1000/20)
+                }
+            })
         }
     }
     @EventHandler
@@ -274,14 +296,34 @@ class Events: Listener {
 
     @EventHandler
     fun onJoin(e: PlayerJoinEvent) {
+        val player = e.player
+
         e.joinMessage = ""
         e.player.teleport(lobbyLoc)
         e.player.gameMode = GameMode.SURVIVAL
         e.player.inventory.clear()
         e.player.level = 0
         e.player.exp = 0.0F
+        var t = SkillEvent.score.getTeam("nameTagHide")
+        if (t == null) {
+            t = SkillEvent.score.registerNewTeam("nameTagHide")
+            t.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.NEVER)
+        }
+        if(!t.hasPlayer(player)) {
+            t.addPlayer(player)
+        }
     }
-
+    @EventHandler
+    fun onSpecTeleportEvent(e: PlayerTeleportEvent){
+        val player = e.player
+        if (player.isOp) {
+            return
+        }
+        if (player.gameMode != GameMode.SPECTATOR) {
+            return
+        }
+        e.isCancelled = true
+    }
     @EventHandler
     fun onQuit(e: PlayerQuitEvent) {
         e.quitMessage = ""
@@ -294,28 +336,31 @@ class Events: Listener {
         val user = luckpermAPI.getPlayerAdapter(Player::class.java).getUser(player)
         val prefix = user.cachedData.metaData.prefix ?: ""
         e.format = "§f${prefix}${player.name}§f: ${e.message}"
-        if (!player.hasPermission("CCW.Chat")) {
-            if (player.hasCooldown(Material.PAPER)){
-                e.isCancelled = true
-                player.sendMessage("§c채팅이 쿨타임 중 입니다. (${(player.getCooldown(Material.PAPER)/20.0).roundToInt()}초)")
-            } else {
-                player.setCooldown(Material.PAPER, 20*3)
-            }
-            return
-        }
         val world = player.world
         val msg = e.message
-        val team = TeamManager.getTeam(world, player) ?: return
-        e.isCancelled = true
-        if (msg == "집결") {
-            player.performCommand("teamcmd assemble")
-        } else if (msg == "아이템") {
-            team.players.filter {it.world == player.world }.filter { it.location.distance(player.location) <= 50 }.forEach {
-                it.sendMessage(Component.text("§a${player.name}님이 주변에 여유 아이템이 있다고 합니다!"))
+        val team = TeamManager.getTeam(world, player)
+        if (team == null) {
+            if (!player.hasPermission("CCW.Chat")) {
+                if (player.hasCooldown(Material.PAPER)) {
+                    e.isCancelled = true
+                    player.sendMessage("§c채팅이 쿨타임 중 입니다. (${(player.getCooldown(Material.PAPER) / 20.0).roundToInt()}초)")
+                } else {
+                    player.setCooldown(Material.PAPER, 20 * 3)
+                }
+                return
             }
         } else {
-            team.players.forEach {
-                it.sendMessage(Component.text("§a[Team] §e${player.name}: $msg §7(${player.location.distance(it.location).roundToInt()}m)"))
+            e.isCancelled = true
+            if (msg == "집결") {
+                player.performCommand("teamcmd assemble")
+            } else if (msg == "아이템") {
+                team.players.filter {it.world == player.world }.filter { it.location.distance(player.location) <= 50 }.forEach {
+                    it.sendMessage(Component.text("§a${player.name}님이 주변에 여유 아이템이 있다고 합니다!"))
+                }
+            } else {
+                team.players.forEach {
+                    it.sendMessage(Component.text("§a[Team] §e${player.name}: $msg §7(${player.location.distance(it.location).roundToInt()}m)"))
+                }
             }
         }
     }
@@ -356,7 +401,7 @@ class Events: Listener {
             }
             if (it.block.type.name.contains("IRON_DOOR")) {
                 it.world.spawnParticle(Particle.BLOCK_CRACK, it, 5, 0.5, 0.5, 0.5, 0.0, it.block.blockData)
-                EffectManager.playSurroundSound(it, Sound.ENTITY_ZOMBIE_ATTACK_IRON_DOOR, 1.0F, 1.0F)
+                EffectManager.playSurroundSound(it, Sound.ENTITY_ZOMBIE_ATTACK_IRON_DOOR, 0.5F, 1.0F)
             } else if (it.block.type.name.contains("_DOOR")) {
                 it.world.spawnParticle(Particle.BLOCK_CRACK, it, 5, 0.5, 0.5, 0.5, 0.0, it.block.blockData)
                 it.block.type = Material.AIR
@@ -397,7 +442,7 @@ class Events: Listener {
     fun interactWorldItems(e: PlayerInteractEvent) {
         val clickedBlock = e.clickedBlock ?: return
         if (e.action.isLeftClick) return
-        if (!e.player.world.name.contains("Field-")) return
+        if (!isBattleWorld(e.player.world)) return
         if (clickedBlock.type == Material.CHEST) {
             val chest = clickedBlock.state as Chest
             if (chest.customName != "${ChatColor.YELLOW}Supplies") {
