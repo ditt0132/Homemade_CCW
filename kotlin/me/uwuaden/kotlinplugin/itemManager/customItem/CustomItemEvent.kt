@@ -1,5 +1,6 @@
 package me.uwuaden.kotlinplugin.itemManager.customItem
 
+import me.uwuaden.kotlinplugin.Main.Companion.boundingBoxExpand
 import me.uwuaden.kotlinplugin.Main.Companion.lastDamager
 import me.uwuaden.kotlinplugin.Main.Companion.lastWeapon
 import me.uwuaden.kotlinplugin.Main.Companion.lockedPlayer
@@ -748,7 +749,7 @@ class CustomItemEvent: Listener {
 
                 if (i % 10 == 0) pos.world.spawnParticle(Particle.END_ROD, pos, 1, 0.0, 0.0, 0.0, 0.0)
                 pos.getNearbyLivingEntities(10.0, 10.0, 10.0).forEach {
-                    if (it is LivingEntity && it.boundingBox.clone().expand(1.1).contains(
+                    if (it is LivingEntity && it.boundingBox.clone().expand(boundingBoxExpand).contains(
                             pos.x,
                             pos.y,
                             pos.z
@@ -1073,7 +1074,7 @@ class CustomItemEvent: Listener {
                     break@sh
                 }
                 for (it in loc.getNearbyLivingEntities(10.0, 10.0, 10.0).filterNot { it == player }) {
-                    if (it.boundingBox.clone().expand(1.1).contains(
+                    if (it.boundingBox.clone().expand(boundingBoxExpand).contains(
                             loc.x,
                             loc.y,
                             loc.z
@@ -1499,7 +1500,7 @@ class CustomItemEvent: Listener {
                             break@sh
                         }
                         for (it in loc.getNearbyLivingEntities(10.0, 10.0, 10.0).filter { isHittable(shooter, it) }.filterNot { it == shooter }) {
-                            if (it.boundingBox.expand(1.2).contains(loc.x, loc.y, loc.z)) {
+                            if (it.boundingBox.expand(boundingBoxExpand).contains(loc.x, loc.y, loc.z)) {
                                 break@sh
                             }
                         }
@@ -1647,7 +1648,7 @@ class CustomItemEvent: Listener {
                         break@sh
                     }
                     for (it in loc2.getNearbyLivingEntities(10.0, 10.0, 10.0).filterNot { it == player }) {
-                        if (it.boundingBox.clone().expand(1.1).contains(loc2.x, loc2.y, loc2.z) && isHittable(
+                        if (it.boundingBox.clone().expand(boundingBoxExpand).contains(loc2.x, loc2.y, loc2.z) && isHittable(
                                 player,
                                 it
                             )
@@ -1768,7 +1769,7 @@ class CustomItemEvent: Listener {
                             explode = true
                         }
                         for (it in loc.getNearbyLivingEntities(10.0, 10.0, 10.0).filterNot { it == player }.filter { isHittable(player, it) }) {
-                            if (it.boundingBox.clone().expand(1.1).contains(loc.x, loc.y, loc.z)) {
+                            if (it.boundingBox.clone().expand(boundingBoxExpand).contains(loc.x, loc.y, loc.z)) {
                                 explode = true
                             }
                         }
@@ -1857,7 +1858,7 @@ class CustomItemEvent: Listener {
                 }
 
                 pos.getNearbyLivingEntities(10.0, 10.0, 10.0).forEach {
-                    if (it is LivingEntity && it.boundingBox.clone().expand(1.1).contains(
+                    if (it is LivingEntity && it.boundingBox.clone().expand(boundingBoxExpand).contains(
                             pos.x,
                             pos.y,
                             pos.z
@@ -1892,9 +1893,9 @@ class CustomItemEvent: Listener {
                     }
                 }
                 if (isWallBang) {
-                    entity.damage(0.8)
+                    entity.damage(1.0)
                 } else {
-                    entity.damage(1.6)
+                    entity.damage(2.0)
                 }
             }
             if (entities.isNotEmpty()) shooter.playSound(shooter, Sound.ENTITY_ARROW_HIT_PLAYER, 1.0F, 2.0F)

@@ -5,20 +5,35 @@ import com.mojang.authlib.properties.Property
 import me.uwuaden.kotlinplugin.Main
 import me.uwuaden.kotlinplugin.Main.Companion.lastDamager
 import me.uwuaden.kotlinplugin.Main.Companion.lastWeapon
+import me.uwuaden.kotlinplugin.Main.Companion.plugin
+import me.uwuaden.kotlinplugin.Main.Companion.scheduler
 import me.uwuaden.kotlinplugin.gameSystem.LastWeaponData
 import org.bukkit.*
+import org.bukkit.Particle.DustOptions
 import org.bukkit.block.Block
 import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.SkullMeta
+import java.awt.Image
+import java.awt.image.BufferedImage
 import java.lang.reflect.Field
+import java.net.URL
 import java.util.*
+import javax.imageio.ImageIO
 import kotlin.math.cos
 import kotlin.math.roundToInt
 import kotlin.math.sin
 
 //EffectManager.playSurroundSound
+private fun resizeImage(image: BufferedImage, newWidth: Int, newHeight: Int): BufferedImage {
+    val resizedImage = BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_ARGB)
+    val g = resizedImage.createGraphics()
+    g.drawImage(image.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH), 0, 0, null)
+    g.dispose()
+
+    return resizedImage
+}
 object EffectManager {
     fun playSurroundSound(loc: Location, sound: Sound, volume: Float, pitch: Float) {
         loc.getNearbyPlayers(150.0).forEach { player ->
@@ -117,6 +132,40 @@ object EffectManager {
                 )
             }
             lastDamager[victim] = attacker
+        }
+    }
+    fun getImagePixelData(image: BufferedImage, xPixel: Int, yPixel: Int): HashMap<Pair<Int, Int>, Int> {
+        val pixelData = HashMap<Pair<Int, Int>, Int>()
+        val imageToUse = resizeImage(image, xPixel+1, yPixel+1)
+        for (x in 0..xPixel) {
+            for (y in 0..yPixel) {
+                pixelData[Pair(x, y)] = imageToUse.getRGB(x, y)
+            }
+        }
+        return pixelData
+    }
+    fun drawImageXZ(loc: Location, url: String, xPixel: Int, zPixel: Int, div: Double) {
+        try {
+            scheduler.runTaskAsynchronously(plugin, Runnable {
+                val startLoc = loc.clone().add(-xPixel.toDouble()/div/2, 0.0, -zPixel.toDouble()/div/2)
+                val bufferedImage = ImageIO.read(URL(url))
+                val pixelData = getImagePixelData(bufferedImage, xPixel, zPixel)
+                scheduler.scheduleSyncDelayedTask(plugin, {
+                    for (x in 0..xPixel) {
+                        for (z in 0..zPixel) {
+                            val printLoc = startLoc.clone().add(x.toDouble()/div, 0.0, z.toDouble()/div)
+                            val colorInt = pixelData[Pair(x, z)] ?: 0
+                            val alpha = (colorInt shr 24) and 0xFF // 알파 값 추출
+                            val red = (colorInt shr 16) and 0xFF   // 빨강 값 추출
+                            val green = (colorInt shr 8) and 0xFF  // 초록 값 추출
+                            val blue = colorInt and 0xFF           // 파랑 값 추출
+                            if (!(red == 0 && green == 0  && blue == 0)) startLoc.world.spawnParticle(Particle.REDSTONE, printLoc, 1, DustOptions(Color.fromRGB(red, green, blue), 1.0f))
+                        }
+                    }
+                }, 0)
+            })
+        } catch (e: Exception) {
+            println(e)
         }
     }
 }

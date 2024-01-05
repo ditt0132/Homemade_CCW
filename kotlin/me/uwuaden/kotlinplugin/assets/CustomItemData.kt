@@ -248,7 +248,7 @@ object CustomItemData {
                 Material.CROSSBOW,
                 1,
                 "${ChatColor.LIGHT_PURPLE}${ChatColor.BOLD}Exosist",
-                listOf("${ChatColor.GRAY}벽을 관통하는 히트스캔 방식의 화살을 빠른 속도로 발사합니다.", "${ChatColor.GRAY}15초마다 5초간 적에게 발광효과를 적용시키는 화살을 발사합니다!", "${ChatColor.GRAY}벽을 관통 후 최대 5블럭까지 날아가며, 대미지가 절반으로 감소됩니다.", "${ChatColor.GREEN}대미지: 1.6")
+                listOf("${ChatColor.GRAY}벽을 관통하는 히트스캔 방식의 화살을 빠른 속도로 발사합니다.", "${ChatColor.GRAY}15초마다 5초간 적에게 발광효과를 적용시키는 화살을 발사합니다!", "${ChatColor.GRAY}벽을 관통 후 최대 5블럭까지 날아가며, 대미지가 절반으로 감소됩니다.", "${ChatColor.GREEN}대미지: 2.0")
             ), Enchantment.QUICK_CHARGE, 3
         )
     }

@@ -5,6 +5,7 @@ import io.github.monun.kommand.getValue
 import io.github.monun.kommand.kommand
 import me.uwuaden.kotlinplugin.Main.Companion.plugin
 import me.uwuaden.kotlinplugin.assets.CustomItemData
+import me.uwuaden.kotlinplugin.assets.EffectManager
 import me.uwuaden.kotlinplugin.gameSystem.*
 import me.uwuaden.kotlinplugin.gameSystem.GameEvent
 import me.uwuaden.kotlinplugin.itemManager.ItemManager
@@ -97,6 +98,7 @@ class Main: JavaPlugin() {
 
         const val defaultMMR = 1000
         var map = "test"
+        const val boundingBoxExpand = 0.5
 
     }
     override fun onEnable() {
@@ -532,10 +534,10 @@ class Main: JavaPlugin() {
                     }
                 }
                 then("test") {
-                    then("n" to int()) {
+                    then("n" to string(StringType.GREEDY_PHRASE)) {
                         executes {
-                            val n: Int by it
-                            RankSystem.changeRate(player, n)
+                            val n: String by it
+                            EffectManager.drawImageXZ(player.location, n, 50, 50, 10.0)
                         }
                     }
                 }
@@ -707,6 +709,7 @@ class Main: JavaPlugin() {
             register("test") {
                 requires { isOp }
                 executes {
+
                 }
             }
             register("queuelist") {

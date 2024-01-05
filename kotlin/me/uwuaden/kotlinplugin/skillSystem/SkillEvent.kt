@@ -1,6 +1,7 @@
 package me.uwuaden.kotlinplugin.skillSystem
 
 import com.destroystokyo.paper.event.player.PlayerJumpEvent
+import me.uwuaden.kotlinplugin.Main.Companion.boundingBoxExpand
 import me.uwuaden.kotlinplugin.Main.Companion.econ
 import me.uwuaden.kotlinplugin.Main.Companion.groundY
 import me.uwuaden.kotlinplugin.Main.Companion.lastDamager
@@ -334,7 +335,7 @@ class SkillEvent: Listener {
 
                 }
                 pos.getNearbyLivingEntities(10.0, 10.0, 10.0).forEach {
-                    if(it != player && it !is ArmorStand && it is LivingEntity && it.boundingBox.clone().expand(1.2).contains(pos.x, pos.y, pos.z) && isHittable(player, it)) {
+                    if(it != player && it !is ArmorStand && it is LivingEntity && it.boundingBox.clone().expand(boundingBoxExpand).contains(pos.x, pos.y, pos.z) && isHittable(player, it)) {
                         entities.add(it)
                     }
                 }
@@ -544,7 +545,7 @@ class SkillEvent: Listener {
                         break@sh
                     }
                     for (it in loc2.getNearbyLivingEntities(10.0, 10.0, 10.0).filterNot { it == player }) {
-                        if (it.boundingBox.clone().expand(1.1).contains(loc2.x, loc2.y, loc2.z) && isHittable(
+                        if (it.boundingBox.clone().expand(boundingBoxExpand).contains(loc2.x, loc2.y, loc2.z) && isHittable(
                                 player,
                                 it
                             )
@@ -614,7 +615,7 @@ class SkillEvent: Listener {
                                 it
                             )
                         }) {
-                            if (it.boundingBox.clone().expand(1.1).contains(loc.x, loc.y, loc.z)) {
+                            if (it.boundingBox.clone().expand(boundingBoxExpand).contains(loc.x, loc.y, loc.z)) {
                                 explode = true
                             }
                         }
