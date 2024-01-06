@@ -17,6 +17,7 @@ import org.bukkit.block.Block
 import org.bukkit.block.Chest
 import org.bukkit.enchantments.Enchantment
 import org.bukkit.entity.ArmorStand
+import org.bukkit.entity.Entity
 import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
@@ -263,7 +264,9 @@ object CustomItemManager {
             p1.add(vector)
         }
     }
-    fun isHittable(player: Player, target: LivingEntity): Boolean {
+    fun isHittable(player: Player, target: Entity): Boolean {
+        if (target !is LivingEntity) return false
+        if (target is ArmorStand) return true
         return !TeamManager.isSameTeam(player.world, player, target) && !(target is Player && target.gameMode == GameMode.SPECTATOR)
     }
     fun disablePlayerShield(player: Player) {

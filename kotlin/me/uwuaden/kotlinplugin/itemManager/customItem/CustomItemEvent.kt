@@ -720,7 +720,7 @@ class CustomItemEvent: Listener {
     }
 
     @EventHandler
-    fun onProjectileLaunch(e: ProjectileLaunchEvent) {
+    fun onVallistaShoot(e: ProjectileLaunchEvent) {
         val projectile = e.entity
         if (projectile is Arrow) {
             val shooter = projectile.shooter as? Player ?: return

@@ -35,6 +35,7 @@ import org.bukkit.inventory.InventoryHolder
 import org.bukkit.inventory.ItemStack
 import org.bukkit.potion.PotionEffect
 import org.bukkit.potion.PotionEffectType
+import org.bukkit.util.Vector
 import java.util.*
 
 
@@ -702,6 +703,76 @@ class SkillEvent: Listener {
                 }
             }
             player.sendMessage("§c타겟이 없습니다.")
+        }
+    }
+    @EventHandler
+    fun onUseGravitization(e: PlayerInteractEvent) {
+        if (e.hand == EquipmentSlot.OFF_HAND) return
+        if (!e.action.isRightClick) return
+        val player = e.player
+        if (player.inventory.itemInMainHand.itemMeta?.displayName == CustomItemData.getGravitization().getName()) {
+            e.isCancelled = true
+
+            if (player.getCooldown(Material.RED_DYE) > 0) return
+            player.setCooldown(Material.RED_DYE, 20 * 30)
+            var loc = player.getTargetBlockExact(100)?.location
+            if (loc == null) {
+                player.setCooldown(Material.RED_DYE, 20 * 3)
+                player.sendMessage("${ChatColor.RED}너무 멉니다.")
+                return
+            }
+            val random = Random()
+            scheduler.runTaskAsynchronously(plugin, Runnable {
+                for (i in 0 until 10*11) {
+                    if (i >= 10) {
+                        val entities = mutableSetOf<Entity>()
+                        scheduler.scheduleSyncDelayedTask(plugin, {
+                            EffectManager.playSurroundSound(loc, Sound.BLOCK_BEACON_AMBIENT, 1.0f, 2.0f)
+                            for (y in 0 until 50) {
+                                val loc2 = loc.clone().add(0.0, y.toDouble(), 0.0)
+                                val r = 4.0
+                                loc2.getNearbyEntities(r, r, r).filter { it.location.distance(loc2) <= r }.filter { it is LivingEntity || it is Projectile }.filter { !entities.contains(it) }.forEach {
+                                    if (!(it is LivingEntity && !CustomItemManager.isHittable(player, it))) entities.add(it)
+                                }
+                            }
+
+                            entities.forEach {
+                                if (it is LivingEntity) {
+                                    if (i % 10 == 0) {
+                                        it.damage(1.0)
+                                    }
+                                    it.addPotionEffect(PotionEffect(PotionEffectType.SLOW, 20, 2, false, false))
+                                    if (it is ArmorStand) {
+                                        it.velocity = Vector(0.0, -0.6, 0.0)
+                                    }
+                                } else {
+                                    it.velocity = Vector(0.0, -0.6, 0.0)
+                                }
+                            }
+
+
+                            val particleLoc = loc.clone().add(random.nextDouble(-4.0, 4.0), random.nextDouble(2.0, 15.0), random.nextDouble(-4.0, 4.0))
+                            scheduler.runTaskAsynchronously(plugin, Runnable {
+                                for (y in 0..40) {
+                                    scheduler.scheduleSyncDelayedTask(plugin, {
+                                        particleLoc.add(0.0, -0.15, 0.0)
+                                        particleLoc.world.spawnParticle(REDSTONE, particleLoc, 2, DustOptions(Color.RED, 0.5f))
+                                    }, 0)
+                                    Thread.sleep(1000/20)
+                                }
+                            })
+
+                        }, 0)
+                    }
+
+                    if (i%4 == 0) {
+                        val particleLoc = loc.clone().add(0.0, 1.1, 0.0)
+                        EffectManager.drawImageXZ(particleLoc.clone().add(0.0, 0.0, 0.7), "https://i.ibb.co/DgRzRf0/illu.png", 160, 160, 20.0)
+                        EffectManager.drawParticleCircle(particleLoc, 4.0, Color.RED)
+                    }
+                    Thread.sleep(1000/10)
+                }
+            })
         }
     }
 }

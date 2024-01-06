@@ -709,7 +709,7 @@ class Main: JavaPlugin() {
             register("test") {
                 requires { isOp }
                 executes {
-
+                    player.inventory.addItem(CustomItemData.getGravitization())
                 }
             }
             register("queuelist") {
