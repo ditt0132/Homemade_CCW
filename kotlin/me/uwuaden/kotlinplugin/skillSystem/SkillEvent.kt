@@ -715,6 +715,10 @@ class SkillEvent: Listener {
 
             if (player.getCooldown(Material.RED_DYE) > 0) return
             player.setCooldown(Material.RED_DYE, 20 * 30)
+            player.playSound(player, Sound.ENTITY_ENDER_EYE_LAUNCH, 1.0F, 1.0F)
+            player.playSound(player, Sound.BLOCK_CONDUIT_DEACTIVATE, 0.8F, 1.2F)
+
+
             var loc = player.getTargetBlockExact(100)?.location
             if (loc == null) {
                 player.setCooldown(Material.RED_DYE, 20 * 3)
@@ -723,6 +727,9 @@ class SkillEvent: Listener {
             }
             val random = Random()
             scheduler.runTaskAsynchronously(plugin, Runnable {
+                player.playSound(player, Sound.BLOCK_ENCHANTMENT_TABLE_USE, 1.0F, 0.8F)
+                player.playSound(player, Sound.ENTITY_ELDER_GUARDIAN_AMBIENT, 1.0F, 2.0F)
+                player.playSound(player, Sound.BLOCK_BEACON_DEACTIVATE, 1.0F, 0.5F)
                 for (i in 0 until 10*11) {
                     if (i >= 10) {
                         val entities = mutableSetOf<Entity>()
@@ -740,6 +747,9 @@ class SkillEvent: Listener {
                                 if (it is LivingEntity) {
                                     if (i % 10 == 0) {
                                         it.damage(1.0)
+                                        player.playSound(player, Sound.ENTITY_ZOMBIE_VILLAGER_CONVERTED, 0.3F, 0.8F)
+                                        player.playSound(player, Sound.BLOCK_CONDUIT_DEACTIVATE, 1.0F, 0.5F)
+                                        player.playSound(player, Sound.BLOCK_CONDUIT_DEACTIVATE, 1F, 2.0F)
                                     }
                                     it.addPotionEffect(PotionEffect(PotionEffectType.SLOW, 20, 2, false, false))
                                     if (it is ArmorStand) {
@@ -748,31 +758,32 @@ class SkillEvent: Listener {
                                 } else {
                                     it.velocity = Vector(0.0, -0.6, 0.0)
                                 }
+
+
+
+                                val particleLoc = loc.clone().add(random.nextDouble(-4.0, 4.0), random.nextDouble(2.0, 15.0), random.nextDouble(-4.0, 4.0))
+                                scheduler.runTaskAsynchronously(plugin, Runnable {
+                                    for (y in 0..40) {
+                                        scheduler.scheduleSyncDelayedTask(plugin, {
+                                            particleLoc.add(0.0, -0.15, 0.0)
+                                            particleLoc.world.spawnParticle(REDSTONE, particleLoc, 2, DustOptions(Color.RED, 0.5f))
+                                        }, 0)
+                                        Thread  .sleep(1000/20)
+                                    }
+                                })
+
+                            }, 0)
+                        }
+
+                            if (i%4 == 0) {
+                                val particleLoc = loc.clone().add(0.0, 1.1, 0.0)
+                                EffectManager.drawImageXZ(particleLoc.clone().add(0.0, 0.0, 0.7), "https://i.ibb.co/DgRzRf0/illu.png", 160, 160, 20.0)
+                                EffectManager.drawParticleCircle(particleLoc, 4.0, Color.RED)
                             }
-
-
-                            val particleLoc = loc.clone().add(random.nextDouble(-4.0, 4.0), random.nextDouble(2.0, 15.0), random.nextDouble(-4.0, 4.0))
-                            scheduler.runTaskAsynchronously(plugin, Runnable {
-                                for (y in 0..20) {
-                                    scheduler.scheduleSyncDelayedTask(plugin, {
-                                        particleLoc.add(0.0, -0.15, 0.0)
-                                        particleLoc.world.spawnParticle(REDSTONE, particleLoc, 2, DustOptions(Color.RED, 0.5f))
-                                    }, 0)
                                     Thread.sleep(1000/10)
-                                }
-                            })
-
-                        }, 0)
                     }
-
-                    if (i%4 == 0) {
-                        val particleLoc = loc.clone().add(0.0, 1.1, 0.0)
-                        EffectManager.drawImageXZ(particleLoc.clone().add(0.0, 0.0, 0.7), "https://i.ibb.co/DgRzRf0/illu.png", 80, 80, 10.0)
-                        EffectManager.drawParticleCircle(particleLoc, 4.0, Color.RED)
-                    }
-                    Thread.sleep(1000/10)
-                }
-            })
+                })
+            }
         }
     }
 }
