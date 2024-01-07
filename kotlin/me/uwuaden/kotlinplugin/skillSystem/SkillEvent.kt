@@ -753,12 +753,12 @@ class SkillEvent: Listener {
 
                             val particleLoc = loc.clone().add(random.nextDouble(-4.0, 4.0), random.nextDouble(2.0, 15.0), random.nextDouble(-4.0, 4.0))
                             scheduler.runTaskAsynchronously(plugin, Runnable {
-                                for (y in 0..40) {
+                                for (y in 0..20) {
                                     scheduler.scheduleSyncDelayedTask(plugin, {
                                         particleLoc.add(0.0, -0.15, 0.0)
                                         particleLoc.world.spawnParticle(REDSTONE, particleLoc, 2, DustOptions(Color.RED, 0.5f))
                                     }, 0)
-                                    Thread.sleep(1000/20)
+                                    Thread.sleep(1000/10)
                                 }
                             })
 
@@ -767,7 +767,7 @@ class SkillEvent: Listener {
 
                     if (i%4 == 0) {
                         val particleLoc = loc.clone().add(0.0, 1.1, 0.0)
-                        EffectManager.drawImageXZ(particleLoc.clone().add(0.0, 0.0, 0.7), "https://i.ibb.co/DgRzRf0/illu.png", 160, 160, 20.0)
+                        EffectManager.drawImageXZ(particleLoc.clone().add(0.0, 0.0, 0.7), "https://i.ibb.co/DgRzRf0/illu.png", 80, 80, 10.0)
                         EffectManager.drawParticleCircle(particleLoc, 4.0, Color.RED)
                     }
                     Thread.sleep(1000/10)

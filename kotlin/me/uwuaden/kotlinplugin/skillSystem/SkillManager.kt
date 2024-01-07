@@ -98,6 +98,7 @@ object SkillManager {
         skillItem[11] = CustomItemData.getSwordOfHealing().addEliteItemLore(400, 1, "divinity")
         skillItem[12] = CustomItemData.getShotGun().addEliteItemLore(300, 1, "tech")
         skillItem[13] = CustomItemData.getQuickRocketLauncher().addEliteItemLore(500, 1, "tech")
+        skillItem[14] = CustomItemData.getGravitization().addEliteItemLore(400, 1, "chaos")
     }
     fun changeChargeValue(item: ItemStack, new: Int) {
         val lores = item.itemMeta.lore ?: return

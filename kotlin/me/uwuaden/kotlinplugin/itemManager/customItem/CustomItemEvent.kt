@@ -398,7 +398,7 @@ private fun gravityGrenade(loc: Location, p: Player) {
                 it.damage(2.0)
             }
         }, 20*5)
-    }, 20)
+    }, 0)
 }
 private fun smokeGrenade(loc: Location, p: Player) {
     val range = 3.5f

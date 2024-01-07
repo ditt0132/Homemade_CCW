@@ -268,6 +268,6 @@ object CustomItemData {
         return ItemManager.createNamedItem(Material.NETHERITE_SHOVEL, 1, "${ChatColor.AQUA}${ChatColor.BOLD}Prototype V3", listOf("${ChatColor.GRAY}매우 강력한 스나이퍼 라이플입니다.", "${ChatColor.GRAY}거리가 멀수록 대미지가 증가합니다!"))
     }
     fun getGravitization(): ItemStack {
-        return ItemManager.createNamedItem(Material.RED_DYE, 1, "§c§lGRAVITIZATION", listOf("§7클릭한 위치에 강력한 중력장을 소환합니다.", "§7중력장은 아래로 적을 당기며 속도를 감소시킵니다.", "§7또한 느린 투사체를 막아냅니다.", "§2시전시간: 1초, 지속시간: 10초, 쿨타임: 30초, 초당 대미지: 1.0"))
+        return ItemManager.createNamedItem(Material.RED_DYE, 1, "§c§lGRAVITIZATION", listOf("§7클릭한 위치에 강력한 중력장을 소환합니다.", "§7중력장은 아래로 적을 당기며 속도를 감소시킵니다.", "§7또한 느린 투사체를 막아냅니다.", "§2시전시간: 1초, 지속시간: 10초, 쿨타임: 30초, 초당 대미지: 1.0", "", "§7Gadget"))
     }
 }
