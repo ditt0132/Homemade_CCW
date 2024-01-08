@@ -43,6 +43,7 @@ import java.net.URL
 import java.time.LocalDate
 import java.util.*
 import java.util.logging.Level
+import kotlin.math.roundToInt
 
 
 private fun sendResetMessage(player: Player) {
@@ -505,17 +506,33 @@ class Main: JavaPlugin() {
                                         //플레티넘
                                         4 -> {
                                             econ.depositPlayer(offlinePlayer, 2000.0)
-                                        }//다이아
+                                        }
+                                        //다이아
                                         5 -> {
+                                            econ.depositPlayer(offlinePlayer, 2500.0)
+                                        }
+                                        //마스터
+                                        6 -> {
                                             econ.depositPlayer(offlinePlayer, 3000.0)
-                                        }//마스터
-                                        in 6..10 -> {
+                                        }
+                                        //그마
+                                        7 -> {
+                                            econ.depositPlayer(offlinePlayer, 3500.0)
+                                        }
+                                        //이터널
+                                        in 8..Int.MAX_VALUE -> {
                                             econ.depositPlayer(offlinePlayer, 4000.0)
                                         }
                                     }
                                     classData.playerRank = 0
                                     classData.gamePlayed = 0
-                                    classData.playerMMR -= 375
+                                    val removal = 750
+                                    when (classData.playerMMR) {
+                                        in 0..1200 -> classData.playerMMR -= (removal*0.5).roundToInt()
+                                        in 1201..2000 -> classData.playerMMR -= (removal*0.7).roundToInt()
+                                        in 2001..Int.MAX_VALUE -> classData.playerMMR -= (removal*0.9).roundToInt()
+                                    }
+
                                     if (classData.playerMMR < 0) classData.playerMMR = 0 //배치 관련 mmr 패치
                                     classData.unRanked = true
                                 }

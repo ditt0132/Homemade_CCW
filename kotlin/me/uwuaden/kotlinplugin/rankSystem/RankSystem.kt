@@ -93,10 +93,10 @@ object RankSystem {
             25 -> "${rgb(215, 153, 255)}Master II"
             26 -> "${rgb(215, 153, 255)}Master III"
             27 -> "${rgb(215, 153, 255)}Master IV"
-            28 -> "${rgb(222, 0, 0)}Grand Master I"
-            29 -> "${rgb(222, 0, 0)}Grand Master II"
-            30 -> "${rgb(222, 0, 0)}Grand Master II"
-            31 -> "${rgb(222, 0, 0)}Grand Master IV"
+            28 -> "${rgb(222, 0, 0)}GrandMaster I"
+            29 -> "${rgb(222, 0, 0)}GrandMaster II"
+            30 -> "${rgb(222, 0, 0)}GrandMaster II"
+            31 -> "${rgb(222, 0, 0)}GrandMaster IV"
             32 -> "${rgb(197, 250, 250)}Eternel"
             else -> "Error"
         }
@@ -154,9 +154,9 @@ object RankSystem {
 
         classData.playerMMR += change
 
-        if (classData.playerMMR < classData.playerRank - 400) {
-            classData.playerMMR = classData.playerRank - 400
-        }
+//        if (classData.playerMMR < classData.playerRank - 400) {
+//            classData.playerMMR = classData.playerRank - 400
+//        }
 
         if (classData.playerMMR < 0) {
             classData.playerMMR = 0
