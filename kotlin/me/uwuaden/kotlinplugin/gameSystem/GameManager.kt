@@ -419,7 +419,7 @@ private fun spawnZombie(time: Int, loc: Location) {
     }
 
 }
-private fun initPlayer(player: Player) {
+private fun initPlayer(player: Player, sendTeam: Boolean = false) {
     player.gameMode = GameMode.SURVIVAL
     player.inventory.clear()
     player.activePotionEffects.clear()
@@ -439,16 +439,18 @@ private fun initPlayer(player: Player) {
         player.sendMessage("${ChatColor.GRAY}팁: ${EffectManager.randomTip()}")
     }
     player.addPotionEffect(PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 20*30, 4, false, false))
-    scheduler.scheduleSyncDelayedTask(plugin, {
-        val team = TeamManager.getTeam(player.world, player)
-        if (team != null) {
-            val names = mutableListOf<String>()
-            team.players.forEach { player ->
-                names.add(player.name)
+    if (sendTeam) {
+        scheduler.scheduleSyncDelayedTask(plugin, {
+            val team = TeamManager.getTeam(player.world, player)
+            if (team != null) {
+                val names = mutableListOf<String>()
+                team.players.forEach { player ->
+                    names.add(player.name)
+                }
+                player.sendMessage("${ChatColor.GOLD}팀원: ${names.joinToString(", ")}")
             }
-            player.sendMessage("${ChatColor.GOLD}팀원: ${names.joinToString(", ")}")
-        }
-    }, 20*10)
+        }, 20 * 10)
+    }
 }
 private fun initItem(player: Player) {
     val world = player.world
@@ -721,7 +723,7 @@ object GameManager {
                     first.forEach { p->
                         scheduler.scheduleSyncDelayedTask(plugin, {
                             p.teleport(it)
-                            initPlayer(p)
+                            initPlayer(p, true)
                         }, t*5L)
                         t++
                     }
@@ -730,7 +732,7 @@ object GameManager {
                     second.forEach { p->
                         scheduler.scheduleSyncDelayedTask(plugin, {
                             p.teleport(it)
-                            initPlayer(p)
+                            initPlayer(p, true)
                         }, t*5L)
                         t++
                     }
@@ -840,7 +842,7 @@ object GameManager {
                         scheduler.scheduleSyncDelayedTask(plugin, {
                             it.players.forEach { pl ->
                                 pl.teleport(spawnLocs[i])
-                                initPlayer(pl)
+                                initPlayer(pl, true)
                             }
                         }, 0)
                         Thread.sleep(100)
