@@ -5,9 +5,17 @@ import me.uwuaden.kotlinplugin.Main.Companion.defaultMMR
 import me.uwuaden.kotlinplugin.Main.Companion.playerStat
 import me.uwuaden.kotlinplugin.Main.Companion.plugin
 import me.uwuaden.kotlinplugin.Main.Companion.scheduler
+import me.uwuaden.kotlinplugin.assets.EffectManager
+import me.uwuaden.kotlinplugin.assets.ItemManipulator.setName
+import me.uwuaden.kotlinplugin.itemManager.ItemManager
+import org.bukkit.Bukkit
 import org.bukkit.ChatColor
+import org.bukkit.Material
 import org.bukkit.entity.Player
+import org.bukkit.inventory.ItemStack
 import java.awt.Color
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.math.abs
 import kotlin.math.pow
@@ -20,7 +28,7 @@ private fun rgb(R: Int, G: Int, B: Int): net.md_5.bungee.api.ChatColor {
 
 object RankSystem {
     fun changeRate(player: Player, rate: Int) {
-        val ratePrev = rateToString(player)
+        val ratePrev = rateToString(player.uniqueId)
         var change = rate
         val classData = initData(player.uniqueId)
         val rank1 = classData.playerRank
@@ -42,7 +50,7 @@ object RankSystem {
 
         player.sendMessage("${ChatColor.GOLD}========================================")
         player.sendMessage(" ")
-        player.sendMessage("${ChatColor.GOLD}${ratePrev} ${ChatColor.GREEN}-> ${rateToString(player)}")
+        player.sendMessage("${ChatColor.GOLD}${ratePrev} ${ChatColor.GREEN}-> ${rateToString(player.uniqueId)}")
         player.sendMessage("  ")
         player.sendMessage("${ChatColor.GREEN}Rate: ${rateToScore(rank1)} -> ${rateToScore(classData.playerRank)} (${change})")
         player.sendMessage("   ")
@@ -51,15 +59,15 @@ object RankSystem {
 
     fun rateToScore(rate: Int): Int {
         val masterRate = 3200
-        if (rate < masterRate) { //마스터 아래
+        if (rate < masterRate) { //이터널 아래
             return rate%100
         } else {
             return rate - masterRate
         }
     }
-    fun rateToString(player: Player): String {
+    fun rateToString(uuid: UUID): String {
 
-        val classData = initData(player.uniqueId)
+        val classData = initData(uuid)
         val rate = classData.playerRank
         if (classData.unRanked) return "${ChatColor.GRAY}Unranked"
         val index = rate/100
@@ -103,6 +111,127 @@ object RankSystem {
 
     }
 
+    fun rateToGUIItem(uuid: UUID): ItemStack {
+        val classData = initData(uuid)
+        val rate = classData.playerRank
+        if (classData.unRanked) return ItemManager.createNamedItem(Material.BLACK_STAINED_GLASS_PANE, 1, " ", null)
+        val index = rate/400
+        if (index >= 8) return ItemManager.createNamedItem(Material.LIGHT_BLUE_STAINED_GLASS_PANE, 1, " ", null)
+        val idxItem = listOf(
+            ItemManager.createNamedItem(Material.GRAY_STAINED_GLASS_PANE, 1, " ", null),
+            ItemManager.createNamedItem(Material.BROWN_STAINED_GLASS_PANE, 1, " ", null),
+            ItemManager.createNamedItem(Material.WHITE_STAINED_GLASS_PANE, 1, " ", null),
+            ItemManager.createNamedItem(Material.YELLOW_STAINED_GLASS_PANE, 1, " ", null),
+            ItemManager.createNamedItem(Material.LIME_STAINED_GLASS_PANE, 1, " ", null),
+            ItemManager.createNamedItem(Material.BLUE_STAINED_GLASS_PANE, 1, " ", null),
+            ItemManager.createNamedItem(Material.MAGENTA_STAINED_GLASS_PANE, 1, " ", null),
+            ItemManager.createNamedItem(Material.RED_STAINED_GLASS_PANE, 1, " ", null),
+            ItemManager.createNamedItem(Material.LIGHT_BLUE_STAINED_GLASS_PANE, 1, " ", null)
+        )
+        return idxItem[index]
+    }
+    fun openGui(player: Player, uuid: UUID = player.uniqueId) {
+        val inv = Bukkit.createInventory(null, 54, "§2§lRank Board")
+
+        val playerStat = initData(uuid)
+
+        for (i in 0 until 54) {
+            inv.setItem(i, ItemManager.createNamedItem(Material.WHITE_STAINED_GLASS_PANE, 1, " ", null))
+        }
+        val current = LocalDateTime.now()
+        val formatter = DateTimeFormatter.ISO_DATE
+        val formatted = current.format(formatter)
+
+        var nameStr = "§aPlayer: ${plugin.server.getOfflinePlayer(uuid).name}§c*"
+        if (playerStat.playerMMR/100 == playerStat.playerRank/100) {
+            nameStr = "§aPlayer: ${plugin.server.getOfflinePlayer(uuid).name}§e*"
+        } else if (playerStat.playerMMR/100 > playerStat.playerRank/100) {
+            nameStr = "§aPlayer: ${plugin.server.getOfflinePlayer(uuid).name}§a*"
+        }
+
+        val item = EffectManager.getPlayerSkull(uuid).setName(nameStr)
+        val meta = item.itemMeta
+        meta.lore = listOf("§eRank: ${rateToString(uuid)}", "§eRate: (${rateToScore(playerStat.playerRank)}/100)", " ", "§eGame Played: ${playerStat.gamePlayed}", "§eRank Enabled: ${playerStat.rank}", "§8${formatted}")
+        item.itemMeta = meta
+        inv.setItem(22, item)
+
+
+        if (player.uniqueId == uuid) {
+            if (playerStat.rank) inv.setItem(8, ItemManager.createNamedItem(Material.GREEN_STAINED_GLASS, 1, "§a§l랭크 활성화됨", listOf(" ", "§c클릭하여 랭크 비활성화")))
+            else inv.setItem(8, ItemManager.createNamedItem(Material.GRAY_STAINED_GLASS, 1, "§c§l랭크 비활성화됨", listOf(" ", "§a클릭하여 랭크 활성화")))
+        }
+
+        inv.setItem(53, ItemManager.createNamedItem(Material.GRAY_STAINED_GLASS, 1, "§a§l랭크 리더보드 보기", null))
+
+        val rate = rateToScore(playerStat.playerRank)
+
+        if (rateToString(uuid) == "${rgb(197, 250, 250)}Eternel") {
+            inv.setItem(40, ItemManager.createNamedItem(Material.LIME_STAINED_GLASS_PANE, 1, "§aRate: ", null))
+        } else {
+            for (i in 38..42) {
+                if (rate/20 > i-38) {
+                    inv.setItem(i, ItemManager.createNamedItem(Material.LIME_STAINED_GLASS_PANE, 1, "§aRate: (${rate}/100)", null)) //내림으로 계산. + 안채워진건 검은색w
+                } else if (rate/20 == i-38) {
+                    inv.setItem(i, ItemManager.createNamedItem(Material.GREEN_STAINED_GLASS_PANE, 1, "§aRate: (${rate}/100)", null))
+                } else {
+                    inv.setItem(i, ItemManager.createNamedItem(Material.BLACK_STAINED_GLASS_PANE, 1, "§aRate: (${rate}/100)", null))
+                }
+            }
+        }
+        player.openInventory(inv)
+    }
+
+    fun openLeaderBoardGui(player: Player, page: Int = 1) {
+        val inv = Bukkit.createInventory(null, 54, "§2§lRank LeaderBoard")
+        for (x in 0..2) {
+            for (y in 0..5) {
+                val slot = y*9 + x
+                inv.setItem(slot, ItemManager.createNamedItem(Material.BLACK_STAINED_GLASS_PANE, 1, " ", null))
+            }
+        }
+        for (x in 6..8) {
+            for (y in 0..5) {
+                val slot = y*9 + x
+                inv.setItem(slot, ItemManager.createNamedItem(Material.BLACK_STAINED_GLASS_PANE, 1, " ", null))
+            }
+        }
+
+        inv.setItem(0, ItemManager.createNamedItem(Material.GREEN_STAINED_GLASS_PANE, 1, "§aPage: $page", null))
+
+        val playerUUIDs = playerStat.keys.filter { !playerStat[it]!!.unRanked }.sortedByDescending { playerStat[it]!!.playerRank }
+        val players = playerStat.values.filter { !it.unRanked }.sortedByDescending { it.playerRank }
+        val firstInx = (page -1)*6
+        val idxList = listOf(3, 12, 21, 30, 39, 48)
+
+        for (i in 0 until 6) {
+            val idx = firstInx + i
+            if (playerUUIDs.size > idx) {
+                val offPlayerUUID = playerUUIDs[idx]
+                val offPlayer = plugin.server.getOfflinePlayer(playerUUIDs[idx])
+                val stat = players[idx]
+                val guiSlot = idxList[i]
+
+                val nameStr = "§a${idx+1}. ${offPlayer.name}"
+                val item = EffectManager.getPlayerSkull(offPlayerUUID).setName(nameStr)
+                val meta = item.itemMeta
+                meta.lore = listOf("§eRank: ${rateToString(offPlayerUUID)}", "§eRate: (${rateToScore(stat.playerRank)}/100)", " ", "§eGame Played: ${stat.gamePlayed}")
+                item.itemMeta = meta
+                inv.setItem(guiSlot+1, item)
+                inv.setItem(guiSlot, rateToGUIItem(offPlayerUUID))
+                inv.setItem(guiSlot+2, rateToGUIItem(offPlayerUUID))
+            }
+        }
+
+        if (playerUUIDs.size > page*6) {
+            inv.setItem(53, ItemManager.createNamedItem(Material.ARROW, 1, "§aNext Page", null))
+        }
+
+        if (page != 1) {
+            inv.setItem(45, ItemManager.createNamedItem(Material.ARROW, 1, "§aPrevious", null))
+        }
+
+        player.openInventory(inv)
+    }
     fun initData(playerUUID: UUID): PlayerStats {
         if (playerStat[playerUUID] == null) {
             playerStat[playerUUID] = PlayerStats(defaultMMR, 0)
@@ -183,7 +312,7 @@ object RankSystem {
                 player.sendMessage(" ")
                 player.sendMessage("${ChatColor.GREEN}승급했습니다!")
                 player.sendMessage("  ")
-                player.sendMessage("${ChatColor.GREEN}티어: ${rateToString(player)} (${rateToScore(classData.playerRank)})")
+                player.sendMessage("${ChatColor.GREEN}티어: ${rateToString(player.uniqueId)} (${rateToScore(classData.playerRank)})")
                 player.sendMessage("   ")
                 player.sendMessage("${ChatColor.GOLD}========================================")
             } else {

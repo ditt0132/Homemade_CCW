@@ -74,6 +74,13 @@ object EffectManager {
         head.itemMeta = headMeta
         return head
     }
+    fun getPlayerSkull(uuid: UUID): ItemStack {
+        val skull = ItemStack(Material.PLAYER_HEAD)
+        val meta = skull.itemMeta as SkullMeta
+        meta.setOwningPlayer(plugin.server.getOfflinePlayer(uuid))
+        skull.itemMeta = meta
+        return skull
+    }
     fun breakBlock(blockLoc: Location) {
         if (blockLoc.world.isChunkLoaded(blockLoc.x.roundToInt() shr 4, blockLoc.z.roundToInt() shr 4) && blockLoc.y.roundToInt() > Main.groundY) {
             if (blockLoc.block.type != Material.AIR && blockLoc.block.type != Material.BARRIER) {

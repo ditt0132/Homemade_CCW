@@ -17,6 +17,7 @@ import me.uwuaden.kotlinplugin.itemManager.maps.MapManager
 import me.uwuaden.kotlinplugin.quickSlot.QuickSlotEvent
 import me.uwuaden.kotlinplugin.quickSlot.QuickSlotManager
 import me.uwuaden.kotlinplugin.rankSystem.PlayerStats
+import me.uwuaden.kotlinplugin.rankSystem.RankEvent
 import me.uwuaden.kotlinplugin.rankSystem.RankSystem
 import me.uwuaden.kotlinplugin.skillSystem.SkillEvent
 import me.uwuaden.kotlinplugin.skillSystem.SkillInventoryHolder
@@ -147,6 +148,7 @@ class Main: JavaPlugin() {
         Bukkit.getPluginManager().registerEvents(QuickSlotEvent(), this)
         Bukkit.getPluginManager().registerEvents(ZombieEvent(), this)
         Bukkit.getPluginManager().registerEvents(GuideBookEvent(), this)
+        Bukkit.getPluginManager().registerEvents(RankEvent(), this)
 
         if (!setupEconomy()) {
             server.logger.log(Level.WARNING, "Vault Load Error")
@@ -448,8 +450,8 @@ class Main: JavaPlugin() {
                         suggests { ctx ->
                             val list = mutableListOf<String>()
                             playerStat.forEach { (k, v) ->
-                                val p = plugin.server.getOfflinePlayer(k).player
-                                if (p != null) list.add(p.name)
+                                val p = plugin.server.getOfflinePlayer(k)
+                                if (p.name != null) list.add(p.name!!)
                             }
                             suggest(list)
                         }
@@ -457,13 +459,9 @@ class Main: JavaPlugin() {
                     then("PlayerName" to autoCompleteBlockPosition) {
                         executes {
                             val PlayerName: String by it
-                            val p = plugin.server.getPlayer(PlayerName)
-                            if (p != null) {
-                                val classData = RankSystem.initData(p.uniqueId)
+                            val p = plugin.server.getOfflinePlayer(PlayerName)
+                            RankSystem.openGui(player, p.uniqueId)
 
-                                val rankStr = RankSystem.rateToString(p)
-                                player.sendMessage("${ChatColor.GREEN}${PlayerName}님의 랭크: ${rankStr} ${ChatColor.GREEN}(${RankSystem.rateToScore(classData.playerRank)}/100)")
-                            }
                         }
                     }
                 }
@@ -479,7 +477,7 @@ class Main: JavaPlugin() {
                                     player.sendMessage(" ")
                                     player.sendMessage("${ChatColor.GREEN}${LocalDate.now().year}년 ${LocalDate.now().monthValue}월 ${LocalDate.now().dayOfMonth}일, 시즌이 종료되었습니다!")
                                     player.sendMessage(" ")
-                                    player.sendMessage("${ChatColor.WHITE}당신의 최종 티어 : ${RankSystem.rateToString(player)} ${ChatColor.GREEN}(${RankSystem.rateToScore(classData.playerRank)})")
+                                    player.sendMessage("${ChatColor.WHITE}당신의 최종 티어 : ${RankSystem.rateToString(player.uniqueId)} ${ChatColor.GREEN}(${RankSystem.rateToScore(classData.playerRank)})")
                                     player.sendMessage(" ")
                                     player.sendMessage("${ChatColor.GOLD}=================================================")
                                 }
@@ -526,7 +524,7 @@ class Main: JavaPlugin() {
                                     }
                                     classData.playerRank = 0
                                     classData.gamePlayed = 0
-                                    val removal = 750
+                                    val removal = 250*3
                                     when (classData.playerMMR) {
                                         in 0..1200 -> classData.playerMMR -= (removal*0.5).roundToInt()
                                         in 1201..2000 -> classData.playerMMR -= (removal*0.7).roundToInt()
@@ -641,9 +639,7 @@ class Main: JavaPlugin() {
                 }
                 then("랭크") {
                     executes {
-                        val classData = RankSystem.initData(player.uniqueId)
-                        val rankStr = RankSystem.rateToString(player)
-                        player.sendMessage("${rankStr} ${ChatColor.GREEN}(${RankSystem.rateToScore(classData.playerRank)}/100)")
+                        RankSystem.openGui(player)
                     }
                     then("활성화") {
                         executes {
@@ -726,7 +722,7 @@ class Main: JavaPlugin() {
             register("test") {
                 requires { isOp }
                 executes {
-                    player.inventory.addItem(CustomItemData.getGravitization())
+                    RankSystem.openLeaderBoardGui(player)
                 }
             }
             register("queuelist") {
