@@ -775,4 +775,34 @@ class SkillEvent: Listener {
             })
         }
     }
+    @EventHandler
+    fun onUseOverFlow(e: EntityDamageByEntityEvent) {
+        val player = e.entity
+        if (player is Player) {
+            if (player.inventory.helmet?.itemMeta?.displayName == "${ChatColor.RED}${ChatColor.BOLD}OverFlow") {
+                if (player.health <= 6.0) {
+                    e.damage *= 2.5
+                    EffectManager.playSurroundSound(player.location, Sound.ENTITY_ZOMBIE_VILLAGER_CURE, 0.5f, 1.5f)
+                    EffectManager.playSurroundSound(player.location, Sound.BLOCK_ANVIL_PLACE, 1.0f, 2.0f)
+                    EffectManager.playSurroundSound(player.location, Sound.ITEM_TRIDENT_RETURN, 1.0f, 1.5f)
+                } else if (player.health <= 12.0) {
+                    e.damage *= 1.3
+                    EffectManager.playSurroundSound(player.location, Sound.ENTITY_ZOMBIE_VILLAGER_CURE, 0.5f, 1.0f)
+                    EffectManager.playSurroundSound(player.location, Sound.BLOCK_ANVIL_PLACE, 1.0f, 2.0f)
+                    EffectManager.playSurroundSound(player.location, Sound.ITEM_TRIDENT_RETURN, 1.0f, 0.8f)
+                }
+            }
+        }
+    }
+    @EventHandler
+    fun onUseAstroMatrix(e: EntityDamageByEntityEvent){
+        val player = e.entity
+        if (player is Player)
+        if (player.inventory.helmet?.itemMeta?.displayName == "${ChatColor.YELLOW}${ChatColor.BOLD}AstroMatrix")
+        if (player.getCooldown(Material.DIAMOND_LEGGINGS) > 0) return
+        //영구적인 재생 1 부여
+
+        //플레이어가 흡수 칸이 없을 때
+        //플레이어가 데미지를 입으면 쿨타임 45초 세팅
+    }
 }
