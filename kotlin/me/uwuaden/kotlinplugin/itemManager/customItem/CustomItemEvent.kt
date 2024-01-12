@@ -728,6 +728,7 @@ class CustomItemEvent: Listener {
                 return
             }
             if (shooter.inventory.itemInOffHand.type == Material.BOW) return
+            if (shooter.inventory.itemInOffHand.type == Material.CROSSBOW) return
 
             if (shooter.getCooldown(Material.CROSSBOW) > 0) return
             shooter.setCooldown(Material.CROSSBOW, 20 * 1)

@@ -1,6 +1,7 @@
 package me.uwuaden.kotlinplugin.assets
 
 import me.uwuaden.kotlinplugin.assets.ItemManipulator.addCustomModelData
+import me.uwuaden.kotlinplugin.assets.ItemManipulator.enchant
 import me.uwuaden.kotlinplugin.itemManager.ItemManager
 import org.bukkit.ChatColor
 import org.bukkit.Color
@@ -268,10 +269,14 @@ object CustomItemData {
         return ItemManager.createNamedItem(Material.NETHERITE_SHOVEL, 1, "${ChatColor.AQUA}${ChatColor.BOLD}Prototype V3", listOf("${ChatColor.GRAY}매우 강력한 스나이퍼 라이플입니다.", "${ChatColor.GRAY}거리가 멀수록 대미지가 증가합니다!"))
     }
     fun getGravitization(): ItemStack {
-        return ItemManager.createNamedItem(Material.RED_DYE, 1, "§c§lGRAVITIZATION", listOf("§7클릭한 위치에 강력한 중력장을 소환합니다.", "§7중력장은 아래로 적을 당기며 속도를 감소시킵니다.", "§7또한 느린 투사체를 막아냅니다.", "§2시전시간: 1초, 지속시간: 10초, 쿨타임: 30초, 초당 대미지: 1.0", " ", "§7Gadget"))
+        return ItemManager.createNamedItem(Material.RED_DYE, 1, "§c§lGRAVITIZATION", listOf("§7클릭한 위치에 강력한 중력장을 소환합니다.", "§7중력장은 아래로 적을 당기며 속도를 감소시킵니다.", "§7또한 느린 투사체를 막아냅니다.", "§2시전시간: 0.5초, 지속시간: 10초, 쿨타임: 30초, 초당 대미지: 1.0", " ", "§7Gadget"))
     }
 
     fun getOverFlow(): ItemStack {
         return ItemManager.createNamedItem(Material.DIAMOND_HELMET, 1, "§c§lOverFlow", listOf("§7체력이 낮을 때 근접 데미지가 증가합니다.","§2데미지 배수: x1.0 ~ x2.0, 체력 비례: 10칸 ~ 2칸"," ", "§7Gadget"))
+    }
+    fun getBowOfEternity(): ItemStack {
+        return ItemManager.createNamedItem(Material.BOW, 1, "§e§lBow of Eternity", listOf("§2일반 공격: §7히트스캔 방식의 화살을 발사합니다.", "§7같은 플레이어를 계속 맞추면 스택이 쌓입니다.", "§2좌클릭: §7스택을 제거하고, 스택이 쌓인 플레이어에게 스택에 비례한 고정피해를 입힙니다.", " ", "§2대미지: 2.0, 최대스택: 20, 스택 대미지: (스택)*0.5", "§7(화살 대미지는 인첸트의 영향을 받습니다.)", "§7Gadget", "§2Player: ", "§2Stack: ")).enchant(Enchantment.ARROW_DAMAGE, 1).enchant(
+            Enchantment.DURABILITY, 3)
     }
 }

@@ -722,7 +722,7 @@ class Main: JavaPlugin() {
             register("test") {
                 requires { isOp }
                 executes {
-                    RankSystem.openLeaderBoardGui(player)
+                    player.inventory.addItem(CustomItemData.getBowOfEternity())
                 }
             }
             register("queuelist") {

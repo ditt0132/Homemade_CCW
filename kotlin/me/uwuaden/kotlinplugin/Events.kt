@@ -224,7 +224,7 @@ class Events: Listener {
         if (e.entity is Player) {
             val player = e.entity as Player
             if (listOf(EntityDamageEvent.DamageCause.ENTITY_ATTACK, EntityDamageEvent.DamageCause.ENTITY_SWEEP_ATTACK).contains(e.cause)) {
-                e.damage*=0.9
+                e.damage*=0.8
             } else if (listOf(EntityDamageEvent.DamageCause.PROJECTILE).contains(e.cause)) {
                 e.damage*=0.7
             }

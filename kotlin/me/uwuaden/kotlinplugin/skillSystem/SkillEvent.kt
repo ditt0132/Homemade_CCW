@@ -21,10 +21,13 @@ import org.apache.commons.lang3.Validate
 import org.bukkit.*
 import org.bukkit.Particle.*
 import org.bukkit.block.Block
+import org.bukkit.enchantments.Enchantment
 import org.bukkit.entity.*
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
+import org.bukkit.event.block.Action
 import org.bukkit.event.entity.EntityDamageByEntityEvent
+import org.bukkit.event.entity.EntityShootBowEvent
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerItemHeldEvent
@@ -723,8 +726,8 @@ class SkillEvent: Listener {
             }
             val random = Random()
             scheduler.runTaskAsynchronously(plugin, Runnable {
-                for (i in 0 until 10*11) {
-                    if (i >= 10) {
+                for (i in 0 until 10*10 + 5) {
+                    if (i >= 5) {
                         val entities = mutableSetOf<Entity>()
                         scheduler.scheduleSyncDelayedTask(plugin, {
                             EffectManager.playSurroundSound(loc, Sound.BLOCK_BEACON_AMBIENT, 1.0f, 2.0f)
@@ -775,27 +778,183 @@ class SkillEvent: Listener {
             })
         }
     }
+
     @EventHandler
-    fun onUseOverFlow(e: EntityDamageByEntityEvent) {
-        val player = e.entity
+    fun onOverFlowDamage(e: EntityDamageByEntityEvent) {
+        val player = e.damager
         if (player is Player) {
             if (player.inventory.helmet?.itemMeta?.displayName == "${ChatColor.RED}${ChatColor.BOLD}OverFlow") {
-                if (player.health <= 6.0) {
-                    e.damage *= 2.5
-                    EffectManager.playSurroundSound(player.location, Sound.ENTITY_ZOMBIE_VILLAGER_CURE, 0.5f, 1.5f)
-                    EffectManager.playSurroundSound(player.location, Sound.BLOCK_ANVIL_PLACE, 1.0f, 2.0f)
-                    EffectManager.playSurroundSound(player.location, Sound.ITEM_TRIDENT_RETURN, 1.0f, 1.5f)
-                } else if (player.health <= 12.0) {
-                    e.damage *= 1.3
-                    EffectManager.playSurroundSound(player.location, Sound.ENTITY_ZOMBIE_VILLAGER_CURE, 0.5f, 1.0f)
-                    EffectManager.playSurroundSound(player.location, Sound.BLOCK_ANVIL_PLACE, 1.0f, 2.0f)
-                    EffectManager.playSurroundSound(player.location, Sound.ITEM_TRIDENT_RETURN, 1.0f, 0.8f)
+                val currentHealth = player.health
+                var currHealthLv = 3
+
+
+                if (currentHealth <= 6.0) currHealthLv = 1
+                else if (currentHealth <= 12.0) currHealthLv = 2
+
+                if (currHealthLv == 1) {
+                    e.damage *= 2.0
+                    player.world.spawnParticle(REDSTONE, player.location, 10, 0.5, 0.5, 0.5, DustOptions(Color.RED, 1.2f))
+                } else if (currHealthLv == 2) {
+                    e.damage *= 1.4
+                    player.world.spawnParticle(REDSTONE, player.location, 5, 0.5, 0.5, 0.5, DustOptions(Color.RED, 0.5f))
                 }
             }
         }
     }
+//    @EventHandler
+//    fun onOverFlowActive(e: EntityDamageByEntityEvent) {
+//        val player = e.entity
+//        if (player is Player) {
+//            if (player.inventory.helmet?.itemMeta?.displayName == "${ChatColor.RED}${ChatColor.BOLD}OverFlow") {
+//                val damage = e.damage
+//                val previousHealth = player.health + damage
+//                val currentHealth = player.health
+//                var prHealthLv = 3
+//                var currHealthLv = 3
+//
+//                if (previousHealth <= 6.0) prHealthLv = 1
+//                else if (previousHealth <= 12.0) prHealthLv = 2
+//
+//                if (currentHealth <= 6.0) currHealthLv = 1
+//                else if (currentHealth <= 12.0) currHealthLv = 2
+//
+//                val loc = player.eyeLocation.clone().add(0.0, 2.5, 0.0)
+//
+//                if (prHealthLv != currHealthLv) {
+//                    if (player.hasCooldown(Material.DIAMOND_HELMET)) return
+//                    player.setCooldown(Material.DIAMOND_HELMET, 20*5)
+//                    if (currHealthLv == 1) {
+//                        EffectManager.playSurroundSound(player.location, Sound.ENTITY_ZOMBIE_VILLAGER_CURE, 0.5f, 1.5f)
+//                        EffectManager.playSurroundSound(player.location, Sound.BLOCK_ANVIL_PLACE, 1.0f, 2.0f)
+//                        EffectManager.playSurroundSound(player.location, Sound.ITEM_TRIDENT_RETURN, 1.0f, 1.5f)
+//
+//                        scheduler.runTaskAsynchronously(plugin, Runnable {
+//                            for (i in 0 until 20) {
+//                                scheduler.scheduleSyncDelayedTask(plugin, {
+//                                    EffectManager.drawImageXY(loc, "https://i.ibb.co/CwbDCmx/db-sw.png", 40, 40, 10.0)
+//                                }, 0)
+//                                Thread.sleep(1000/5)
+//                            }
+//                        })
+//                    } else if (currHealthLv == 2) {
+//                        EffectManager.playSurroundSound(player.location, Sound.ENTITY_ZOMBIE_VILLAGER_CURE, 0.5f, 1.0f)
+//                        EffectManager.playSurroundSound(player.location, Sound.BLOCK_ANVIL_PLACE, 1.0f, 2.0f)
+//                        EffectManager.playSurroundSound(player.location, Sound.ITEM_TRIDENT_RETURN, 1.0f, 0.8f)
+//
+//                        scheduler.runTaskAsynchronously(plugin, Runnable {
+//                            for (i in 0 until 20) {
+//                                scheduler.scheduleSyncDelayedTask(plugin, {
+//                                    EffectManager.drawImageXY(loc, "https://i.ibb.co/RcX9yLR/sg-sw.png", 30, 30, 10.0)
+//                                }, 0)
+//                                Thread.sleep(1000/5)
+//                            }
+//                        })
+//                    }
+//                }
+//            }
+//        }
+//    }
+
     @EventHandler
-    fun onUseAstroMatrix(e: EntityDamageByEntityEvent){
+    fun onBowOfEternityShoot(e: EntityShootBowEvent) {
+        val projectile = e.projectile
+        if (projectile is Arrow) {
+            val shooter = projectile.shooter as? Player?: return
+            if (shooter.inventory.itemInMainHand.itemMeta?.displayName != CustomItemData.getBowOfEternity().getName()) {
+                return
+            }
+            if (shooter.inventory.itemInOffHand.type == Material.BOW) return
+            if (shooter.inventory.itemInOffHand.type == Material.CROSSBOW) return
+
+            shooter.setCooldown(Material.BOW, 20 * 1)
+
+            var entity: LivingEntity? = null
+
+            val loc = shooter.eyeLocation.clone()
+
+            EffectManager.playSurroundSound(shooter.location, Sound.ENTITY_GENERIC_EXPLODE, 0.5F, 2.0F)
+            EffectManager.playSurroundSound(shooter.location, Sound.ITEM_TRIDENT_RETURN, 1.0F, 1.5F)
+            EffectManager.playSurroundSound(shooter.location, Sound.ITEM_TRIDENT_RETURN, 1.0F, 0.5F)
+            shooting@ for (i in 0 until 100 * 10) {
+                val pos = loc.clone().add(loc.clone().direction.multiply(i/10.0))
+                if (!pos.isChunkLoaded) break@shooting
+
+                if (pos.block.isSolid) break@shooting
+
+                if (entity != null) break@shooting
+
+                if (i > 10) {
+                    scheduler.runTaskAsynchronously(plugin, Runnable {
+                        for (n in 0 until 3) {
+                            scheduler.scheduleSyncDelayedTask(plugin, {
+                                pos.world.spawnParticle(REDSTONE, pos, 1, 0.0, 0.0, 0.0, 0.0, DustOptions(Color.WHITE, 1.0f))
+                            }, 0)
+                            Thread.sleep(1000/5)
+                        }
+                    })
+                }
+                pos.getNearbyLivingEntities(3.0, 3.0, 3.0).filter { CustomItemManager.isHittable(shooter, it) }.filter { it.boundingBox.expand(boundingBoxExpand).contains(pos.x, pos.y, pos.z) }.filter { it != shooter }.forEach {
+                    entity = it
+                }
+            }
+
+
+            if (entity != null) {
+                shooter.playSound(shooter, Sound.ENTITY_ARROW_HIT_PLAYER, 1.0F, 2.0F)
+                val item = shooter.inventory.itemInMainHand
+                var damage = 2.0*e.force
+                if (item.itemMeta.hasEnchant(Enchantment.ARROW_DAMAGE)) {
+                    damage*=(1.25 + item.itemMeta.getEnchantLevel(Enchantment.ARROW_DAMAGE)*0.25)
+                }
+                entity!!.damage(damage)
+
+                val direction = entity!!.location.toVector().subtract(shooter.location.clone().toVector()).normalize()
+                entity!!.velocity = direction.multiply(0.5).setY(0.4)
+
+                if (entity is Player) {
+                    val lore = item.lore!!
+                    if (ChatColor.stripColor(lore[lore.size-2].split(": ").last())!! == ChatColor.stripColor(entity!!.name)) {
+                        var stack = lore[lore.size-1].split(": ").last().toInt()
+                        if (stack < 20) stack++
+                        lore[lore.size-1] = "§2Stack: $stack"
+                    } else {
+                        lore[lore.size-2] = "§2Player: ${entity!!.name}"
+                        lore[lore.size-1] = "§2Stack: 1"
+                        EffectManager.playSurroundSound(shooter.location, Sound.BLOCK_BEACON_DEACTIVATE, 1.0f, 1.0f)
+                    }
+                    item.lore = lore
+                }
+            }
+
+            projectile.remove()
+        }
+    }
+
+    @EventHandler
+    fun onBowOfEternityLeftClick(e: PlayerInteractEvent) {
+        val player = e.player
+        if (player.inventory.itemInMainHand.itemMeta?.displayName != CustomItemData.getBowOfEternity().getName()) return
+
+        if (e.hand == EquipmentSlot.OFF_HAND) return
+
+        if (e.action != Action.LEFT_CLICK_AIR && e.action != Action.LEFT_CLICK_BLOCK) return
+        val item = player.inventory.itemInMainHand
+        val lore = item.lore!!
+        try {
+            val targetPlayer = plugin.server.getPlayer(ChatColor.stripColor(lore[lore.size - 2].split(": ").last())!!) ?: return
+            val stack = lore[lore.size - 1].split(": ").last().toInt()
+            if (CustomItemManager.isHittable(player, targetPlayer) && player.world == targetPlayer.world) {
+                targetPlayer.damage(0.5*stack)
+                EffectManager.playSurroundSound(targetPlayer.location, Sound.ENTITY_ZOMBIE_BREAK_WOODEN_DOOR, 0.5f, 1.0f)
+                EffectManager.playSurroundSound(player.location, Sound.ENTITY_ZOMBIE_BREAK_WOODEN_DOOR, 0.5f, 1.0f)
+                lore[lore.size-2] = "§2Player: "
+                lore[lore.size-1] = "§2Stack: 0"
+                item.lore = lore
+            }
+        } catch (e: Exception) { }
+    }
+    @EventHandler
+    fun onUseAstroMatrix(e: EntityDamageByEntityEvent) {
         val player = e.entity
         if (player is Player)
         if (player.inventory.helmet?.itemMeta?.displayName == "${ChatColor.YELLOW}${ChatColor.BOLD}AstroMatrix")

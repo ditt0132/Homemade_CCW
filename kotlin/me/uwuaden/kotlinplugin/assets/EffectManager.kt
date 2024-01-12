@@ -175,4 +175,29 @@ object EffectManager {
             println(e)
         }
     }
+
+    fun drawImageXY(loc: Location, url: String, xPixel: Int, yPixel: Int, div: Double) {
+        try {
+            scheduler.runTaskAsynchronously(plugin, Runnable {
+                val startLoc = loc.clone().add(-xPixel.toDouble()/div/2, -yPixel.toDouble()/div/2, 0.0)
+                val bufferedImage = ImageIO.read(URL(url))
+                val pixelData = getImagePixelData(bufferedImage, xPixel, yPixel)
+                scheduler.scheduleSyncDelayedTask(plugin, {
+                    for (x in 0..xPixel) {
+                        for (y in 0..yPixel) {
+                            val printLoc = startLoc.clone().add(x.toDouble()/div, y.toDouble()/div, 0.0)
+                            val colorInt = pixelData[Pair(x, y)] ?: 0
+                            val alpha = (colorInt shr 24) and 0xFF // 알파 값 추출
+                            val red = (colorInt shr 16) and 0xFF   // 빨강 값 추출
+                            val green = (colorInt shr 8) and 0xFF  // 초록 값 추출
+                            val blue = colorInt and 0xFF           // 파랑 값 추출
+                            if (!(red == 0 && green == 0  && blue == 0)) startLoc.world.spawnParticle(Particle.REDSTONE, printLoc, 1, DustOptions(Color.fromRGB(red, green, blue), 1.0f))
+                        }
+                    }
+                }, 0)
+            })
+        } catch (e: Exception) {
+            println(e)
+        }
+    }
 }
