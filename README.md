@@ -22,7 +22,7 @@
   - 코드가 **많이** 더러울수도 있음.
 ## Authors
 
-- [@uwuaden](https://www.github.com/uwuaden)
+- [@uwuaden](https://www.github.com/1ntp)
   - 똥싼놈
 - [@aBun2y](https://www.github.com/aBun2y)
   - 똥같이싼놈
