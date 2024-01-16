@@ -915,7 +915,7 @@ class SkillEvent: Listener {
                     val lore = item.lore!!
                     if (ChatColor.stripColor(lore[lore.size-2].split(": ").last())!! == ChatColor.stripColor(entity!!.name)) {
                         var stack = lore[lore.size-1].split(": ").last().toInt()
-                        if (stack < 20) stack++
+                        if (stack < 10) stack++
                         lore[lore.size-1] = "§2Stack: $stack"
                     } else {
                         lore[lore.size-2] = "§2Player: ${entity!!.name}"
@@ -944,14 +944,21 @@ class SkillEvent: Listener {
             val targetPlayer = plugin.server.getPlayer(ChatColor.stripColor(lore[lore.size - 2].split(": ").last())!!) ?: return
             val stack = lore[lore.size - 1].split(": ").last().toInt()
             if (CustomItemManager.isHittable(player, targetPlayer) && player.world == targetPlayer.world) {
-                targetPlayer.damage(0.5*stack)
-                EffectManager.playSurroundSound(targetPlayer.location, Sound.ENTITY_ZOMBIE_BREAK_WOODEN_DOOR, 0.5f, 1.0f)
-                EffectManager.playSurroundSound(player.location, Sound.ENTITY_ZOMBIE_BREAK_WOODEN_DOOR, 0.5f, 1.0f)
-                lore[lore.size-2] = "§2Player: "
-                lore[lore.size-1] = "§2Stack: 0"
-                item.lore = lore
+                targetPlayer.damage(stack.toDouble())
+                if (stack != 0) {
+                    EffectManager.playSurroundSound(
+                        targetPlayer.location,
+                        Sound.ENTITY_ZOMBIE_BREAK_WOODEN_DOOR,
+                        0.5f,
+                        1.0f
+                    )
+                    EffectManager.playSurroundSound(player.location, Sound.ENTITY_ZOMBIE_BREAK_WOODEN_DOOR, 0.5f, 1.0f)
+                    lore[lore.size - 2] = "§2Player: "
+                    lore[lore.size - 1] = "§2Stack: 0"
+                    item.lore = lore
+                }
             }
-        } catch (e: Exception) { }
+        } catch (_: Exception) { }
     }
     @EventHandler
     fun onUseAstroMatrix(e: EntityDamageByEntityEvent) {

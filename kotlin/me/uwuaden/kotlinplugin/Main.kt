@@ -720,9 +720,9 @@ class Main: JavaPlugin() {
                 }
             }
             register("test") {
-                requires { isOp }
+                requires { isOp || isConsole }
                 executes {
-                    player.inventory.addItem(CustomItemData.getBowOfEternity())
+                    FileManager.uploadAPIData()
                 }
             }
             register("queuelist") {

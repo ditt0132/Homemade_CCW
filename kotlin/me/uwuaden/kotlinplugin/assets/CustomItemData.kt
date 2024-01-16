@@ -276,7 +276,7 @@ object CustomItemData {
         return ItemManager.createNamedItem(Material.DIAMOND_HELMET, 1, "§c§lOverFlow", listOf("§7체력이 낮을 때 근접 데미지가 증가합니다.","§2데미지 배수: x1.0 ~ x2.0, 체력 비례: 10칸 ~ 2칸"," ", "§7Gadget"))
     }
     fun getBowOfEternity(): ItemStack {
-        return ItemManager.createNamedItem(Material.BOW, 1, "§e§lBow of Eternity", listOf("§2일반 공격: §7히트스캔 방식의 화살을 발사합니다.", "§7같은 플레이어를 계속 맞추면 스택이 쌓입니다.", "§2좌클릭: §7스택을 제거하고, 스택이 쌓인 플레이어에게 스택에 비례한 고정피해를 입힙니다.", " ", "§2대미지: 2.0, 최대스택: 20, 스택 대미지: (스택)*0.5", "§7(화살 대미지는 인첸트의 영향을 받습니다.)", "§7Gadget", "§2Player: ", "§2Stack: ")).enchant(Enchantment.ARROW_DAMAGE, 1).enchant(
+        return ItemManager.createNamedItem(Material.BOW, 1, "§e§lBow of Eternity", listOf("§2일반 공격: §7히트스캔 방식의 화살을 발사합니다.", "§7같은 플레이어를 계속 맞추면 스택이 쌓입니다.", "§2좌클릭: §7스택을 제거하고, 스택이 쌓인 플레이어에게 스택에 비례한 고정피해를 입힙니다.", " ", "§2대미지: 2.0, 최대스택: 10, 스택 대미지: (스택)*1.0", "§7(화살 대미지는 인첸트의 영향을 받습니다.)", "§7Gadget", "§2Player: ", "§2Stack: ")).enchant(Enchantment.ARROW_DAMAGE, 1).enchant(
             Enchantment.DURABILITY, 3)
     }
 }

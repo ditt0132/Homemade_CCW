@@ -6,12 +6,17 @@ import me.uwuaden.kotlinplugin.Main.Companion.scheduler
 import me.uwuaden.kotlinplugin.quickSlot.PlayerQuickSlotData
 import me.uwuaden.kotlinplugin.quickSlot.QuickSlotEvent.Companion.playerQuickSlot
 import me.uwuaden.kotlinplugin.rankSystem.PlayerStats
+import me.uwuaden.kotlinplugin.rankSystem.RankSystem
 import me.uwuaden.kotlinplugin.skillSystem.PlayerSkillHolder
 import me.uwuaden.kotlinplugin.skillSystem.SkillEvent.Companion.playerEItem
 import me.uwuaden.kotlinplugin.skillSystem.SkillEvent.Companion.playerEItemList
+import org.bukkit.ChatColor
 import org.bukkit.configuration.file.YamlConfiguration
 import java.io.File
 import java.io.IOException
+import java.net.HttpURLConnection
+import java.net.URL
+import java.net.URLEncoder
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
@@ -33,6 +38,53 @@ object FileManager {
                 }
             } catch (e: NumberFormatException) {
                 println(e)
+            }
+        })
+    }
+    fun uploadAPIData() {
+        scheduler.runTaskAsynchronously(plugin, Runnable {
+            val file = File(plugin.dataFolder, "api.yml")
+            if (!file.exists()) {
+                file.createNewFile()
+                val config = YamlConfiguration()
+                config.set("pw", "")
+                config.set("ip", "localhost")
+                try {
+                    config.save(file)
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                }
+            }
+            val config = YamlConfiguration()
+
+            try {
+                config.load(file)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+
+            val pw = config.get("pw").toString()
+            val ip = config.get("ip").toString()
+
+            playerStat.filter { plugin.server.getOfflinePlayer(it.key).name != null }.forEach { (uuid, data) ->
+                val jsonData = URLEncoder.encode(
+                    "{\"username\": \"${plugin.server.getOfflinePlayer(uuid).name}\", \"rank_enabled\": ${data.rank}, \"game_played\": ${data.gamePlayed}, \"unranked\": ${data.unRanked}, \"rank_string\": \"${
+                        ChatColor.stripColor(
+                            RankSystem.rateToString(uuid)
+                        )
+                    }\", \"user_score\": ${RankSystem.rateToScore(data.playerRank)},\"mmr_type\": 0}", "UTF-8"
+                )//mmr_type추가
+                var urlStr = "http://$ip"
+                urlStr += "/post?"
+                urlStr += "pw=${pw}"
+                urlStr += "&uuid=${uuid}"
+                urlStr += "&data=${jsonData}"
+                val url = URL(urlStr)
+                val conn = url.openConnection() as HttpURLConnection
+                conn.setRequestProperty("User-Agent", "Mozilla/5.0")
+                conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+                conn.content
+                conn.disconnect()
             }
         })
     }

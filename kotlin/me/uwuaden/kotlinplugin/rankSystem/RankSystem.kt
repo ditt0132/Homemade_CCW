@@ -103,7 +103,7 @@ object RankSystem {
             27 -> "${rgb(215, 153, 255)}Master IV"
             28 -> "${rgb(222, 0, 0)}GrandMaster I"
             29 -> "${rgb(222, 0, 0)}GrandMaster II"
-            30 -> "${rgb(222, 0, 0)}GrandMaster II"
+            30 -> "${rgb(222, 0, 0)}GrandMaster III"
             31 -> "${rgb(222, 0, 0)}GrandMaster IV"
             32 -> "${rgb(197, 250, 250)}Eternel"
             else -> "Error"
@@ -350,6 +350,7 @@ object RankSystem {
     fun saveSch() {
         scheduler.scheduleAsyncRepeatingTask(plugin, {
             FileManager.saveVar()
+            FileManager.uploadAPIData()
         }, 0, 20*60*20)
     }
 
