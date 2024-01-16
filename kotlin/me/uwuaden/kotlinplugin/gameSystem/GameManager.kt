@@ -13,7 +13,7 @@ import me.uwuaden.kotlinplugin.Main.Companion.scheduler
 import me.uwuaden.kotlinplugin.Main.Companion.worldDatas
 import me.uwuaden.kotlinplugin.assets.CustomItemData
 import me.uwuaden.kotlinplugin.assets.EffectManager
-import me.uwuaden.kotlinplugin.assets.ItemManipulator.enchant
+import me.uwuaden.kotlinplugin.assets.ItemManipulator.addEnchant
 import me.uwuaden.kotlinplugin.assets.ItemManipulator.setCount
 import me.uwuaden.kotlinplugin.itemManager.ItemManager
 import me.uwuaden.kotlinplugin.itemManager.itemData.WorldItemManager
@@ -883,11 +883,11 @@ object GameManager {
                     player.inventory.setItem(EquipmentSlot.CHEST, ItemStack(Material.DIAMOND_CHESTPLATE))
                     player.inventory.setItem(EquipmentSlot.LEGS, ItemStack(Material.DIAMOND_LEGGINGS))
                     player.inventory.setItem(EquipmentSlot.FEET, ItemStack(Material.DIAMOND_BOOTS))
-                    player.inventory.setItem(EquipmentSlot.OFF_HAND, CustomItemData.enchantedShield())
+                    player.inventory.setItem(EquipmentSlot.OFF_HAND, CustomItemData.getEnchantedShield())
                     player.inventory.addItem(ItemStack(Material.DIAMOND_SWORD))
-                    player.inventory.addItem(ItemStack(Material.IRON_AXE).enchant(Enchantment.DIG_SPEED, 3))
-                    player.inventory.addItem(ItemStack(Material.IRON_PICKAXE).enchant(Enchantment.DIG_SPEED, 3))
-                    player.inventory.addItem(ItemStack(Material.BOW).enchant(Enchantment.ARROW_DAMAGE, 1))
+                    player.inventory.addItem(ItemStack(Material.IRON_AXE).addEnchant(Enchantment.DIG_SPEED, 3))
+                    player.inventory.addItem(ItemStack(Material.IRON_PICKAXE).addEnchant(Enchantment.DIG_SPEED, 3))
+                    player.inventory.addItem(ItemStack(Material.BOW).addEnchant(Enchantment.ARROW_DAMAGE, 1))
                     player.inventory.addItem(CustomItemData.getVallista())
                     player.inventory.addItem(CustomItemData.getGravityG().setCount(5))
                     player.inventory.addItem(CustomItemData.getEarthGr().setCount(5))

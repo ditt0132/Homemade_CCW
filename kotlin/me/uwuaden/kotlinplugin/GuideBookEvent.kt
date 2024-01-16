@@ -13,17 +13,15 @@ import org.bukkit.inventory.meta.PotionMeta
 import org.bukkit.potion.PotionEffect
 import org.bukkit.potion.PotionEffectType
 
-@Suppress("UNREACHABLE_CODE")
 class GuideBookEvent: Listener {
     @EventHandler
     fun onGuideBookInvClick(e: InventoryClickEvent) {
         val inventory = Bukkit.createInventory(null, 54, "§e§lItem Guide Book")
         val clickedInv = e.clickedInventory ?: return
         val slot = e.slot
-        if (e.view.title == "§e§lItem Guide Book") {
-            e.isCancelled = true
+        if (e.view.title != "§e§lItem Guide Book") return
+        e.isCancelled = true
             //if로 slot 찾아서 이벤트 알아서 추가.
-        }
 
         //2-33번 POWER INIZER 수정
         //해당된 종류칸 다시 클릭시 RETURN
@@ -31,11 +29,11 @@ class GuideBookEvent: Listener {
         if (e.isRightClick or e.isLeftClick) {
             if (e.slot == 1) {
                 for (i in 4 .. 8 ){
-                    inventory.setItem(i, ItemManager.createNamedItem(Material.WHITE_STAINED_GLASS_PANE, 1, "", null))
+                    inventory.setItem(i, ItemManager.createNamedItem(Material.WHITE_STAINED_GLASS_PANE, 1, " ", null))
                 }
-                inventory.setItem(10, ItemManager.createNamedItem(Material.GREEN_STAINED_GLASS_PANE, 1, "", null))
-                inventory.setItem(11, ItemManager.createNamedItem(Material.GRAY_STAINED_GLASS_PANE, 1, "", null))
-                inventory.setItem(12, ItemManager.createNamedItem(Material.GRAY_STAINED_GLASS_PANE, 1, "", null))
+                inventory.setItem(10, ItemManager.createNamedItem(Material.GREEN_STAINED_GLASS_PANE, 1, " ", null))
+                inventory.setItem(11, ItemManager.createNamedItem(Material.GRAY_STAINED_GLASS_PANE, 1, " ", null))
+                inventory.setItem(12, ItemManager.createNamedItem(Material.GRAY_STAINED_GLASS_PANE, 1, " ", null))
 
                 //기본드랍 - 확정(설명)
                 inventory.setItem(
@@ -43,12 +41,12 @@ class GuideBookEvent: Listener {
                     ItemManager.createNamedItem(
                         Material.REDSTONE_TORCH,
                         1,
-                        "",
+                        " ",
                         listOf("${ChatColor.GRAY}다음 아이템들이 필드에 확정적으로 뜹니다(여러개)")
                     )
                 )
 
-                inventory.setItem(20, ItemManager.createNamedItem(Material.GRAY_STAINED_GLASS_PANE, 1, "", null))
+                inventory.setItem(20, ItemManager.createNamedItem(Material.GRAY_STAINED_GLASS_PANE, 1, " ", null))
 
                 inventory.setItem(
                     21,
@@ -71,7 +69,7 @@ class GuideBookEvent: Listener {
                 )
 
                 for (i in 23..27) {
-                    inventory.setItem(i, ItemManager.createNamedItem(Material.AIR, 1, "", null))
+                    inventory.setItem(i, ItemManager.createNamedItem(Material.AIR, 1, " ", null))
                 }
 
                 //기본드랍 - 확률
@@ -80,7 +78,7 @@ class GuideBookEvent: Listener {
                     ItemManager.createNamedItem(
                         Material.REDSTONE_TORCH,
                         1,
-                        "",
+                        " ",
                         listOf("${ChatColor.GRAY}다음 아이템들이 필드에 확률적으로 뜹니다(중복 가능)")
                     )
                 )
@@ -159,8 +157,8 @@ class GuideBookEvent: Listener {
                     )
                 )
 
-                inventory.setItem(37, ItemManager.createNamedItem(Material.GRAY_STAINED_GLASS_PANE, 1, "", null))
-                inventory.setItem(38, ItemManager.createNamedItem(Material.GRAY_STAINED_GLASS_PANE, 1, "", null))
+                inventory.setItem(37, ItemManager.createNamedItem(Material.GRAY_STAINED_GLASS_PANE, 1, " ", null))
+                inventory.setItem(38, ItemManager.createNamedItem(Material.GRAY_STAINED_GLASS_PANE, 1, " ", null))
 
                 inventory.setItem(
                     39,
@@ -214,10 +212,10 @@ class GuideBookEvent: Listener {
                 )
 
                 for (i in 44..45) {
-                    inventory.setItem(i, ItemManager.createNamedItem(Material.AIR, 1, "", null))
+                    inventory.setItem(i, ItemManager.createNamedItem(Material.AIR, 1, " ", null))
                 }
                 for (i in 46 .. 54 ){
-                    inventory.setItem(i, ItemManager.createNamedItem(Material.WHITE_STAINED_GLASS_PANE, 1, "", null))
+                    inventory.setItem(i, ItemManager.createNamedItem(Material.WHITE_STAINED_GLASS_PANE, 1, " ", null))
                 }
             }
         }
@@ -225,21 +223,21 @@ class GuideBookEvent: Listener {
         if (e.isRightClick or e.isLeftClick) {
             if (e.slot == 2) {
                 for (i in 4 .. 8 ){
-                    inventory.setItem(i, ItemManager.createNamedItem(Material.YELLOW_STAINED_GLASS_PANE, 1, "", null))
+                    inventory.setItem(i, ItemManager.createNamedItem(Material.YELLOW_STAINED_GLASS_PANE, 1, " ", null))
                 }
                 for (i in 10..13) {
                     inventory.setItem(
-                        i, ItemManager.createNamedItem(Material.GRAY_STAINED_GLASS_PANE, 1, "", null)
+                        i, ItemManager.createNamedItem(Material.GRAY_STAINED_GLASS_PANE, 1, " ", null)
                     )
                     inventory.setItem(
                         11,
-                        ItemManager.createNamedItem(Material.GREEN_STAINED_GLASS_PANE, 1, "", null)
+                        ItemManager.createNamedItem(Material.GREEN_STAINED_GLASS_PANE, 1, " ", null)
                     )
                     inventory.setItem(
                         19, ItemManager.createNamedItem(
                             Material.REDSTONE_TORCH,
                             1,
-                            "",
+                            " ",
                             listOf("${ChatColor.WHITE}다음 아이템들은 서로 3초의 쿨타임을 공유합니다)")
                         )
                     )
@@ -272,7 +270,7 @@ class GuideBookEvent: Listener {
                                 "§71회용*",
                                 "${ChatColor.GRAY}우클릭으로 투척시 주변에 연막을 생성합니다.",
                                 "${ChatColor.GRAY}연막은 원형 모양으로, 적의 시야를 차단할 수 있습니다.",
-                                "",
+                                " ",
                                 "${ChatColor.GRAY}지속시간 : ?초.",
                                 "${ChatColor.GRAY}${ChatColor.BOLD}연막 안에서는 주변 시아가 차단됩니다"
                             )
@@ -289,7 +287,7 @@ class GuideBookEvent: Listener {
                                 "§71회용*",
                                 "${ChatColor.GRAY}우클릭으로 투척 후 화염병이 깨지면, 주변에 지속적인 화염 대미지를 줍니다.",
                                 "§7불에 탈 때 회복불가 상태가 됩니다.",
-                                "",
+                                " ",
                                 "${ChatColor.GRAY}불 장판 지속시간 : 8초.",
                                 "${ChatColor.GRAY}화염대미지 지속시간 : 1.0 x 4틱 (팀에게는 2틱)."
                             )
@@ -307,7 +305,7 @@ class GuideBookEvent: Listener {
                                 "${ChatColor.GRAY}폭발시 미니 블랙홀을 생성합니다.",
                                 "${ChatColor.GRAY}미니 블랙홀은 주변 플레이어를 천천히 당깁니다.",
                                 "§7블랙홀이 사라질때 약한 대미지를 줍니다.",
-                                "",
+                                " ",
                                 "§2대미지: 2.0"
                             )
                         )
@@ -322,7 +320,7 @@ class GuideBookEvent: Listener {
                                 "§71회용*",
                                 "§7우클릭으로 투척할 수 있습니다.",
                                 "${ChatColor.GRAY}터질 경우 시아 내에 섬광탄이 있으면, 시아가 차단됩니다.",
-                                "",
+                                " ",
                                 "§2시아 차단시간: 5초"
                             )
                         )
@@ -343,7 +341,7 @@ class GuideBookEvent: Listener {
                         listOf(
                             "${ChatColor.GRAY}관통하는 히트스캔 방식의 화살을 발사합니다!",
                             "${ChatColor.GRAY}관통대미지를 넣습니다.",
-                            "",
+                            " ",
                             "${ChatColor.GRAY}대미지 : 4.0",
                             "${ChatColor.GRAY}재장전 속도 : 2초 + 빠른장전",
                             "${ChatColor.GRAY}최대로 붙일 수 있는 빠른장전 계수는 '2' 입니다"
@@ -362,7 +360,7 @@ class GuideBookEvent: Listener {
                             listOf(
                                 "${ChatColor.GRAY}적을 공격시 5초의 쿨타임으로 적에게 관통 대미지를 넣습니다!",
                                 "${ChatColor.GRAY}킬이 높을수록 대미지가 감소하며, 킬이 3을 넘어가면 능력을 잃습니다.",
-                                "",
+                                " ",
                                 "${ChatColor.GRAY}킬 비례 데미지 : 0/1/2/3 킬 -> 4.0/3.0/2.0/0",
                             )
                         )
@@ -377,7 +375,7 @@ class GuideBookEvent: Listener {
                                 "${ChatColor.GRAY}1회용*",
                                 "${ChatColor.GRAY}우클릭시 탄환을 발사하며, 강한 반동과 함께 적과 자신을 밀쳐냅니다.",
                                 "${ChatColor.GRAY}탄환에 맞은 적은 스턴이 적용됩니다.",
-                                "",
+                                " ",
                                 "§2대미지: 0.25 x 12",
                                 "§2스턴은은 3초동안 점프를 할 수 없으며 구속 3에 걸립니다"
                             )
@@ -459,7 +457,7 @@ class GuideBookEvent: Listener {
                         ItemManager.createNamedItem(
                             Material.GRAY_STAINED_GLASS_PANE,
                             1,
-                            "",
+                            " ",
                             null
                         )
                     )
@@ -472,7 +470,7 @@ class GuideBookEvent: Listener {
                             listOf(
                             "§7다이아몬드 장비를 대미지를 감소시키는 아이템으로 변환시킵니다.",
                             "§7우클릭하여 컨버터 메뉴를 열 수 있습니다",
-                            ""
+                            " "
                             )
                         )
                     )
@@ -484,7 +482,7 @@ class GuideBookEvent: Listener {
                             "${ChatColor.BLUE}${ChatColor.BOLD}보호의 조각",
                             listOf(
                                 "${ChatColor.YELLOW}이 아이템은 컨버터 혹은 플레이어 시체에서만 획득할 수 있습니다",
-                                "",
+                                " ",
                                 "${ChatColor.GRAY}물리 피해 대미지를 조각 하나당 5% 감소시킵니다.",
                                 "${ChatColor.GRAY}(최대 5개까지 적용)"
                             )
@@ -512,7 +510,7 @@ class GuideBookEvent: Listener {
                         41, GuidbookShield
                     )
                     for (i in 46 .. 54 ){
-                        inventory.setItem(i, ItemManager.createNamedItem(Material.YELLOW_STAINED_GLASS_PANE, 1, "", null))
+                        inventory.setItem(i, ItemManager.createNamedItem(Material.YELLOW_STAINED_GLASS_PANE, 1, " ", null))
                     }
 
                 }
@@ -521,7 +519,7 @@ class GuideBookEvent: Listener {
         if (e.isRightClick or e.isLeftClick) {
             if (e.slot == 3) {
                 for (i in 4 .. 8 ){
-                    inventory.setItem(i, ItemManager.createNamedItem(Material.RED_STAINED_GLASS_PANE, 1, "", null))
+                    inventory.setItem(i, ItemManager.createNamedItem(Material.RED_STAINED_GLASS_PANE, 1, " ", null))
                 }
                 for (i in 9..10) {
                     inventory.setItem(
@@ -529,7 +527,7 @@ class GuideBookEvent: Listener {
                         ItemManager.createNamedItem(
                             Material.GRAY_STAINED_GLASS_PANE,
                             1,
-                            "",
+                            " ",
                             null
                         )
                     )
@@ -540,7 +538,7 @@ class GuideBookEvent: Listener {
                     ItemManager.createNamedItem(
                         Material.GREEN_STAINED_GLASS_PANE,
                         1,
-                        "",
+                        " ",
                         null
                     )
 
@@ -562,7 +560,7 @@ class GuideBookEvent: Listener {
                         "${ChatColor.RED}Player Tracker",
                         listOf(
                         "${ChatColor.GRAY}160블럭 내에 있는 가장 가까운 플레이어를 추적합니다!",
-                        "",
+                        " ",
                         "160칸 안에 플레이어가 없을시 작동하지 않고 10?초의 재사용 대기시간이 걸립니다")
                     )
                 )
@@ -610,7 +608,7 @@ class GuideBookEvent: Listener {
                         ItemManager.createNamedItem(
                             Material.AIR,
                             1,
-                            "",
+                            " ",
                             null
                         )
                     )
@@ -633,7 +631,7 @@ class GuideBookEvent: Listener {
                             listOf(
                             "${ChatColor.GRAY}매우 강력한 스나이퍼 라이플입니다.",
                             "${ChatColor.GRAY}거리가 멀수록 대미지가 증가합니다!",
-                            "",
+                            " ",
                             "${ChatColor.GRAY}거리비례 대미지 : 3.0 ~ 10.0",
                             "${ChatColor.GRAY}재사용 대기시간 : 8초",
                             "${ChatColor.GRAY}해당 아이템을 들 때 구속 3 및 점프불가에 걸립니다"
@@ -649,7 +647,7 @@ class GuideBookEvent: Listener {
                             "${ChatColor.YELLOW}Explosive Bow",
                             listOf(
                             "${ChatColor.GRAY}폭발하는 화살을 발사합니다!",
-                            "",
+                            " ",
                             "폭발 반경 : ?칸 / 폭발 데미지 : 1.0"
                             )
                         )
@@ -664,7 +662,7 @@ class GuideBookEvent: Listener {
                                 "${ChatColor.GRAY}킬이 0이고 공중에 있을 때 능력이 발동됩니다.",
                                 "${ChatColor.GRAY}폭발하는 히트스캔 화살을 발사합니다.",
                                 "${ChatColor.GRAY}풀차징일때 넉백과 기절을 부여합니다.",
-                                "",
+                                " ",
                                 "${ChatColor.GRAY}폭발 대미지 (최대): 8.0  충격파 대미지 (최대): 4.0",
                                 "${ChatColor.GRAY}폭발 반경 : 5칸 / 충격파 반경 : 20칸 (중앙 기준 지름)",
                                 "${ChatColor.GRAY}발사 후에 반동으로 느린낙하를 2초간 받습니다",
@@ -679,7 +677,7 @@ class GuideBookEvent: Listener {
                             ItemManager.createNamedItem(
                                 Material.AIR,
                                 1,
-                                "",
+                                " ",
                                 null
                             )
                         )
@@ -740,13 +738,13 @@ class GuideBookEvent: Listener {
                                 ItemManager.createNamedItem(
                                     Material.AIR,
                                     1,
-                                    "",
+                                    " ",
                                     null
                                 )
                             )
                         }
                         for (i in 46 .. 54 ){
-                            inventory.setItem(i, ItemManager.createNamedItem(Material.RED_STAINED_GLASS_PANE, 1, "", null))
+                            inventory.setItem(i, ItemManager.createNamedItem(Material.RED_STAINED_GLASS_PANE, 1, " ", null))
                         }
                     }
                 }

@@ -720,9 +720,9 @@ class Main: JavaPlugin() {
                 }
             }
             register("test") {
-                requires { isOp || isConsole }
+                requires { isOp }
                 executes {
-                    FileManager.uploadAPIData()
+                    GuideBookGUI.openFileDropInv(player)
                 }
             }
             register("queuelist") {

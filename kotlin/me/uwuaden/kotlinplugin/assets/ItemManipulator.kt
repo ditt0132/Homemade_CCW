@@ -22,7 +22,14 @@ object ItemManipulator {
         cloneItem.itemMeta = meta
         return cloneItem
     }
-    fun ItemStack.enchant(enchantment: Enchantment, level: Int): ItemStack {
+    fun ItemStack.addName(name: String): ItemStack {
+        val cloneItem = clone()
+        val meta = cloneItem.itemMeta
+        meta.setDisplayName(meta.displayName + name)
+        cloneItem.itemMeta = meta
+        return cloneItem
+    }
+    fun ItemStack.addEnchant(enchantment: Enchantment, level: Int): ItemStack {
         val cloneItem = clone()
         cloneItem.addEnchantment(enchantment, level)
         return cloneItem
@@ -37,6 +44,27 @@ object ItemManipulator {
         val item = this.clone()
         val meta = item.itemMeta
         meta.addAttributeModifier(attribute, AttributeModifier(UUID.randomUUID(), "", double, operation, equipmentSlot))
+        item.itemMeta = meta
+        return item
+    }
+    fun ItemStack.clearLore(): ItemStack {
+        val item = this.clone()
+        val meta = item.itemMeta
+        meta.lore?.clear()
+        item.itemMeta = meta
+        return item
+    }
+    fun ItemStack.addLores(lore: List<String>): ItemStack {
+        val item = this.clone()
+        if (item.itemMeta.lore == null) {
+            val meta = item.itemMeta
+            meta.lore = lore
+            item.itemMeta = meta
+            return item
+        }
+        val meta = item.itemMeta
+        val newLore = meta.lore!! + lore
+        meta.lore = newLore
         item.itemMeta = meta
         return item
     }

@@ -965,7 +965,7 @@ class CustomItemEvent: Listener {
             EffectManager.playSurroundSound(player.location, Sound.ENTITY_GENERIC_EAT, 1.0f, 1.0f)
             player.addPotionEffect(PotionEffect(PotionEffectType.HEAL, 1, 0, false, false))
             player.addPotionEffect(PotionEffect(PotionEffectType.REGENERATION, 20 * 10, 0, false, false))
-            player.addPotionEffect(PotionEffect(PotionEffectType.ABSORPTION, 20 * 60 * 5, 0, false, false))
+            player.addPotionEffect(PotionEffect(PotionEffectType.ABSORPTION, 20 * 60 * 2, 0, false, false))
         }
     }
 

@@ -235,7 +235,7 @@ object ItemManager {
                     in 7..8 -> addDroppedItemSlot(droppedItem, ItemStack(Material.DIAMOND_LEGGINGS))
                     in 9..10 -> addDroppedItemSlot(droppedItem, ItemStack(Material.DIAMOND_BOOTS))
                     in 11..12 -> addDroppedItemSlot(droppedItem, enchantItem(ItemStack(Material.BOW), Enchantment.ARROW_DAMAGE, 1))
-                    in 13..14 -> addDroppedItemSlot(droppedItem, addItemData(enchantItem(ItemStack(Material.SHIELD), Enchantment.DURABILITY, 3), 1, "§b§lEnchanted Shield", listOf("§7왼손에 들고 있을 시, 받는 근접 대미지를 20% 감소 시킵니다.")))
+                    in 13..14 -> addDroppedItemSlot(droppedItem, CustomItemData.getEnchantedShield())
                     in 15..16 -> addDroppedItemSlot(droppedItem, enchantItem(ItemStack(Material.IRON_AXE), Enchantment.DIG_SPEED, 3))
                     in 17..18 -> addDroppedItemSlot(droppedItem, enchantItem(ItemStack(Material.IRON_PICKAXE), Enchantment.DIG_SPEED, 3))
                 }
@@ -248,7 +248,7 @@ object ItemManager {
                     in 7..8 -> addDroppedItemSlot(droppedItem, ItemStack(Material.IRON_LEGGINGS))
                     in 9..10 -> addDroppedItemSlot(droppedItem, ItemStack(Material.IRON_BOOTS))
                     in 11..12 -> addDroppedItemSlot(droppedItem, ItemStack(Material.BOW))
-                    in 13..14 -> addDroppedItemSlot(droppedItem, addItemData(ItemStack(Material.SHIELD), null, "§eShield", listOf("§7왼손에 들고 있을 시, 받는 근접 대미지를 10% 감소 시킵니다.")))
+                    in 13..14 -> addDroppedItemSlot(droppedItem, CustomItemData.getShield())
                     in 15..16 -> addDroppedItemSlot(droppedItem, enchantItem(ItemStack(Material.STONE_AXE), Enchantment.DIG_SPEED, 3))
                     in 17..18 -> addDroppedItemSlot(droppedItem, enchantItem(ItemStack(Material.STONE_PICKAXE), Enchantment.DIG_SPEED, 3))
                 }
@@ -265,10 +265,10 @@ object ItemManager {
                 in 17..18 -> worldData.playerItemList[player.uniqueId]!!.add("pickaxe")
             }
 
-            for (i in 0 until random.nextInt(0, 5)) {
+            for (i in 0 until random.nextInt(1, 5)) {
                 addDroppedItemSlot(droppedItem, ItemStack(Material.ARROW, random.nextInt(1, 3)))
             }
-            for (i in 0 until random.nextInt(1, 5)) {
+            for (i in 0 until random.nextInt(1, 4)) {
                 addDroppedItemSlot(droppedItem, ItemStack(Material.COOKED_BEEF, random.nextInt(1, 2)))
             }
 
