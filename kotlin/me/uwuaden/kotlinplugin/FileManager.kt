@@ -20,10 +20,20 @@ import java.net.URLEncoder
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.*
+import java.util.logging.Level
 
 private fun removeLastChars(str: String, n: Int): String {
     return str.substring(0, str.length - n)
+}
+private fun parseLongToLocalDateTime(long: Long): LocalDateTime {
+    return LocalDateTime.ofInstant(
+        Instant.ofEpochMilli(long),
+        ZoneId.systemDefault())
 }
 
 object FileManager {
@@ -42,51 +52,70 @@ object FileManager {
         })
     }
     fun uploadAPIData() {
-        scheduler.runTaskAsynchronously(plugin, Runnable {
-            val file = File(plugin.dataFolder, "api.yml")
-            if (!file.exists()) {
-                file.createNewFile()
+        try {
+            scheduler.runTaskAsynchronously(plugin, Runnable {
+                val file = File(plugin.dataFolder, "api.yml")
+                if (!file.exists()) {
+                    file.createNewFile()
+                    val config = YamlConfiguration()
+                    config.set("pw", "")
+                    config.set("ip", "localhost")
+                    try {
+                        config.save(file)
+                    } catch (e: IOException) {
+                        e.printStackTrace()
+                    }
+                }
                 val config = YamlConfiguration()
-                config.set("pw", "")
-                config.set("ip", "localhost")
+
                 try {
-                    config.save(file)
-                } catch (e: IOException) {
+                    config.load(file)
+                } catch (e: Exception) {
                     e.printStackTrace()
                 }
-            }
-            val config = YamlConfiguration()
 
-            try {
-                config.load(file)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+                val pw = config.get("pw").toString()
+                val ip = config.get("ip").toString()
 
-            val pw = config.get("pw").toString()
-            val ip = config.get("ip").toString()
+                playerStat.filter { plugin.server.getOfflinePlayer(it.key).name != null }.forEach { (uuid, data) ->
+                    val offPlayer = plugin.server.getOfflinePlayer(uuid)
+                    var lastOnline = "Online"
+                    if (!offPlayer.isOnline) {
+                        lastOnline =
+                            parseLongToLocalDateTime(offPlayer.lastLogin).format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"))
+                    }
 
-            playerStat.filter { plugin.server.getOfflinePlayer(it.key).name != null }.forEach { (uuid, data) ->
-                val jsonData = URLEncoder.encode(
-                    "{\"username\": \"${plugin.server.getOfflinePlayer(uuid).name}\", \"rank_enabled\": ${data.rank}, \"game_played\": ${data.gamePlayed}, \"unranked\": ${data.unRanked}, \"rank_string\": \"${
-                        ChatColor.stripColor(
-                            RankSystem.rateToString(uuid)
-                        )
-                    }\", \"user_score\": ${RankSystem.rateToScore(data.playerRank)},\"mmr_type\": 0}", "UTF-8"
-                )//mmr_type추가
-                var urlStr = "http://$ip"
-                urlStr += "/post?"
-                urlStr += "pw=${pw}"
-                urlStr += "&uuid=${uuid}"
-                urlStr += "&data=${jsonData}"
-                val url = URL(urlStr)
-                val conn = url.openConnection() as HttpURLConnection
-                conn.setRequestProperty("User-Agent", "Mozilla/5.0")
-                conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
-                conn.content
-                conn.disconnect()
-            }
-        })
+                    var mmrType = 0
+                    if (data.playerMMR / 100 == data.playerRank / 100) {
+                        mmrType = 1
+                    } else if (data.playerMMR / 100 > data.playerRank / 100) {
+                        mmrType = 2
+                    }
+
+                    val jsonData = URLEncoder.encode(
+                        "{\"username\": \"${offPlayer.name}\", \"rank_enabled\": ${data.rank}, \"game_played\": ${data.gamePlayed}, \"unranked\": ${data.unRanked}, \"rank_string\": \"${
+                            ChatColor.stripColor(
+                                RankSystem.rateToString(uuid)
+                            )
+                        }\", \"user_score\": ${RankSystem.rateToScore(data.playerRank)},\"mmr_type\": ${mmrType}, \"last_online:\": \"${lastOnline}\"}",
+                        "UTF-8"
+                    )//mmr_type추가
+                    var urlStr = "http://$ip"
+                    urlStr += "/post?"
+                    urlStr += "pw=${pw}"
+                    urlStr += "&uuid=${uuid}"
+                    urlStr += "&data=${jsonData}"
+                    val url = URL(urlStr)
+                    val conn = url.openConnection() as HttpURLConnection
+                    conn.setRequestProperty("User-Agent", "Mozilla/5.0")
+                    conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+                    conn.content
+                    conn.disconnect()
+                }
+            })
+        } catch (_: Exception) {
+            plugin.logger.log(Level.WARNING, "API Uploader: Connection Error")
+        }
     }
     fun saveVar() {
         var file = File(plugin.dataFolder, "PlayerEItem.yml")

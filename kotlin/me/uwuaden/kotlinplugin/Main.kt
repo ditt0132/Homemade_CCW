@@ -626,6 +626,11 @@ class Main: JavaPlugin() {
                 }
             }
             register("닭갈비") {
+                then("가이드북") {
+                    executes {
+                        GuideBookGUI.openFileDropInvNormal(player)
+                    }
+                }
                 then("디스코드") {
                     executes {
                         val text = Component.text("§e디스코드: §nhttps://discord.gg/YSHuMRMyY6").clickEvent(ClickEvent.openUrl(URL("https://discord.gg/YSHuMRMyY6")))

@@ -38,7 +38,7 @@ object GuideBookGUI {
         )
 
         inventory.setItem(
-            0, ItemManager.createNamedItem(Material.IRON_PICKAXE, 1, "§b일반 아이템", null).addUnsafeEnchant(Enchantment.DURABILITY, 1))
+            0, ItemManager.createNamedItem(Material.IRON_PICKAXE, 1, "§a일반 아이템", null).addUnsafeEnchant(Enchantment.DURABILITY, 1))
         inventory.setItem(1, ItemManager.createNamedItem(Material.DIAMOND_PICKAXE, 1, "§e유틸 아이템", null))
         inventory.setItem(2, ItemManager.createNamedItem(Material.CHEST, 1, "§e보급 아이템", null))
 
@@ -189,8 +189,8 @@ object GuideBookGUI {
                 ItemManager.createNamedItem(
                     Material.YELLOW_STAINED_GLASS_PANE,
                     1,
-                    "§e확정 드롭",
-                    listOf("§7다음 아이템들중 하나가 필드에 등장합니다.")
+                    "§e희귀 드롭",
+                    listOf("§7다음 아이템들중 하나가 낮을 확률로 필드에 등장합니다.")
                 )
             )
         }
@@ -206,56 +206,15 @@ object GuideBookGUI {
             )
         )
         inventory.setItem(0, ItemManager.createNamedItem(Material.IRON_PICKAXE, 1, "§e일반 아이템", null))
-        inventory.setItem(1, ItemManager.createNamedItem(Material.DIAMOND_PICKAXE, 1, "§b유틸 아이템", null).addUnsafeEnchant(Enchantment.DURABILITY, 1))
+        inventory.setItem(1, ItemManager.createNamedItem(Material.DIAMOND_PICKAXE, 1, "§a유틸 아이템", null).addUnsafeEnchant(Enchantment.DURABILITY, 1))
         inventory.setItem(2, ItemManager.createNamedItem(Material.CHEST, 1, "§e보급 아이템", null))
 
-        inventory.setItem(
-            20,
-            ItemManager.createNamedItem
-                (
-                Material.DARK_OAK_BUTTON,
-                1,
-                "${ChatColor.YELLOW}중력 수류탄",
-                listOf(
-                    "§71회용*", "§7우클릭으로 투척할 수 있습니다.",
-                    "${ChatColor.GRAY}폭발시 미니 블랙홀을 생성합니다.",
-                    "${ChatColor.GRAY}미니 블랙홀은 주변 플레이어를 천천히 당깁니다.",
-                    "§7블랙홀이 사라질때 약한 대미지를 줍니다.",
-                    " ",
-                    "§2대미지: 2.0",
-                    "§2시전시간: ?초"
-                )
-            )
-        )
-        inventory.setItem(
-            21,
-            ItemManager.createNamedItem(
-                Material.STONE_BUTTON,
-                1,
-                "${ChatColor.YELLOW}연막탄",
-                listOf(
-                    "§71회용*",
-                    "${ChatColor.GRAY}우클릭으로 투척시 주변에 연막을 생성합니다.",
-                    "${ChatColor.GRAY}연막은 원형 모양으로, 적의 시야를 차단할 수 있습니다.",
-                    " ",
-                    "${ChatColor.DARK_GREEN}지속시간: ?초.",
-                    "§2시전시간: ?초",
-                    "${ChatColor.GRAY}${ChatColor.BOLD}연막 안에서는 주변 시아가 차단됩니다"
-                )
-
-            )
-        )
+        inventory.setItem(20, CustomItemData.getEarthGr())
+        inventory.setItem(21, CustomItemData.getSmokeG())
         inventory.setItem(
             22,
-            ItemManager.createNamedItem(
-                Material.BIRCH_BUTTON,
-                1,
-                "${ChatColor.YELLOW}화염병",
-                listOf(
-                    "§71회용*",
-                    "${ChatColor.GRAY}우클릭으로 투척 후 화염병이 깨지면, 주변에 지속적인 화염 대미지를 줍니다.",
-                    "§7불에 탈 때 회복불가 상태가 됩니다.",
-                    " ",
+            CustomItemData.getMolt().addLores(
+                listOf(" ",
                     "§2시전시간: 0초",
                     "${ChatColor.DARK_GREEN}불 장판 지속시간: 8초.",
                     "${ChatColor.DARK_GREEN}화염대미지 지속시간: 1.0 x 4틱 (팀에게는 2틱)."
@@ -264,15 +223,8 @@ object GuideBookGUI {
         )
         inventory.setItem(
             23,
-            ItemManager.createNamedItem(
-                Material.CRIMSON_BUTTON,
-                1,
-                "${ChatColor.YELLOW}중력 수류탄",
+            CustomItemData.getGravityG().addLores(
                 listOf(
-                    "§71회용*",
-                    "§7우클릭으로 투척할 수 있습니다.",
-                    "${ChatColor.GRAY}폭발시 미니 블랙홀을 생성합니다.",
-                    "${ChatColor.GRAY}미니 블랙홀은 주변 플레이어를 천천히 당깁니다.",
                     "§7블랙홀이 사라질때 약한 대미지를 줍니다.",
                     " ",
                     "§2대미지: 2.0",
@@ -282,19 +234,7 @@ object GuideBookGUI {
         )
         inventory.setItem(
             24,
-            ItemManager.createNamedItem(
-                Material.WARPED_BUTTON,
-                1,
-                "${ChatColor.YELLOW}섬광탄",
-                listOf(
-                    "§71회용*",
-                    "§7우클릭으로 투척할 수 있습니다.",
-                    "${ChatColor.GRAY}터질 경우 시아 내에 섬광탄이 있으면, 시아가 차단됩니다.",
-                    " ",
-                    "§2시아 차단시간: 5초",
-                    "§2시전시간: ?초"
-                )
-            )
+            CustomItemData.getFlashBang()
         )
         inventory.setItem(
             29,
@@ -308,47 +248,20 @@ object GuideBookGUI {
         )
         inventory.setItem(
             30,
-            ItemManager.createNamedItem(
-                Material.GOLDEN_SWORD,
-                1,
-                "${ChatColor.YELLOW}${ChatColor.BOLD}Revelation",
+            CustomItemData.getRevelation().addLores(
                 listOf(
-                    "${ChatColor.GRAY}적을 공격시 5초의 쿨타임으로 적에게 관통 대미지를 넣습니다!",
-                    "${ChatColor.GRAY}킬이 높을수록 대미지가 감소하며, 킬이 3을 넘어가면 능력을 잃습니다.",
                     " ",
-                    "${ChatColor.DARK_GREEN}킬 비례 대미지 : 0/1/2/3 킬 -> 4.0/3.0/2.0/0",
+                    "${ChatColor.DARK_GREEN}킬당 대미지 : 0/1/2/3 킬 -> 4.0/3.0/2.0/0",
                 )
             )
         )
         inventory.setItem(
             31,
-            ItemManager.createNamedItem(
-                Material.GLOW_INK_SAC,
-                1,
-                "${ChatColor.YELLOW}반중력 샷건",
-                listOf(
-                    "${ChatColor.GRAY}1회용*",
-                    "${ChatColor.GRAY}우클릭시 탄환을 발사하며, 강한 반동과 함께 적과 자신을 밀쳐냅니다.",
-                    "${ChatColor.GRAY}탄환에 맞은 적은 스턴이 적용됩니다.",
-                    " ",
-                    "§2대미지: 0.25 x 12",
-                    "§7§l스턴은은 3초동안 점프를 할 수 없으며 구속 3에 걸립니다"
-                )
-            )
+            CustomItemData.getAGShotGun()
         )
         inventory.setItem(
             32,
-            ItemManager.createNamedItem(
-                Material.WOODEN_SHOVEL,
-                1,
-                "§e§lRocket Launcher",
-                listOf(
-                    "§7우클릭시 높은 대미지의 로켓을 발사합니다.",
-                    "§7로켓은 건물을 파괴시킬 수 있습니다.",
-                    " ",
-                    "§2대미지: 6.0  §2쿨타임: 30초"
-                )
-            )
+            CustomItemData.getRocketLauncher()
         )
         inventory.setItem(
             33,
@@ -430,7 +343,7 @@ object GuideBookGUI {
         )
         inventory.setItem(0, ItemManager.createNamedItem(Material.IRON_PICKAXE, 1, "§e일반 아이템", null))
         inventory.setItem(1, ItemManager.createNamedItem(Material.DIAMOND_PICKAXE, 1, "§e유틸 아이템", null))
-        inventory.setItem(2, ItemManager.createNamedItem(Material.CHEST, 1, "§b보급 아이템", null).addUnsafeEnchant(Enchantment.DURABILITY, 1))
+        inventory.setItem(2, ItemManager.createNamedItem(Material.CHEST, 1, "§a보급 아이템", null).addUnsafeEnchant(Enchantment.DURABILITY, 1))
 
         for (i in 18..19) {
             inventory.setItem(
@@ -557,6 +470,20 @@ object GuideBookGUI {
             33,
             CustomItemData.getHolyShield()
         )
+        inventory.setItem(
+            34,
+            ItemManager.createNamedItem(
+                Material.ENCHANTED_BOOK,
+                1,
+                "§e인첸트된 책",
+                listOf("§7다음 중 하나 획득 가능:",
+                    "§b날카로움 1",
+                    "§b밀어내기 1",
+                    "§b힘 2",
+                    "§b보호 2"
+                )
+            )
+        )
         player.openInventory(inventory
         )
         inventory.setItem(
@@ -571,24 +498,10 @@ object GuideBookGUI {
         inventory.setItem(
             39,
             ItemManager.createNamedItem(
-                Material.ENCHANTED_BOOK,
-                1,
-                "§e인첸트된 책",
-                listOf("§7다음 중 하나 획득 가능:",
-                    "§b날카로움 1",
-                    "§b밀어내기 1",
-                    "§b힘 2",
-                    "§b보호 2"
-                )
-            )
-        )
-        inventory.setItem(
-            40,
-            ItemManager.createNamedItem(
                 Material.IRON_PICKAXE,
                 1,
                 "§e인첸트 레벨 제한 설명서",
-                listOf("§7게임의 밸런스를 위해 일부 인첸트들의 최대 레벨이 상향평준화되었습니다.",
+                listOf("§7게임의 밸런스를 위해 일부 인첸트들의 최대 레벨이 설정되어 있습니다.",
                     "§f날카로움 5",
                     "§f밀어내기 2",
                     "§f보호 4",

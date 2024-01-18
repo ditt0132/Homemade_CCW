@@ -36,7 +36,9 @@ object ItemManipulator {
     }
     fun ItemStack.addUnsafeEnchant(enchantment: Enchantment, level: Int): ItemStack {
         val cloneItem = clone()
-        cloneItem.addUnsafeEnchant(enchantment, level)
+        val meta = cloneItem.itemMeta
+        meta.addEnchant(enchantment, level, true)
+        cloneItem.itemMeta = meta
         return cloneItem
     }
     fun ItemStack.getName(): String {
