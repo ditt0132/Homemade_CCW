@@ -190,7 +190,7 @@ object ItemManager {
                     in 48..55 -> addDroppedItemSlot(droppedItem, CustomItemData.getFlashBang())
                 }
             }
-            var rn = random.nextInt(0, 19)
+            var rn = random.nextInt(1, 19)
 
 
             val calibrateList = ArrayList<Int>()
@@ -226,9 +226,8 @@ object ItemManager {
 
             //보정
 
-            if (random.nextInt(1, 5) == 1) {
+            if (random.nextInt(1, 5) == 1) { //25퍼
                 when (rn) {
-                    in 0..0 -> addDroppedItemSlot(droppedItem, createNamedItem(Material.GOLDEN_CARROT, 1, "§6Golden Carrot", listOf("§7작아서 휴대하기 편합니다!", " ", "§7우클릭하면 즉시 hp를 회복합니다.")))
                     in 1..2 -> addDroppedItemSlot(droppedItem, ItemStack(Material.DIAMOND_SWORD))
                     in 3..4 -> addDroppedItemSlot(droppedItem, ItemStack(Material.DIAMOND_HELMET))
                     in 5..6 -> addDroppedItemSlot(droppedItem, ItemStack(Material.DIAMOND_CHESTPLATE))
@@ -239,9 +238,11 @@ object ItemManager {
                     in 15..16 -> addDroppedItemSlot(droppedItem, enchantItem(ItemStack(Material.IRON_AXE), Enchantment.DIG_SPEED, 3))
                     in 17..18 -> addDroppedItemSlot(droppedItem, enchantItem(ItemStack(Material.IRON_PICKAXE), Enchantment.DIG_SPEED, 3))
                 }
+                if (probabilityTrue(10.0)) {
+                    addDroppedItemSlot(droppedItem, CustomItemData.getGoldenCarrot())
+                }
             } else {
                 when (rn) {
-                    in 0..0 -> addDroppedItemSlot(droppedItem, ItemStack(Material.GOLDEN_APPLE))
                     in 1..2 -> addDroppedItemSlot(droppedItem, ItemStack(Material.IRON_SWORD))
                     in 3..4 -> addDroppedItemSlot(droppedItem, ItemStack(Material.IRON_HELMET))
                     in 5..6 -> addDroppedItemSlot(droppedItem, ItemStack(Material.IRON_CHESTPLATE))
@@ -251,6 +252,9 @@ object ItemManager {
                     in 13..14 -> addDroppedItemSlot(droppedItem, CustomItemData.getShield())
                     in 15..16 -> addDroppedItemSlot(droppedItem, enchantItem(ItemStack(Material.STONE_AXE), Enchantment.DIG_SPEED, 3))
                     in 17..18 -> addDroppedItemSlot(droppedItem, enchantItem(ItemStack(Material.STONE_PICKAXE), Enchantment.DIG_SPEED, 3))
+                }
+                if (probabilityTrue(10.0)) {
+                    addDroppedItemSlot(droppedItem, ItemStack(Material.GOLDEN_APPLE))
                 }
             }
             when (rn) {

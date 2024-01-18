@@ -22,10 +22,7 @@ import me.uwuaden.kotlinplugin.teamSystem.TeamManager
 import net.kyori.adventure.text.Component
 import org.bukkit.*
 import org.bukkit.block.Chest
-import org.bukkit.entity.Firework
-import org.bukkit.entity.IronGolem
-import org.bukkit.entity.ItemDisplay
-import org.bukkit.entity.Player
+import org.bukkit.entity.*
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.*
@@ -124,10 +121,10 @@ private fun deathPlayer(p: Player) {
             p.sendMessage("§7(코어로 인한 부활)")
             scheduler.scheduleSyncDelayedTask(plugin, {
                 if (teamId == 0) {
-                    p.teleport(dataClass.dataLoc1)
+                    p.teleport(dataClass.dataLoc1.clone().add(0.0, 1.0, 0.0))
                 }
                 if (teamId == 1) {
-                    p.teleport(dataClass.dataLoc2)
+                    p.teleport(dataClass.dataLoc2.clone().add(0.0, 1.0, 0.0))
                 }
                 p.gameMode = GameMode.SURVIVAL
                 p.health = p.maxHealth
@@ -494,6 +491,7 @@ class Events: Listener {
     @EventHandler
     fun onCoreDeath(e: EntityDeathEvent) {
         val victim = e.entity
+        val world = victim.world
         if (victim !is IronGolem) return
         if (!victim.scoreboardTags.contains("core")) return
         if (victim.scoreboardTags.filter { it.contains("team:") }.isEmpty()) return
@@ -505,6 +503,7 @@ class Events: Listener {
         val dataClass = WorldManager.initData(victim.world)
         if (id == 0) {
             dataClass.dataInt1 = 0
+
             dataClass.teams.filter { it.id == 1 }.first().players.forEach {
                 it.sendMessage("§e적팀의 코어가 파괴되었습니다.")
                 it.sendMessage("§e적팀은 이제 부활할 수 없습니다!")
@@ -535,6 +534,41 @@ class Events: Listener {
         victim.location.getNearbyEntities(5.0, 5.0, 5.0).filterIsInstance<ItemDisplay>().forEach {
             if (it.scoreboardTags.contains("core_display")) it.remove()
         }
+        val armorStand = victim.world.spawnEntity(victim.location.clone().add(0.0, 3.0, 0.0), EntityType.ARMOR_STAND, false) as ArmorStand
+        armorStand.isInvisible = true
+        armorStand.isSmall = true
+        armorStand.isInvulnerable = true
+        val itemDisplay = victim.world.spawnEntity(victim.location.clone().add(0.0, 2.0, 0.0), EntityType.ITEM_DISPLAY, false) as ItemDisplay
+        itemDisplay.itemStack = ItemStack(Material.BEACON)
+        armorStand.addPassenger(itemDisplay)
+        scheduler.scheduleAsyncDelayedTask(plugin, {
+            for (i in 0 until 4) {
+                scheduler.scheduleSyncDelayedTask(plugin, {
+                    EffectManager.playSurroundSound(victim.location, Sound.ENTITY_WITHER_SHOOT, 1.0f, 0.6f + i*0.4f)
+                }, 0)
+                Thread.sleep(200)
+            }
+        }, 20)
+        scheduler.scheduleSyncDelayedTask(plugin, {
+            armorStand.remove()
+            itemDisplay.remove()
+            var players = listOf<Player>()
+            if (id == 1) {
+                players = dataClass.dataLoc2.getNearbyPlayers(8.0).filter { TeamManager.getTeam(world, it)?.id == 0 }.filter { it.gameMode == GameMode.SURVIVAL }
+            } else if (id == 0) {
+                players = dataClass.dataLoc1.getNearbyPlayers(8.0).filter { TeamManager.getTeam(world, it)?.id == 1 }.filter { it.gameMode == GameMode.SURVIVAL }
+            }
+            players.forEach {
+                it.damage(10.0)
+                it.addPotionEffect(PotionEffect(PotionEffectType.SLOW, 20*5, 2, false, true))
+            }
+            EffectManager.playSurroundSound(victim.location, Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 0.5f)
+            EffectManager.playSurroundSound(victim.location, Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 1.0f)
+            EffectManager.playSurroundSound(victim.location, Sound.BLOCK_BEACON_DEACTIVATE, 1.0f, 1.0f)
+            world.spawnParticle(Particle.EXPLOSION_HUGE, victim.location.clone().add(0.0, 1.0, 0.0), 5,1.0, 1.0, 1.0)
+            EffectManager.drawParticleCircle(victim.location.clone().add(0.0, 1.1, 0.0), 8.0, Color.AQUA)
+
+        }, 20*2)
 
     }
 }

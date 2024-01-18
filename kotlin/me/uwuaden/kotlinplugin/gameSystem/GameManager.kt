@@ -16,6 +16,7 @@ import me.uwuaden.kotlinplugin.assets.EffectManager
 import me.uwuaden.kotlinplugin.assets.ItemManipulator.addEnchant
 import me.uwuaden.kotlinplugin.assets.ItemManipulator.setCount
 import me.uwuaden.kotlinplugin.itemManager.ItemManager
+import me.uwuaden.kotlinplugin.itemManager.customItem.CustomItemManager
 import me.uwuaden.kotlinplugin.itemManager.itemData.WorldItemManager
 import me.uwuaden.kotlinplugin.rankSystem.RankSystem
 import me.uwuaden.kotlinplugin.skillSystem.SkillEvent.Companion.playerCapacityPoint
@@ -741,6 +742,18 @@ object GameManager {
             }
             if (mode == "Heist") {
                 scheduler.scheduleSyncDelayedTask(plugin, {
+                val allPlayers = first + second
+                    allPlayers.forEach {
+                        it.inventory.clear()
+                        it.inventory.setItem(EquipmentSlot.HEAD, ItemStack(Material.IRON_HELMET))
+                        it.inventory.setItem(EquipmentSlot.CHEST, ItemStack(Material.IRON_CHESTPLATE))
+                        it.inventory.setItem(EquipmentSlot.LEGS, ItemStack(Material.IRON_LEGGINGS))
+                        it.inventory.setItem(EquipmentSlot.FEET, ItemStack(Material.IRON_BOOTS))
+                        it.inventory.addItem(ItemStack(Material.IRON_SWORD))
+                        it.inventory.addItem(ItemStack(Material.COOKED_BEEF, 64))
+                    }
+                }, 10)
+                scheduler.scheduleSyncDelayedTask(plugin, {
                     WorldManager.broadcastWorld(toWorld, "§a코어가 생성되고 있습니다.")
                     var n = 0
                     spawnLocs.forEach { loc ->
@@ -764,11 +777,11 @@ object GameManager {
                         spawnLocs.forEach { loc ->
                             val earthG = loc.clone()
                             earthG.y = groundY
-                            val core = earthG.world.spawnEntity(earthG, EntityType.IRON_GOLEM) as IronGolem
+                            val core = earthG.world.spawnEntity(earthG.clone().add(0.0, 1.0, 0.0), EntityType.IRON_GOLEM) as IronGolem
                             core.setAI(false)
                             core.isSilent = true
-                            core.maxHealth = 500.0
-                            core.health = 500.0
+                            core.maxHealth = 1000.0
+                            core.health = 1000.0
                             core.isInvisible = true
                             core.scoreboardTags.add("core")
                             core.scoreboardTags.add("teamid:${n2}")
@@ -999,6 +1012,37 @@ object GameManager {
                         } else if (TeamManager.getTeam(world, it)?.id == 1) {
                             it.spawnParticle(Particle.REDSTONE, dataClass.dataLoc2, 400, 0.0, 100.0, 0.0, DustOptions(Color.GREEN, 1.0f))
                             it.spawnParticle(Particle.REDSTONE, dataClass.dataLoc1, 400, 0.0, 100.0, 0.0, DustOptions(Color.RED, 1.0f))
+                        }
+                    }
+                }
+            }
+        }, 0, 20)
+        scheduler.scheduleSyncRepeatingTask(plugin, Runnable {
+            plugin.server.worlds.filter { it.name.contains("Field-") }.forEach { world ->
+                val dataClass = WorldManager.initData(world)
+                if (dataClass.worldMode == "Heist") {
+                    if (dataClass.dataInt1 == 1) {
+                        val players = dataClass.dataLoc1.getNearbyPlayers(10.0).filter { TeamManager.getTeam(world, it)?.id == 1 }.sortedBy { it.location.distance(dataClass.dataLoc1) }.filter { it.gameMode == GameMode.SURVIVAL }
+                        if (players.isNotEmpty()) {
+                            for (target in players.take(4)) {
+                                target.damage(1.0)
+                                CustomItemManager.drawLine(dataClass.dataLoc1.clone().add(0.0, 2.0, 0.0), target.location.clone().add(0.0, 1.0, 0.0), 0.2, 0, 255, 255)
+                            }
+                            EffectManager.playSurroundSound(dataClass.dataLoc1, Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 1.0f, 2.0f)
+                            EffectManager.playSurroundSound(dataClass.dataLoc1, Sound.BLOCK_SLIME_BLOCK_FALL, 1.0f, 2.0f)
+                            EffectManager.playSurroundSound(dataClass.dataLoc1, Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 2.0f)
+                        }
+                    }
+                    if (dataClass.dataInt2 == 1) {
+                        val players = dataClass.dataLoc2.getNearbyPlayers(10.0).filter { TeamManager.getTeam(world, it)?.id == 0 }.sortedBy { it.location.distance(dataClass.dataLoc2) }.filter { it.gameMode == GameMode.SURVIVAL }
+                        if (players.isNotEmpty()) {
+                            for (target in players.take(4)) {
+                                target.damage(1.0)
+                                CustomItemManager.drawLine(dataClass.dataLoc2.clone().add(0.0, 2.0, 0.0), target.location.clone().add(0.0, 1.0, 0.0), 0.2, 0, 255, 255)
+                            }
+                            EffectManager.playSurroundSound(dataClass.dataLoc2, Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 1.0f, 2.0f)
+                            EffectManager.playSurroundSound(dataClass.dataLoc2, Sound.BLOCK_SLIME_BLOCK_FALL, 1.0f, 2.0f)
+                            EffectManager.playSurroundSound(dataClass.dataLoc2, Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 2.0f)
                         }
                     }
                 }

@@ -52,8 +52,8 @@ object FileManager {
         })
     }
     fun uploadAPIData() {
-        try {
-            scheduler.runTaskAsynchronously(plugin, Runnable {
+        scheduler.runTaskAsynchronously(plugin, Runnable {
+            try {
                 val file = File(plugin.dataFolder, "api.yml")
                 if (!file.exists()) {
                     file.createNewFile()
@@ -112,10 +112,10 @@ object FileManager {
                     conn.content
                     conn.disconnect()
                 }
-            })
-        } catch (_: Exception) {
-            plugin.logger.log(Level.WARNING, "API Uploader: Connection Error")
-        }
+            } catch (_: Exception) {
+                plugin.logger.log(Level.WARNING, "API Uploader: Connection Error")
+            }
+        })
     }
     fun saveVar() {
         var file = File(plugin.dataFolder, "PlayerEItem.yml")
