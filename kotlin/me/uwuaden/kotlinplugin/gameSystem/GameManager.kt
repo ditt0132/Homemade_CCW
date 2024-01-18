@@ -162,69 +162,69 @@ private fun broadcastWorld(world: World, msg: String) {
     }
 }
 private fun winPlayers(players: ArrayList<Player>) {
-    broadcastWorld(players[0].world, "${ChatColor.RED}   ")
-    broadcastWorld(players[0].world, "${ChatColor.RED}Game Ended")
-    broadcastWorld(players[0].world, "${ChatColor.RED}    ")
-    broadcastWorld(players[0].world, "${ChatColor.RED}    ")
+    broadcastWorld(players[0].world, "§c   ")
+    broadcastWorld(players[0].world, "§cGame Ended")
+    broadcastWorld(players[0].world, "§c    ")
+    broadcastWorld(players[0].world, "§c    ")
     val playerNames =  ArrayList<String>()
     players.forEach {
         playerNames.add(it.name)
     }
-    broadcastWorld(players[0].world, "${ChatColor.GOLD}Winner: ${playerNames.joinToString(", ")}")
+    broadcastWorld(players[0].world, "$§6Winner: ${playerNames.joinToString(", ")}")
 
     val dataClass = WorldManager.initData(players[0].world)
     players.forEach { p ->
         //RankSystem.updateMMR(p, (dataClass.playerKill[p.uniqueId] ?: 0), dataClass.totalPlayer, 1, dataClass.avgMMR)
         Main.scheduler.scheduleSyncDelayedTask(Main.plugin, {
-            p.sendTitle("${ChatColor.GOLD}${ChatColor.BOLD}THE", " ", 1, 20 * 1, 1)
+            p.sendTitle("$§6§lTHE", " ", 1, 20 * 1, 1)
         }, 0)
         Main.scheduler.scheduleSyncDelayedTask(Main.plugin, {
-            p.sendTitle("${ChatColor.WHITE}${ChatColor.BOLD}THE LAST", " ", 1, 20 * 1, 1)
+            p.sendTitle("§f§lTHE LAST", " ", 1, 20 * 1, 1)
         }, 20)
         Main.scheduler.scheduleSyncDelayedTask(Main.plugin, {
-            p.sendTitle("${ChatColor.GOLD}${ChatColor.BOLD}THE LAST STANDER", " ", 1, 20 * 2, 1)
+            p.sendTitle("$§6§lTHE LAST STANDER", " ", 1, 20 * 2, 1)
         }, 40)
         Main.scheduler.scheduleSyncDelayedTask(Main.plugin, {
-            p.sendTitle("${ChatColor.WHITE}${ChatColor.BOLD}MATCH", " ", 1, 20 * 3, 1)
+            p.sendTitle("§f§lMATCH", " ", 1, 20 * 3, 1)
         }, 60)
         Main.scheduler.scheduleSyncDelayedTask(Main.plugin, {
-            p.sendTitle("${ChatColor.GOLD}${ChatColor.BOLD}MATCH WINNER", " ", 1, 20 * 5, 1)
+            p.sendTitle("$§6§lMATCH WINNER", " ", 1, 20 * 5, 1)
         }, 80)
 
-        p.sendMessage("${ChatColor.GOLD}${ChatColor.BOLD}==============================")
+        p.sendMessage("$§6§l==============================")
         p.sendMessage(" ")
-        p.sendMessage("${ChatColor.GOLD}${ChatColor.BOLD}WINNER: ${p.name}")
+        p.sendMessage("$§6§lWINNER: ${p.name}")
         p.sendMessage(
-            "${ChatColor.GOLD}${ChatColor.BOLD}KILL: ${(dataClass.playerKill[p.uniqueId] ?: 0)}"
+            "$§6§lKILL: ${(dataClass.playerKill[p.uniqueId] ?: 0)}"
         )
         p.sendMessage(" ")
-        p.sendMessage("${ChatColor.GOLD}${ChatColor.BOLD}==============================")
+        p.sendMessage("$§6§l==============================")
     }
 }
 private fun winPlayer(p: Player) {
     val dataClass = WorldManager.initData(p.world)
     Main.scheduler.scheduleSyncDelayedTask(Main.plugin, {
-        p.sendTitle("${ChatColor.GOLD}${ChatColor.BOLD}THE", " ", 1, 20 * 1, 1)
+        p.sendTitle("$§6§lTHE", " ", 1, 20 * 1, 1)
     }, 0)
     Main.scheduler.scheduleSyncDelayedTask(Main.plugin, {
-        p.sendTitle("${ChatColor.WHITE}${ChatColor.BOLD}THE LAST", " ", 1, 20 * 1, 1)
+        p.sendTitle("§f§lTHE LAST", " ", 1, 20 * 1, 1)
     }, 20)
     Main.scheduler.scheduleSyncDelayedTask(Main.plugin, {
-        p.sendTitle("${ChatColor.GOLD}${ChatColor.BOLD}THE LAST STANDER", " ", 1, 20*2, 1)
+        p.sendTitle("$§6§lTHE LAST STANDER", " ", 1, 20*2, 1)
     }, 40)
     Main.scheduler.scheduleSyncDelayedTask(Main.plugin, {
-        p.sendTitle("${ChatColor.WHITE}${ChatColor.BOLD}MATCH", " ", 1, 20*3, 1)
+        p.sendTitle("§f§lMATCH", " ", 1, 20*3, 1)
     }, 60)
     Main.scheduler.scheduleSyncDelayedTask(Main.plugin, {
-        p.sendTitle("${ChatColor.GOLD}${ChatColor.BOLD}MATCH WINNER", " ", 1, 20 * 5, 1)
+        p.sendTitle("$§6§lMATCH WINNER", " ", 1, 20 * 5, 1)
     }, 80)
 
-    broadcastWorld(p.world, "${ChatColor.GOLD}${ChatColor.BOLD}==============================")
+    broadcastWorld(p.world, "$§6§l==============================")
     broadcastWorld(p.world, " ")
-    broadcastWorld(p.world, "${ChatColor.GOLD}${ChatColor.BOLD}WINNER: ${p.name}")
-    broadcastWorld(p.world, "${ChatColor.GOLD}${ChatColor.BOLD}KILL: ${(dataClass.playerKill[p.uniqueId] ?: 0)}")
+    broadcastWorld(p.world, "$§6§lWINNER: ${p.name}")
+    broadcastWorld(p.world, "$§6§lKILL: ${(dataClass.playerKill[p.uniqueId] ?: 0)}")
     broadcastWorld(p.world, " ")
-    broadcastWorld(p.world, "${ChatColor.GOLD}${ChatColor.BOLD}==============================")
+    broadcastWorld(p.world, "$§6§l==============================")
     if (dataClass.worldMode == "Solo" || dataClass.worldMode == "Quick")
     RankSystem.updateMMR(p, dataClass.playerKill[p.uniqueId]?: 0, dataClass.totalPlayer, 1, dataClass.avgMMR)
     RankSystem.updateRank(p, dataClass.playerKill[p.uniqueId]?: 0, dataClass.totalPlayer, 1, dataClass.avgMMR)
@@ -232,7 +232,7 @@ private fun winPlayer(p: Player) {
 }
 
 private fun msg(gab: Double, borderSize: Double): String {
-    return "${ChatColor.GREEN}보더가 ${ChatColor.YELLOW}${gab.roundToInt()}${ChatColor.GREEN}초에 걸쳐서 ${ChatColor.YELLOW}${ChatColor.BOLD}${borderSize.roundToInt()}${ChatColor.GREEN}블럭으로 감소합니다."
+    return "§a보더가 §e${gab.roundToInt()}§a초에 걸쳐서 §e§l${borderSize.roundToInt()}§a블럭으로 감소합니다."
 }
 private fun distance(loc1: Location, loc2: Location): Double {
     val dx = loc2.x - loc1.x
@@ -335,7 +335,7 @@ private fun spawnZombie(time: Int, loc: Location) {
                 val e = loc.world.spawnEntity(loc, EntityType.ZOMBIE, false) as Zombie
                 e.scoreboardTags.add("Spawned-Zombie")
                 e.equipment.setItemInMainHand(ItemStack(Material.IRON_AXE))
-                e.customName = "${ChatColor.GREEN}Axe Zombie lv1"
+                e.customName = "§aAxe Zombie lv1"
             } else if (r == 1) {
                 val e = loc.world.spawnEntity(loc, EntityType.ZOMBIE, false) as Zombie
                 e.scoreboardTags.add("Spawned-Zombie")
@@ -343,7 +343,7 @@ private fun spawnZombie(time: Int, loc: Location) {
                 e.equipment.leggings = ItemStack(Material.IRON_LEGGINGS)
                 e.equipment.chestplate = ItemStack(Material.IRON_CHESTPLATE)
                 e.equipment.helmet = ItemStack(Material.IRON_HELMET)
-                e.customName = "${ChatColor.GRAY}Tank Zombie lv1"
+                e.customName = "§7Tank Zombie lv1"
             }
         } in 5..9 -> {
             val r = random.nextInt(0, 3)
@@ -353,7 +353,7 @@ private fun spawnZombie(time: Int, loc: Location) {
                 e.equipment.setItemInMainHand(ItemStack(Material.DIAMOND_AXE))
                 e.equipment.leggings = ItemStack(Material.DIAMOND_LEGGINGS)
                 e.equipment.chestplate = ItemStack(Material.DIAMOND_CHESTPLATE)
-                e.customName = "${ChatColor.AQUA}${ChatColor.BOLD}Axe Zombie lv2"
+                e.customName = "§b§lAxe Zombie lv2"
             } else if (r == 1) {
                 val e = loc.world.spawnEntity(loc, EntityType.ZOMBIE, false) as Zombie
                 e.scoreboardTags.add("Spawned-Zombie")
@@ -361,7 +361,7 @@ private fun spawnZombie(time: Int, loc: Location) {
                 e.equipment.leggings = ItemStack(Material.DIAMOND_LEGGINGS)
                 e.equipment.chestplate = ItemStack(Material.DIAMOND_CHESTPLATE)
                 e.equipment.helmet = ItemStack(Material.DIAMOND_HELMET)
-                e.customName = "${ChatColor.AQUA}${ChatColor.BOLD}Tank Zombie lv2"
+                e.customName = "§b§lTank Zombie lv2"
             } else if (r == 2) {
                 val e = loc.world.spawnEntity(loc, EntityType.ZOMBIE, false) as Zombie
                 e.scoreboardTags.add("Spawned-Zombie")
@@ -371,7 +371,7 @@ private fun spawnZombie(time: Int, loc: Location) {
                 item.addEnchantment(Enchantment.KNOCKBACK, 2)
                 e.equipment.setItemInMainHand(item)
 
-                e.customName = "${ChatColor.DARK_GRAY}${ChatColor.BOLD}Silence Zombie lv1"
+                e.customName = "§8§lSilence Zombie lv1"
                 e.addPotionEffect(PotionEffect(PotionEffectType.INVISIBILITY, 20*1000000, 0, false, false))
             }
         } in 10..Int.MAX_VALUE -> {
@@ -382,7 +382,7 @@ private fun spawnZombie(time: Int, loc: Location) {
                 e.equipment.setItemInMainHand(ItemStack(Material.NETHERITE_AXE))
                 e.equipment.leggings = ItemStack(Material.NETHERITE_LEGGINGS)
                 e.equipment.chestplate = ItemStack(Material.NETHERITE_CHESTPLATE)
-                e.customName = "${ChatColor.GRAY}${ChatColor.BOLD}Axe Zombie lv3"
+                e.customName = "§7§lAxe Zombie lv3"
             } else if (r in 2..3) {
                 val e = loc.world.spawnEntity(loc, EntityType.ZOMBIE, false) as Zombie
                 e.scoreboardTags.add("Spawned-Zombie")
@@ -390,12 +390,12 @@ private fun spawnZombie(time: Int, loc: Location) {
                 e.equipment.leggings = ItemStack(Material.NETHERITE_LEGGINGS)
                 e.equipment.chestplate = ItemStack(Material.NETHERITE_CHESTPLATE)
                 e.equipment.helmet = ItemStack(Material.NETHERITE_HELMET)
-                e.customName = "${ChatColor.GRAY}${ChatColor.BOLD}Tank Zombie lv3"
+                e.customName = "§7§lTank Zombie lv3"
             } else if (r == 4) {
                 val e = loc.world.spawnEntity(loc, EntityType.ZOMBIE, false) as Zombie
                 e.scoreboardTags.add("Spawned-Zombie")
                 e.equipment.chestplate = ItemStack(Material.DIAMOND_CHESTPLATE)
-                e.customName = "${ChatColor.RED}${ChatColor.BOLD}TITAN ZOMBIE"
+                e.customName = "§c§lTITAN ZOMBIE"
                 e.getAttribute(Attribute.GENERIC_KNOCKBACK_RESISTANCE)?.baseValue = 6400.0
                 e.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE)?.baseValue = 20.0
                 e.getAttribute(Attribute.GENERIC_MAX_HEALTH)?.baseValue = 120.0
@@ -409,13 +409,13 @@ private fun spawnZombie(time: Int, loc: Location) {
                 item.addEnchantment(Enchantment.KNOCKBACK, 2)
                 e.equipment.setItemInMainHand(item)
 
-                e.customName = "${ChatColor.DARK_GRAY}${ChatColor.BOLD}Silence Zombie lv2"
+                e.customName = "§8§lSilence Zombie lv2"
                 e.addPotionEffect(PotionEffect(PotionEffectType.INVISIBILITY, 20*1000000, 0, false, false))
             }
         } else -> {
             val e = loc.world.spawnEntity(loc, EntityType.ZOMBIE, false) as Zombie
             e.scoreboardTags.add("Spawned-Zombie")
-            e.customName = "${ChatColor.GREEN}Normal Zombie"
+            e.customName = "§aNormal Zombie"
         }
     }
 
@@ -436,8 +436,8 @@ private fun initPlayer(player: Player, sendTeam: Boolean = false) {
     player.inventory.addItem(ItemStack(Material.WOODEN_PICKAXE))
     player.inventory.addItem(ItemStack(Material.WOODEN_AXE))
     if (!player.hasPotionEffect(PotionEffectType.DAMAGE_RESISTANCE)) {
-        player.sendMessage("${ChatColor.GOLD}건물 안에 있는 아이템을 파밍하여 살아남으세요!")
-        player.sendMessage("${ChatColor.GRAY}팁: ${EffectManager.randomTip()}")
+        player.sendMessage("$§6건물 안에 있는 아이템을 파밍하여 살아남으세요!")
+        player.sendMessage("§7팁: ${EffectManager.randomTip()}")
     }
     player.addPotionEffect(PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 20*30, 4, false, false))
     if (sendTeam) {
@@ -448,7 +448,7 @@ private fun initPlayer(player: Player, sendTeam: Boolean = false) {
                 team.players.forEach { player ->
                     names.add(player.name)
                 }
-                player.sendMessage("${ChatColor.GOLD}팀원: ${names.joinToString(", ")}")
+                player.sendMessage("$§6팀원: ${names.joinToString(", ")}")
             }
         }, 20 * 10)
     }
@@ -538,7 +538,7 @@ object GameManager {
 //                        }
 //                    }
 //
-//                    if (it.name == "${ChatColor.RED}${ChatColor.BOLD}TITAN ZOMBIE") {
+//                    if (it.name == "§c§lTITAN ZOMBIE") {
 //
 //                        var sound = false
 //                        for (x in -2..2) {
@@ -558,7 +558,7 @@ object GameManager {
 //                        if (sound) {
 //                            EffectManager.playSurroundSound(it.location, Sound.ENTITY_ZOMBIE_BREAK_WOODEN_DOOR, 1.0F, 1.0F)
 //                        }
-//                    } else if (it.name.contains("${ChatColor.DARK_GRAY}${ChatColor.BOLD}Silence")) {
+//                    } else if (it.name.contains("§8§lSilence")) {
 //
 //                        val entity = it as LivingEntity
 //                        if (entity.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
@@ -683,13 +683,13 @@ object GameManager {
             players.forEach {
                 val data = RankSystem.initData(it.uniqueId)
                 if (dataClass.avgMMR > data.playerMMR + 50) {
-                    it.sendMessage("${ChatColor.GREEN}게임 MMR이 높아 가젯이 지급되었습니다!")
+                    it.sendMessage("§a게임 MMR이 높아 가젯이 지급되었습니다!")
                     it.inventory.addItem(
                         ItemManager.createNamedItem(
                             Material.BOOK,
                             1,
-                            "${ChatColor.GREEN}${ChatColor.BOLD}가젯 선택",
-                            listOf("${ChatColor.GRAY}Gadget")
+                            "§a§가젯 선택",
+                            listOf("§7Gadget")
                         )
                     )
                 }
@@ -1131,10 +1131,10 @@ object GameManager {
                         if (specs.isNotEmpty() && players.isEmpty()) {
                             dataClass.gameEndedWorld = true
                             specs.forEach {
-                                it.sendMessage("${ChatColor.RED}        GAME OVER")
-                                it.sendMessage("${ChatColor.RED} ")
-                                it.sendMessage("${ChatColor.RED}      Wave: ${dataClass.dataInt1}")
-                                it.sendMessage("${ChatColor.RED}  ")
+                                it.sendMessage("§c        GAME OVER")
+                                it.sendMessage("§c ")
+                                it.sendMessage("§c      Wave: ${dataClass.dataInt1}")
+                                it.sendMessage("§c  ")
                             }
                             lobbyTeleportWorlds(world)
                         }

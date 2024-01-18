@@ -1,6 +1,5 @@
 package me.uwuaden.kotlinplugin.quickSlot
 
-import org.bukkit.ChatColor
 import org.bukkit.Sound
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -63,8 +62,8 @@ class QuickSlotEvent: Listener {
                 swapPlayerItem(player, data.slotData[slotIndex]!!)
                 player.inventory.close()
             } else {
-                player.sendMessage("${ChatColor.GREEN}아이템이 지정되지 않았습니다.")
-                player.sendMessage("${ChatColor.GREEN}쉬프트 좌클릭으로 들고 있는 아이템을 퀵슬롯으로 지정할 수 있습니다.")
+                player.sendMessage("§a아이템이 지정되지 않았습니다.")
+                player.sendMessage("§a쉬프트 좌클릭으로 들고 있는 아이템을 퀵슬롯으로 지정할 수 있습니다.")
             }
         }
     }

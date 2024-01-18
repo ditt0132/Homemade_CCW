@@ -55,7 +55,7 @@ class GameEvent: Listener {
         }
         if (e.block.y <= groundY.toInt()) {
             e.isCancelled = true
-            e.player.sendMessage("${ChatColor.RED}바닥의 블럭을 부술 수 없습니다.")
+            e.player.sendMessage("§c바닥의 블럭을 부술 수 없습니다.")
             e.block.world.spawnParticle(Particle.SMOKE_NORMAL, e.block.location.clone().add(0.5, 0.5, 0.5), 10, 0.0, 0.0, 0.0, 0.0)
         }
     }
@@ -149,8 +149,8 @@ class GameEvent: Listener {
                         if (itemLast.getEnchantmentLevel(enchant) > level) {
                             e.isCancelled = true
                             player.playSound(player, Sound.BLOCK_NOTE_BLOCK_BASS, 1.0f, 1.0f)
-                            player.sendMessage("${ChatColor.RED}해당 아이템이 인챈트 레벨 제한을 넘었습니다!")
-                            player.sendMessage("${ChatColor.RED}무시하고 인챈트 할려면 다시 클릭해주세요.")
+                            player.sendMessage("§c해당 아이템이 인챈트 레벨 제한을 넘었습니다!")
+                            player.sendMessage("§c무시하고 인챈트 할려면 다시 클릭해주세요.")
                             player.setCooldown(Material.DAMAGED_ANVIL, 20*5)
                             return
                         }
@@ -163,7 +163,7 @@ class GameEvent: Listener {
                         }
                     }
                     player.setCooldown(Material.DAMAGED_ANVIL, 0)
-                    player.sendMessage("${ChatColor.GREEN}제한을 무시했습니다!")
+                    player.sendMessage("§a제한을 무시했습니다!")
                 }
             }
         }

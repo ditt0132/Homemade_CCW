@@ -160,7 +160,7 @@ private fun countItemsWithName(player: Player, itemName: String): Int {
     return itemCount
 }
 private fun liberationSkillTP(player: Player) {
-    if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.DARK_PURPLE}${ChatColor.BOLD}Liberation") {
+    if (player.inventory.itemInMainHand.itemMeta?.displayName == "§5§lLiberation") {
         if (player.location.getNearbyPlayers(30.0).filter { isHittable(player, it) }.size < 3) return //쓸거
         if (player.health != player.getAttribute(Attribute.GENERIC_MAX_HEALTH)?.value) return
 
@@ -190,7 +190,7 @@ private fun liberationSkillTP(player: Player) {
     }
 }
 private fun liberationSkill(player: Player) {
-    if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.DARK_PURPLE}${ChatColor.BOLD}Liberation") {
+    if (player.inventory.itemInMainHand.itemMeta?.displayName == "§5§lLiberation") {
         if (player.location.getNearbyPlayers(30.0).filter { isHittable(player, it) }.size < 3) return //쓸거
 
         if (player.getCooldown(Material.INFESTED_STONE) > 0) return
@@ -653,11 +653,11 @@ class CustomItemEvent: Listener {
         if (!e.action.isRightClick) return
         val player = e.player
         val cd = 3
-        if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.YELLOW}영역 수류탄") {
+        if (player.inventory.itemInMainHand.itemMeta?.displayName == "§e영역 수류탄") {
             e.isCancelled = true
 
             if ((GrenadeCD[player.uniqueId] ?: 0) >= System.currentTimeMillis()) {
-                player.sendMessage(Component.text("${ChatColor.RED} 쿨타임 중 입니다. (${((GrenadeCD[player.uniqueId] ?: System.currentTimeMillis()) - System.currentTimeMillis()) / 1000}초)"))
+                player.sendMessage(Component.text("§c 쿨타임 중 입니다. (${((GrenadeCD[player.uniqueId] ?: System.currentTimeMillis()) - System.currentTimeMillis()) / 1000}초)"))
                 return
             }
 
@@ -666,11 +666,11 @@ class CustomItemEvent: Listener {
 
 
             throwProjectile(player, 20*2, 20*5, Color.fromRGB(41, 24, 17), !player.isSneaking, ::earthGrenade)
-        } else if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.YELLOW}중력 수류탄") {
+        } else if (player.inventory.itemInMainHand.itemMeta?.displayName == "§e중력 수류탄") {
             e.isCancelled = true
 
             if ((GrenadeCD[player.uniqueId] ?: 0) >= System.currentTimeMillis()) {
-                player.sendMessage(Component.text("${ChatColor.RED} 쿨타임 중 입니다. (${((GrenadeCD[player.uniqueId] ?: System.currentTimeMillis()) - System.currentTimeMillis()) / 1000}초)"))
+                player.sendMessage(Component.text("§c 쿨타임 중 입니다. (${((GrenadeCD[player.uniqueId] ?: System.currentTimeMillis()) - System.currentTimeMillis()) / 1000}초)"))
                 return
             }
 
@@ -679,11 +679,11 @@ class CustomItemEvent: Listener {
 
 
             throwProjectile(player, 20*2, 20*5, Color.fromRGB(37, 13, 39), !player.isSneaking, ::gravityGrenade)
-        } else if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.YELLOW}연막탄") {
+        } else if (player.inventory.itemInMainHand.itemMeta?.displayName == "§e연막탄") {
             e.isCancelled = true
 
             if ((GrenadeCD[player.uniqueId] ?: 0) >= System.currentTimeMillis()) {
-                player.sendMessage(Component.text("${ChatColor.RED} 쿨타임 중 입니다. (${((GrenadeCD[player.uniqueId] ?: System.currentTimeMillis()) - System.currentTimeMillis()) / 1000}초)"))
+                player.sendMessage(Component.text("§c 쿨타임 중 입니다. (${((GrenadeCD[player.uniqueId] ?: System.currentTimeMillis()) - System.currentTimeMillis()) / 1000}초)"))
                 return
             }
 
@@ -692,11 +692,11 @@ class CustomItemEvent: Listener {
 
 
             throwProjectile(player, 20*3, 20*8, Color.GRAY, !player.isSneaking, ::smokeGrenade)
-        } else if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.YELLOW}화염병") {
+        } else if (player.inventory.itemInMainHand.itemMeta?.displayName == "§e화염병") {
             e.isCancelled = true
 
             if ((GrenadeCD[player.uniqueId] ?: 0) >= System.currentTimeMillis()) {
-                player.sendMessage(Component.text("${ChatColor.RED} 쿨타임 중 입니다. (${((GrenadeCD[player.uniqueId] ?: System.currentTimeMillis()) - System.currentTimeMillis()) / 1000}초)"))
+                player.sendMessage(Component.text("§c 쿨타임 중 입니다. (${((GrenadeCD[player.uniqueId] ?: System.currentTimeMillis()) - System.currentTimeMillis()) / 1000}초)"))
                 return
             }
 
@@ -704,11 +704,11 @@ class CustomItemEvent: Listener {
             GrenadeCD[player.uniqueId] = System.currentTimeMillis() + cd * 1000L
 
             throwProjectile(player, 0, 20*5, Color.fromRGB(255, 120, 14), !player.isSneaking, ::molotovCocktail)
-        } else if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.YELLOW}섬광탄") {
+        } else if (player.inventory.itemInMainHand.itemMeta?.displayName == "§e섬광탄") {
             e.isCancelled = true
 
             if ((GrenadeCD[player.uniqueId] ?: 0) >= System.currentTimeMillis()) {
-                player.sendMessage(Component.text("${ChatColor.RED} 쿨타임 중 입니다. (${((GrenadeCD[player.uniqueId] ?: System.currentTimeMillis()) - System.currentTimeMillis()) / 1000}초)"))
+                player.sendMessage(Component.text("§c 쿨타임 중 입니다. (${((GrenadeCD[player.uniqueId] ?: System.currentTimeMillis()) - System.currentTimeMillis()) / 1000}초)"))
                 return
             }
 
@@ -724,7 +724,7 @@ class CustomItemEvent: Listener {
         val projectile = e.entity
         if (projectile is Arrow) {
             val shooter = projectile.shooter as? Player ?: return
-            if (shooter.inventory.itemInMainHand.itemMeta?.displayName != "${ChatColor.YELLOW}${ChatColor.BOLD}Vallista") {
+            if (shooter.inventory.itemInMainHand.itemMeta?.displayName != "§e§lVallista") {
                 return
             }
             if (shooter.inventory.itemInOffHand.type == Material.BOW) return
@@ -792,7 +792,7 @@ class CustomItemEvent: Listener {
         if (e.hand == EquipmentSlot.OFF_HAND) return
         if (!e.action.isRightClick) return
         val player = e.player
-        if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.AQUA}반중력 큐브") {
+        if (player.inventory.itemInMainHand.itemMeta?.displayName == "§b반중력 큐브") {
             e.isCancelled = true
 
             if (player.getCooldown(Material.LIGHT_BLUE_DYE) > 0) return
@@ -817,11 +817,11 @@ class CustomItemEvent: Listener {
         val data = WorldManager.initData(attacker.world)
         if ((data.playerKill[attacker.uniqueId] ?: 0) < 3) {
             if (attacker is Player && victim is LivingEntity && isHittable(attacker, victim)) {
-                if (attacker.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.AQUA}${ChatColor.BOLD}Revelation") {
+                if (attacker.inventory.itemInMainHand.itemMeta?.displayName == "§b§lRevelation") {
                     if (attacker.getCooldown(Material.GOLDEN_SWORD) > 0) {
                         attacker.sendMessage(
                             Component.text(
-                                "${ChatColor.RED} 쿨타임 중 입니다. (${
+                                "§c 쿨타임 중 입니다. (${
                                     attacker.getCooldown(
                                         Material.GOLDEN_SWORD
                                     ).toDouble() / 20.0
@@ -851,25 +851,25 @@ class CustomItemEvent: Listener {
         if (e.hand == EquipmentSlot.OFF_HAND) return
         if (!e.action.isRightClick) return
         val player = e.player
-        if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.AQUA}컨버터") {
-            val inv = Bukkit.createInventory(null, 27, "${ChatColor.DARK_BLUE}Converter")
+        if (player.inventory.itemInMainHand.itemMeta?.displayName == "§b컨버터") {
+            val inv = Bukkit.createInventory(null, 27, "§1Converter")
             for (i in 0 until 27) {
                 inv.setItem(i, ItemManager.createNamedItem(Material.BLACK_STAINED_GLASS_PANE, 1, " ", null))
             }
             for (i in 11..15) {
                 inv.setItem(i, ItemStack(Material.AIR))
             }
-            inv.setItem(22, ItemManager.createNamedItem(Material.IRON_PICKAXE, 1, "${ChatColor.GREEN}Convert", null))
+            inv.setItem(22, ItemManager.createNamedItem(Material.IRON_PICKAXE, 1, "§AConvert", null))
             inv.setItem(
                 26,
                 ItemManager.createNamedItem(
                     Material.REDSTONE_TORCH,
                     1,
-                    "${ChatColor.RED}도움말",
+                    "§c도움말",
                     listOf(
-                        "${ChatColor.GRAY}다이아몬드 장비(갑옷, 무기) 5개를 이용해서",
-                        "${ChatColor.GRAY}근접 대미지를 감소시키는 아이템을 제작할 수 있습니다.",
-                        "${ChatColor.GRAY}(최대 5개까지 중첩 가능)"
+                        "§7다이아몬드 장비(갑옷, 무기) 5개를 이용해서",
+                        "§7근접 대미지를 감소시키는 아이템을 제작할 수 있습니다.",
+                        "§7(최대 5개까지 중첩 가능)"
                     )
                 )
             )
@@ -879,7 +879,7 @@ class CustomItemEvent: Listener {
 
     @EventHandler
     fun onConverterInvClick(e: InventoryClickEvent) {
-        if (e.view.title == "${ChatColor.DARK_BLUE}Converter" && e.clickedInventory == e.view.topInventory) {
+        if (e.view.title == "§1Converter" && e.clickedInventory == e.view.topInventory) {
             if (e.slot in 11..15) return
             e.isCancelled = true
             if (e.slot == 22) {
@@ -901,8 +901,8 @@ class CustomItemEvent: Listener {
                         ItemManager.createNamedItem(
                             Material.ECHO_SHARD,
                             1,
-                            "${ChatColor.BLUE}${ChatColor.BOLD}보호의 조각",
-                            listOf("${ChatColor.GRAY}물리 피해 대미지를 조각 하나당 5% 감소시킵니다.", "${ChatColor.GRAY}(최대 5개까지 적용)")
+                            "§9§l보호의 조각",
+                            listOf("§7물리 피해 대미지를 조각 하나당 5% 감소시킵니다.", "§7(최대 5개까지 적용)")
                         )
                     )
                     EffectManager.playSurroundSound(p.location, Sound.BLOCK_SMITHING_TABLE_USE, 1.0F, 1.0F)
@@ -913,7 +913,7 @@ class CustomItemEvent: Listener {
 
     @EventHandler
     fun onConverterInvClick(e: InventoryCloseEvent) {
-        if (e.view.title == "${ChatColor.DARK_BLUE}Converter") {
+        if (e.view.title == "§1Converter") {
             val p = e.player
             for (i in 11..15) {
                 p.world.dropItem(p.eyeLocation, e.inventory.getItem(i) ?: ItemStack(Material.AIR))
@@ -926,7 +926,7 @@ class CustomItemEvent: Listener {
         val victim = e.entity
 
         if (victim is Player) {
-            var shard = countItemsWithName(victim, "${ChatColor.BLUE}${ChatColor.BOLD}보호의 조각")
+            var shard = countItemsWithName(victim, "§9§l보호의 조각")
             if (shard > 5) {
                 shard = 5
             }
@@ -955,7 +955,7 @@ class CustomItemEvent: Listener {
         if (e.hand == EquipmentSlot.OFF_HAND) return
         if (!e.action.isRightClick) return
         val player = e.player
-        if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.GOLD}Golden Carrot") {
+        if (player.inventory.itemInMainHand.itemMeta?.displayName == "§6Golden Carrot") {
             e.isCancelled = true
             if (player.getCooldown(Material.GOLDEN_CARROT) > 0) return
             player.setCooldown(Material.GOLDEN_CARROT, 20 * 1)
@@ -974,7 +974,7 @@ class CustomItemEvent: Listener {
         if (e.hand == EquipmentSlot.OFF_HAND) return
         if (!e.action.isRightClick) return
         val player = e.player
-        if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.RED}Flare Gun") {
+        if (player.inventory.itemInMainHand.itemMeta?.displayName == "§cFlare Gun") {
             e.isCancelled = true
             player.inventory.itemInMainHand.amount -= 1
 
@@ -1026,7 +1026,7 @@ class CustomItemEvent: Listener {
                                 ItemManager.createNamedItem(
                                     Material.CROSSBOW,
                                     1,
-                                    "${ChatColor.RED}Flare Gun",
+                                    "§cFlare Gun",
                                     null
                                 ), System.currentTimeMillis() + 1000 * 10
                             )
@@ -1057,7 +1057,7 @@ class CustomItemEvent: Listener {
         if (e.hand == EquipmentSlot.OFF_HAND) return
         if (!e.action.isRightClick) return
         val player = e.player
-        if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.AQUA}${ChatColor.BOLD}Prototype V3") {
+        if (player.inventory.itemInMainHand.itemMeta?.displayName == "§b§lPrototype V3") {
             if (player.getCooldown(Material.NETHERITE_SHOVEL) > 0) return
             player.setCooldown(Material.NETHERITE_SHOVEL, 20 * 8)
 
@@ -1091,13 +1091,13 @@ class CustomItemEvent: Listener {
                             EffectManager.setLastDamager(player, it, player.inventory.itemInMainHand)
                             it.damage(3.0)
                             if (dmgType == 0) dmgType = 1
-                            player.sendMessage(Component.text("${ChatColor.AQUA}DMG: 3.0"))
+                            player.sendMessage(Component.text("§bDMG: 3.0"))
                         } else {
                             EffectManager.setLastDamager(player, it, player.inventory.itemInMainHand.setName("§b§lPrototype V3*"))
                             var am = 2.5 * log(i.toDouble() / 10.0 + 3.0, 3.0)
                             if (am > 10.0) am = 10.0
                             it.damage(am)
-                            player.sendMessage(Component.text("${ChatColor.AQUA}DMG: ${(am * 10.0).roundToInt() / 10.0}"))
+                            player.sendMessage(Component.text("§bDMG: ${(am * 10.0).roundToInt() / 10.0}"))
                             dmgType = 2
                         }
                     }
@@ -1145,7 +1145,7 @@ class CustomItemEvent: Listener {
         if (e.hand == EquipmentSlot.OFF_HAND) return
         if (!e.action.isRightClick) return
         val player = e.player
-        if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.RED}Player Tracker") {
+        if (player.inventory.itemInMainHand.itemMeta?.displayName == "§cPlayer Tracker") {
             if (player.getCooldown(Material.COMPASS) > 0) return
             player.setCooldown(Material.COMPASS, 20 * 10)
 
@@ -1165,7 +1165,7 @@ class CustomItemEvent: Listener {
                     }, i * 10L)
                 }
             } else {
-                player.sendMessage("${ChatColor.RED}플레이어를 찾을 수 없습니다.")
+                player.sendMessage("§c플레이어를 찾을 수 없습니다.")
             }
         }
     }
@@ -1175,7 +1175,7 @@ class CustomItemEvent: Listener {
         if (e.hand == EquipmentSlot.OFF_HAND) return
         if (!e.action.isRightClick) return
         val player = e.player
-        if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.YELLOW}Prism Shooter") {
+        if (player.inventory.itemInMainHand.itemMeta?.displayName == "§ePrism Shooter") {
             e.isCancelled = true
             if (player.getCooldown(Material.IRON_SHOVEL) > 0) return
             player.setCooldown(Material.IRON_SHOVEL, 20 * 10)
@@ -1250,7 +1250,7 @@ class CustomItemEvent: Listener {
                                     ItemManager.createNamedItem(
                                         Material.IRON_SHOVEL,
                                         1,
-                                        "${ChatColor.YELLOW}Prism Shooter",
+                                        "§ePrism Shooter",
                                         null
                                     ), System.currentTimeMillis() + 1000 * 10
                                 )
@@ -1290,9 +1290,9 @@ class CustomItemEvent: Listener {
         if (e.hand == EquipmentSlot.OFF_HAND) return
         if (!e.action.isRightClick) return
         val player = e.player
-        if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.GREEN}${ChatColor.BOLD}가젯 선택") {
+        if (player.inventory.itemInMainHand.itemMeta?.displayName == "§A§l가젯 선택") {
             e.isCancelled = true
-            val inv = Bukkit.createInventory(null, 27, "${ChatColor.GRAY}${ChatColor.BOLD}가젯 선택")
+            val inv = Bukkit.createInventory(null, 27, "§7§l가젯 선택")
             for (i in 0 until 27) {
                 inv.setItem(i, ItemManager.createNamedItem(Material.BLACK_STAINED_GLASS_PANE, 1, " ", null))
             }
@@ -1302,8 +1302,8 @@ class CustomItemEvent: Listener {
                 ItemManager.createNamedItem(
                     Material.RED_DYE,
                     3,
-                    "${ChatColor.RED}대미지 개조",
-                    listOf("${ChatColor.GRAY}사용시 10초간 힘 2가 부여됩니다.")
+                    "§c대미지 개조",
+                    listOf("§7사용시 10초간 힘 2가 부여됩니다.")
                 )
             )
             inv.setItem(
@@ -1315,8 +1315,8 @@ class CustomItemEvent: Listener {
                 ItemManager.createNamedItem(
                     Material.GREEN_DYE,
                     3,
-                    "${ChatColor.YELLOW}특급 영양식 키트",
-                    listOf("${ChatColor.GRAY}사용시 즉시 회복 3 효과와 10초간 받는 대미지를 20% 감소시킵니다.")
+                    "§e특급 영양식 키트",
+                    listOf("§7사용시 즉시 회복 3 효과와 10초간 받는 대미지를 20% 감소시킵니다.")
                 )
             )
 
@@ -1326,18 +1326,18 @@ class CustomItemEvent: Listener {
 
     @EventHandler
     fun onClickSelectBook(e: InventoryClickEvent) {
-        if (e.clickedInventory == e.view.topInventory && e.view.title == "${ChatColor.GRAY}${ChatColor.BOLD}가젯 선택") {
+        if (e.clickedInventory == e.view.topInventory && e.view.title == "§7§l가젯 선택") {
             e.isCancelled = true
             val player = e.view.player as Player
 
-            if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.GREEN}${ChatColor.BOLD}가젯 선택") {
+            if (player.inventory.itemInMainHand.itemMeta?.displayName == "§A§l가젯 선택") {
                 val item = when (e.slot) {
                     11 -> {
                         ItemManager.createNamedItem(
                             Material.RED_DYE,
                             3,
-                            "${ChatColor.RED}대미지 개조",
-                            listOf("${ChatColor.GRAY}사용시 10초간 힘 2가 부여됩니다.", "${ChatColor.GRAY}Gadget")
+                            "§c대미지 개조",
+                            listOf("§7사용시 10초간 힘 2가 부여됩니다.", "§7Gadget")
                         )
                     }
 
@@ -1347,10 +1347,10 @@ class CustomItemEvent: Listener {
                         ItemManager.createNamedItem(
                             Material.GREEN_DYE,
                             3,
-                            "${ChatColor.YELLOW}특급 영양식 키트",
+                            "§e특급 영양식 키트",
                             listOf(
-                                "${ChatColor.GRAY}사용시 즉시 회복 3 효과와 10초간 받는 대미지를 20% 감소시킵니다.",
-                                "${ChatColor.GRAY}Gadget"
+                                "§7사용시 즉시 회복 3 효과와 10초간 받는 대미지를 20% 감소시킵니다.",
+                                "§7Gadget"
                             )
                         )
                     }
@@ -1373,7 +1373,7 @@ class CustomItemEvent: Listener {
         if (e.hand == EquipmentSlot.OFF_HAND) return
         if (!e.action.isRightClick) return
         val player = e.player
-        if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.RED}대미지 개조") {
+        if (player.inventory.itemInMainHand.itemMeta?.displayName == "§c대미지 개조") {
             e.isCancelled = true
             if (player.getCooldown(Material.RED_DYE) > 0) return
             player.setCooldown(Material.RED_DYE, 20 * 15)
@@ -1408,7 +1408,7 @@ class CustomItemEvent: Listener {
         if (e.hand == EquipmentSlot.OFF_HAND) return
         if (!e.action.isRightClick) return
         val player = e.player
-        if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.YELLOW}특급 영양식 키트") {
+        if (player.inventory.itemInMainHand.itemMeta?.displayName == "§e특급 영양식 키트") {
             e.isCancelled = true
             if (player.getCooldown(Material.GREEN_DYE) > 0) return
             player.setCooldown(Material.GREEN_DYE, 20 * 10)
@@ -1562,7 +1562,7 @@ class CustomItemEvent: Listener {
         if (projectile is Arrow) {
             val shooter = projectile.shooter ?: return
             if (shooter is Player) {
-                if (shooter.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.YELLOW}Explosive Bow") {
+                if (shooter.inventory.itemInMainHand.itemMeta?.displayName == "§eExplosive Bow") {
                     projectile.addScoreboardTag("ExposiveBow_${e.force}")
                 }
             }
@@ -1602,7 +1602,7 @@ class CustomItemEvent: Listener {
         if (e.hand == EquipmentSlot.OFF_HAND) return
         if (!e.action.isRightClick) return
         val player = e.player
-        if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.YELLOW}반중력 샷건") {
+        if (player.inventory.itemInMainHand.itemMeta?.displayName == "§e반중력 샷건") {
             if (player.getCooldown(Material.GLOW_INK_SAC) > 0) return
             player.setCooldown(Material.GLOW_INK_SAC, 20 * 2)
 
@@ -1682,7 +1682,7 @@ class CustomItemEvent: Listener {
                         ItemManager.createNamedItem(
                             Material.GLOW_INK_SAC,
                             1,
-                            "${ChatColor.YELLOW}반중력 샷건",
+                            "§e반중력 샷건",
                             null
                         ), System.currentTimeMillis() + 1000 * 10
                     )
@@ -1718,7 +1718,7 @@ class CustomItemEvent: Listener {
         if (projectile is Arrow) {
             val shooter = projectile.shooter ?: return
             if (shooter is Player) {
-                if (shooter.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.AQUA}${ChatColor.BOLD}Stinger") {
+                if (shooter.inventory.itemInMainHand.itemMeta?.displayName == "§b§lStinger") {
                     projectile.velocity = projectile.velocity.multiply(2.0)
                     projectile.addScoreboardTag("Stinger")
                     shooter.world.spawnParticle(SMOKE_LARGE, shooter.location, 3, 0.25, 0.25, 0.25, 0.0)

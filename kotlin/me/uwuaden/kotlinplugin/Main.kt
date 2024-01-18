@@ -435,13 +435,13 @@ class Main: JavaPlugin() {
                 then("저장") {
                     executes {
                         FileManager.saveVar()
-                        player.sendMessage("${ChatColor.GREEN}저장되었습니다.")
+                        player.sendMessage("§a저장되었습니다.")
                     }
                 }
                 then("리로드") {
                     executes {
                         FileManager.loadVar()
-                        player.sendMessage("${ChatColor.GREEN}리로드되었습니다.")
+                        player.sendMessage("§a리로드되었습니다.")
 
                     }
                 }
@@ -473,13 +473,13 @@ class Main: JavaPlugin() {
                             if (arg == "confirm") {
                                 plugin.server.onlinePlayers.forEach { player ->
                                     val classData = RankSystem.initData(player.uniqueId)
-                                    player.sendMessage("${ChatColor.GOLD}=================================================")
+                                    player.sendMessage("§6=================================================")
                                     player.sendMessage(" ")
-                                    player.sendMessage("${ChatColor.GREEN}${LocalDate.now().year}년 ${LocalDate.now().monthValue}월 ${LocalDate.now().dayOfMonth}일, 시즌이 종료되었습니다!")
+                                    player.sendMessage("§a${LocalDate.now().year}년 ${LocalDate.now().monthValue}월 ${LocalDate.now().dayOfMonth}일, 시즌이 종료되었습니다!")
                                     player.sendMessage(" ")
-                                    player.sendMessage("${ChatColor.WHITE}당신의 최종 티어 : ${RankSystem.rateToString(player.uniqueId)} ${ChatColor.GREEN}(${RankSystem.rateToScore(classData.playerRank)})")
+                                    player.sendMessage("§f당신의 최종 티어 : ${RankSystem.rateToString(player.uniqueId)} §a(${RankSystem.rateToScore(classData.playerRank)})")
                                     player.sendMessage(" ")
-                                    player.sendMessage("${ChatColor.GOLD}=================================================")
+                                    player.sendMessage("§6=================================================")
                                 }
                                 plugin.server.offlinePlayers.forEach { offlinePlayer ->
                                     val classData = RankSystem.initData(offlinePlayer.uniqueId)
@@ -544,7 +544,7 @@ class Main: JavaPlugin() {
                     executes {
                         if (player.world.name.contains("Queue-")) {
                             queueStartIn[player.world.name] = System.currentTimeMillis() + 10 * 1000
-                            player.sendMessage("${ChatColor.GREEN}강제시작 됨 (10초)")
+                            player.sendMessage("§a강제시작 됨 (10초)")
                         }
                     }
                 }
@@ -604,7 +604,7 @@ class Main: JavaPlugin() {
                                     }
                                 }
                             } else {
-                                player.sendMessage("${ChatColor.RED}해당 대상의 인벤토리를 확인할 수 없습니다.")
+                                player.sendMessage("§c해당 대상의 인벤토리를 확인할 수 없습니다.")
                             }
                         }
                     }
@@ -639,7 +639,7 @@ class Main: JavaPlugin() {
                 }
                 then("돈") {
                     executes {
-                        player.sendMessage("${ChatColor.GREEN}${player.name}님의 돈: ${econ.getBalance(player)}")
+                        player.sendMessage("§a${player.name}님의 돈: ${econ.getBalance(player)}")
                     }
                 }
                 then("랭크") {
@@ -650,14 +650,14 @@ class Main: JavaPlugin() {
                         executes {
                             val classData = RankSystem.initData(player.uniqueId)
                             classData.rank = true
-                            player.sendMessage("${ChatColor.GREEN}랭크가 활성화되었습니다.")
+                            player.sendMessage("§a랭크가 활성화되었습니다.")
                         }
                     }
                     then("비활성화") {
                         executes {
                             val classData = RankSystem.initData(player.uniqueId)
                             classData.rank = false
-                            player.sendMessage("${ChatColor.GREEN}랭크가 비활성화되었습니다.")
+                            player.sendMessage("§a랭크가 비활성화되었습니다.")
                         }
                     }
                 }
@@ -676,11 +676,11 @@ class Main: JavaPlugin() {
                     player.world.players.forEach {
                         if (it != player) {
                             it.inventory.addItem(player.inventory.itemInMainHand.clone())
-                            it.sendMessage("${ChatColor.GREEN}${player.name}님이 아이템을 지급했습니다.")
+                            it.sendMessage("§a${player.name}님이 아이템을 지급했습니다.")
                         }
                     }
 
-                    player.sendMessage("${ChatColor.GREEN}모든 플레이어에게 해당 아이템이 지급되었습니다.")
+                    player.sendMessage("§a모든 플레이어에게 해당 아이템이 지급되었습니다.")
 
                 }
             }
@@ -702,9 +702,9 @@ class Main: JavaPlugin() {
                         val mode: String by it
                         if (player.world.name.contains("Queue-")) {
                             queueMode[player.world] = mode
-                            player.sendMessage("${ChatColor.GREEN}${mode}로 설정됨.")
+                            player.sendMessage("§a${mode}로 설정됨.")
                         } else {
-                            player.sendMessage("${ChatColor.RED}큐에서만 설정가능합니다.")
+                            player.sendMessage("§c큐에서만 설정가능합니다.")
                         }
                     }
                 }

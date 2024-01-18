@@ -326,7 +326,7 @@ object CustomItemManager {
 
                     scheduler.scheduleSyncDelayedTask(plugin, {
                         val chestMeta = chest.state as Chest
-                        chestMeta.customName = "${ChatColor.YELLOW}Supplies"
+                        chestMeta.customName = "§eSupplies"
                         chestMeta.update()
 
 
@@ -383,7 +383,7 @@ object CustomItemManager {
 
                     it.location.getNearbyPlayers(80.0).filter { pl -> pl.gameMode == GameMode.SURVIVAL || pl.gameMode == GameMode.ADVENTURE }.forEach { pl ->
                         val loc = pl.eyeLocation.clone()
-                        pl.sendMessage("${ChatColor.GREEN}주변에 보급품이 떨어졌습니다! (파티클로 방향이 표시됩니다.)")
+                        pl.sendMessage("§a주변에 보급품이 떨어졌습니다! (파티클로 방향이 표시됩니다.)")
                         pl.playSound(pl, Sound.ENTITY_ZOMBIE_ATTACK_WOODEN_DOOR, 1.0f, 0.5f)
                         for (i in 0 until 10) {
                             scheduler.scheduleSyncDelayedTask(plugin, {

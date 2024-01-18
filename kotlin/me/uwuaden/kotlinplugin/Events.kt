@@ -75,7 +75,7 @@ private fun deathPlayer(p: Player) {
         if (lastDamager[p] == null) {
             WorldManager.broadcastWorld(
                 p.world,
-                "${ChatColor.RED}☠   ${ChatColor.BOLD}➔ ${ChatColor.RED}${p.name}"
+                "§c☠   §l➔ §c${p.name}"
             )
         } else {
             var weaponName: String? = null
@@ -90,9 +90,9 @@ private fun deathPlayer(p: Player) {
                 }
             }
 
-            var msg = Component.text("${ChatColor.RED}☠ ${lastDamager[p]!!.name} ${ChatColor.BOLD}➔ ${ChatColor.RED}${p.name}")
+            var msg = Component.text("§c☠ ${lastDamager[p]!!.name} §l➔ §c${p.name}")
             if (weaponName != null) {
-                msg = msg.append(Component.text("${ChatColor.RED} with ").append(Component.text("${ChatColor.RED}${ChatColor.BOLD}[${weaponName}${ChatColor.RED}${ChatColor.BOLD}]").hoverEvent(
+                msg = msg.append(Component.text("§c with ").append(Component.text("§c§l[${weaponName}§c§l]").hoverEvent(
                     weapon)))
             }
 
@@ -146,7 +146,7 @@ private fun deathPlayer(p: Player) {
             items.add(p.inventory.itemInOffHand)
         }
 
-        items.removeIf { it.itemMeta.lore?.contains("${ChatColor.GRAY}Gadget") == true }
+        items.removeIf { it.itemMeta.lore?.contains("§7Gadget") == true }
 
         items.shuffle()
         var i = 0
@@ -196,7 +196,7 @@ class Events: Listener {
             val player = e.entity as Player
             if (player.fireTicks > 0) {
                 e.isCancelled = true
-                player.sendActionBar("${ChatColor.RED}불에 타는 중에는 회복이 되지 않습니다.")
+                player.sendActionBar("§c불에 타는 중에는 회복이 되지 않습니다.")
             }
         }
     }
@@ -211,7 +211,7 @@ class Events: Listener {
                 LastWeaponData(damager.inventory.itemInMainHand, System.currentTimeMillis()+1000*10).set(e.entity as Player)
             }
             if ((victim.getPotionEffect(PotionEffectType.DAMAGE_RESISTANCE)?: return).amplifier >= 4) {
-                damager.sendActionBar("${ChatColor.GRAY}${victim.name}님은 면역상태입니다.")
+                damager.sendActionBar("§7${victim.name}님은 면역상태입니다.")
                 e.isCancelled = true
             }
         }
@@ -234,7 +234,7 @@ class Events: Listener {
     fun onPlayerJump(e: PlayerJumpEvent) {
         val player = e.player
         if ((player.getPotionEffect(PotionEffectType.SLOW)?: return).amplifier >= 2) { //3보다 크거나 같다.
-            player.sendActionBar("${ChatColor.GRAY}구속 효과로 인해 점프가 불가능합니다.")
+            player.sendActionBar("§7구속 효과로 인해 점프가 불가능합니다.")
             scheduler.runTaskAsynchronously(plugin, Runnable {
                 for (i in 0 until 20) {
                     scheduler.scheduleSyncDelayedTask(plugin, {
@@ -442,7 +442,7 @@ class Events: Listener {
         if (!isBattleWorld(e.player.world)) return
         if (clickedBlock.type == Material.CHEST) {
             val chest = clickedBlock.state as Chest
-            if (chest.customName != "${ChatColor.YELLOW}Supplies") {
+            if (chest.customName != "§eSupplies") {
                 e.isCancelled = true
             }
         }

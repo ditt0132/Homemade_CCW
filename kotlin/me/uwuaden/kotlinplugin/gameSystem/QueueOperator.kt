@@ -10,7 +10,6 @@ import me.uwuaden.kotlinplugin.Main.Companion.queueStartIn
 import me.uwuaden.kotlinplugin.Main.Companion.scheduler
 import me.uwuaden.kotlinplugin.Main.Companion.worldLoaded
 import me.uwuaden.kotlinplugin.QueueData
-import org.bukkit.ChatColor
 import org.bukkit.Location
 import org.bukkit.Sound
 import org.bukkit.World
@@ -22,7 +21,7 @@ private fun playerHolder(world: World) {
 
     if (worldLoaded.contains(gameWorld.name)) {
         worldLoaded.remove(gameWorld.name)
-        WorldManager.broadcastWorld(world, "${ChatColor.YELLOW}월드 로드 완료!")
+        WorldManager.broadcastWorld(world, "§e월드 로드 완료!")
     }
     if (world.players.isEmpty()) {
         queueStartIn.remove(world.name)
@@ -33,40 +32,40 @@ private fun playerHolder(world: World) {
             val startSec = 60
 
             queueStartIn[world.name] = System.currentTimeMillis() + startSec * 1000
-            WorldManager.broadcastWorld(world, "${ChatColor.GREEN}게임이 ${startSec}초 뒤에 시작합니다")
+            WorldManager.broadcastWorld(world, "§a게임이 ${startSec}초 뒤에 시작합니다")
         }
     }
     if (world.players.size >= 20 && !queueStartIn.containsKey(world.name)) {
         val startSec = 300
 
         queueStartIn[world.name] = System.currentTimeMillis() + startSec*1000
-        WorldManager.broadcastWorld(world, "${ChatColor.GREEN}게임이 ${startSec}초 뒤에 시작합니다")
+        WorldManager.broadcastWorld(world, "§a게임이 ${startSec}초 뒤에 시작합니다")
     }
 
     if (world.players.size >= 40 && ((queueStartIn[world.name] ?: 0)- System.currentTimeMillis())/1000 >= 180) {
         val startSec = 180
 
         queueStartIn[world.name] = System.currentTimeMillis() + startSec*1000
-        WorldManager.broadcastWorld(world, "${ChatColor.GREEN}게임이 ${startSec}초 뒤에 시작합니다")
+        WorldManager.broadcastWorld(world, "§a게임이 ${startSec}초 뒤에 시작합니다")
     }
     if (world.players.size >= 60 && ((queueStartIn[world.name] ?: 0)- System.currentTimeMillis())/1000 >= 120) {
         val startSec = 120
 
         queueStartIn[world.name] = System.currentTimeMillis() + startSec*1000
-        WorldManager.broadcastWorld(world, "${ChatColor.GREEN}게임이 ${startSec}초 뒤에 시작합니다!")
+        WorldManager.broadcastWorld(world, "§a게임이 ${startSec}초 뒤에 시작합니다!")
     }
     if (world.players.size >= 80 && ((queueStartIn[world.name] ?: 0)- System.currentTimeMillis())/1000 >= 60) {
         val startSec = 60
 
         queueStartIn[world.name] = System.currentTimeMillis() + startSec*1000
-        WorldManager.broadcastWorld(world, "${ChatColor.GREEN}게임이 ${startSec}초 뒤에 시작합니다!")
+        WorldManager.broadcastWorld(world, "§a게임이 ${startSec}초 뒤에 시작합니다!")
     }
 
     val sec = queueStartIn[world.name] ?: return
     val timeSec = ((sec - System.currentTimeMillis())/1000).toInt()
     if (timeSec > 0) {
         if (timeSec in 1..10) {
-            WorldManager.broadcastWorld(world, "${ChatColor.GREEN}게임이 ${timeSec}초 뒤에 시작합니다!")
+            WorldManager.broadcastWorld(world, "§a게임이 ${timeSec}초 뒤에 시작합니다!")
             world.players.forEach {
                 it.playSound(it, Sound.BLOCK_NOTE_BLOCK_HAT, 1.0f, 1.0f)
             }

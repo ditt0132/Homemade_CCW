@@ -35,7 +35,7 @@ object CustomItemData {
             ItemManager.createNamedItem(
                 Material.CROSSBOW,
                 1,
-                "§l§eVallista",
+                "§e§lVallista",
                 listOf("§7관통하는 히트스캔 방식의 화살을 발사합니다!", "§7관통대미지를 넣습니다.")
             ), Enchantment.QUICK_CHARGE, 1
         )
@@ -284,6 +284,16 @@ object CustomItemData {
             1,
             "§eShield",
             listOf("§7왼손에 들고 있을 시, 받는 근접 대미지를 10% 감소 시킵니다.")
+        )
+    }
+    fun getGoldenApple(): ItemStack {
+        return ItemManager.createNamedItem(
+            Material.GOLDEN_APPLE,
+            1,
+            "§6황금사과",
+            listOf(" ",
+            "§7Gadget"
+            )
         )
     }
 }

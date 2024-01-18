@@ -8,7 +8,6 @@ import me.uwuaden.kotlinplugin.assets.ItemManipulator.addUnsafeEnchant
 import me.uwuaden.kotlinplugin.assets.ItemManipulator.setName
 import me.uwuaden.kotlinplugin.itemManager.ItemManager
 import org.bukkit.Bukkit
-import org.bukkit.ChatColor
 import org.bukkit.Material
 import org.bukkit.enchantments.Enchantment
 import org.bukkit.entity.Player
@@ -84,7 +83,7 @@ object GuideBookGUI {
                 Material.IRON_AXE,
                 1,
                 "§f도끼",
-                listOf("${ChatColor.WHITE}도끼는 유리나 문을 좌클릭으로 부술 수 있습니다", " ", "§7다음 중 하나 획득 가능:", "  §f돌 도끼", "  §e철 도끼")
+                listOf("§f도끼는 유리나 문을 좌클릭으로 부술 수 있습니다", " ", "§7다음 중 하나 획득 가능:", "  §f돌 도끼", "  §e철 도끼")
             ).addEnchant(Enchantment.DIG_SPEED, 3)
         )
 
@@ -220,9 +219,9 @@ object GuideBookGUI {
             CustomItemData.getSmokeG(
             ).addLores(
                 listOf(" ",
-                        "§2${ChatColor.DARK_GREEN}지속시간: ?초",
+                        "§2지속시간: 40초",
                         " ",
-                        "연막 안에서는 주변 시아가 차단됩니다"
+                        "§7§l연막 안에서는 주변 시아가 차단됩니다"
                 )
             )
         )
@@ -242,18 +241,8 @@ object GuideBookGUI {
         )
         inventory.setItem(
             24,
-            ItemManager.createNamedItem(
-                Material.WARPED_BUTTON,
-                1,
-                "${ChatColor.YELLOW}섬광탄",
-                listOf(
-                    "§71회용*",
-                    "§7우클릭으로 투척할 수 있습니다.",
-                    "${ChatColor.GRAY}터질 경우 시아 내에 섬광탄이 있으면, 시아가 차단됩니다.",
-                    " ",
-                    "§2시아 차단시간: 5초",
-                    "§2시전시간: ?초"
-                )
+            CustomItemData.getFlashBang().
+            addLores(listOf(" ","§2시아 차단시간: 5초")
             )
         )
         inventory.setItem(
@@ -271,7 +260,7 @@ object GuideBookGUI {
             CustomItemData.getRevelation()
                 .addLores(listOf
                     (" ",
-                    "§e§l킬 비례 대미지 : 0/1/2/3 킬 -> 4.0/3.0/2.0/0"
+                    "§e§l킬 비례 대미지 : 0/1/2/3 킬 -> 4.0/3.0/2.0/0.0"
                 )
             )
         )
@@ -309,12 +298,12 @@ object GuideBookGUI {
             ItemManager.createNamedItem(
                 Material.ECHO_SHARD,
                 1,
-                "${ChatColor.BLUE}${ChatColor.BOLD}보호의 조각",
+                "§9§l보호의 조각",
                 listOf(
-                    "${ChatColor.YELLOW}이 아이템은 컨버터 혹은 플레이어 시체에서만 획득할 수 있습니다",
+                    "§e이 아이템은 컨버터 혹은 플레이어 시체에서만 획득할 수 있습니다",
                     " ",
-                    "${ChatColor.GRAY}물리 피해 대미지를 조각 하나당 5% 감소시킵니다.",
-                    "${ChatColor.GRAY}(최대 5개까지 적용)"
+                    "§7물리 피해 대미지를 조각 하나당 5% 감소시킵니다.",
+                    "§7(최대 5개까지 적용)"
                 )
             )
         )
@@ -368,7 +357,7 @@ object GuideBookGUI {
         )
         inventory.setItem(0, ItemManager.createNamedItem(Material.IRON_PICKAXE, 1, "§e일반 아이템", null))
         inventory.setItem(1, ItemManager.createNamedItem(Material.DIAMOND_PICKAXE, 1, "§e유틸 아이템", null))
-        inventory.setItem(2, ItemManager.createNamedItem(Material.CHEST, 1, "§b보급 아이템", null).addUnsafeEnchant(Enchantment.DURABILITY, 1))
+        inventory.setItem(2, ItemManager.createNamedItem(Material.CHEST, 1, "§b보급 아이템", null))
 
         for (i in 18..19) {
             inventory.setItem(
@@ -410,12 +399,12 @@ object GuideBookGUI {
             ItemManager.createNamedItem(
                 Material.COMPASS,
                 1,
-                "${ChatColor.RED}Player Tracker ",
+                "§cPlayer Tracker ",
                 listOf(
-                    "${ChatColor.GRAY}160블럭 내에 있는 가장 가까운 플레이어를 추적합니다!",
+                    "§7160블럭 내에 있는 가장 가까운 플레이어를 추적합니다!",
                     " ",
-                    "${ChatColor.GRAY}160칸 안에 플레이어가 없을시 작동하지 않고 10?초의 재사용 대기시간이 걸립니다",
-                    "${ChatColor.GRAY}또한 다음 아이템은 상자당 1개씩 나옵니다"
+                    "§7160칸 안에 플레이어가 없을시 작동하지 않고 10?초의 재사용 대기시간이 걸립니다",
+                    "§7또한 다음 아이템은 상자당 1개씩 나옵니다"
                 )
             )
         )
