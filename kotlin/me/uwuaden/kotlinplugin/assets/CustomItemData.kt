@@ -80,7 +80,7 @@ object CustomItemData {
     }
 
     fun getGravityG(): ItemStack {
-        return ItemManager.createNamedItem(Material.CRIMSON_BUTTON, 1, "§e중력 수류탄", listOf("§71회용*", "§7우클릭으로 투척할 수 있습니다.", "§7폭발시 미니 블랙홀을 생성합니다.", "§7미니 블랙홀은 주변 플레이어를 천천히 당깁니다.", "§7블랙홀이 사라질때 약한 대미지를 줍니다.", "§2대미지: 2.0")).addCustomModelData(10008)
+        return ItemManager.createNamedItem(Material.CRIMSON_BUTTON, 1, "§e중력 수류탄", listOf("§71회용*", "§7우클릭으로 투척할 수 있습니다.", "§7폭발시 미니 블랙홀을 생성합니다.", "§7미니 블랙홀은 주변 플레이어를 천천히 당깁니다.", "§7블랙홀이 사라질때 약한 대미지를 줍니다."," ","§2대미지: 2.0")).addCustomModelData(10008)
     }
 
     fun getAGShotGun(): ItemStack {
@@ -88,7 +88,7 @@ object CustomItemData {
             Material.GLOW_INK_SAC,
             1,
             "§e반중력 샷건",
-            listOf("§71회용*", "§7우클릭시 탄환을 발사하며, 강한 반동과 함께 적과 자신을 밀쳐냅니다.", "§7탄환에 맞은 적은 스턴이 적용됩니다.", "§2대미지: 0.25 x 12")
+            listOf("§71회용*", "§7우클릭시 탄환을 발사하며, 강한 반동과 함께 적과 자신을 밀쳐냅니다.", "§7탄환에 맞은 적은 스턴이 적용됩니다."," ", "§2대미지: 0.25 x 12")
         ).addCustomModelData(10011)
     }
     fun getSmokeG(): ItemStack {
