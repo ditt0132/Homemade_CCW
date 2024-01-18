@@ -236,25 +236,10 @@ object GuideBookGUI {
         )
         inventory.setItem(
             23,
-            CustomItemData.getGravityG(
-
-            )
+            CustomItemData.getGravityG()
         )
         inventory.setItem(
-            24,
-            ItemManager.createNamedItem(
-                Material.WARPED_BUTTON,
-                1,
-                "${ChatColor.YELLOW}섬광탄",
-                listOf(
-                    "§71회용*",
-                    "§7우클릭으로 투척할 수 있습니다.",
-                    "${ChatColor.GRAY}터질 경우 시아 내에 섬광탄이 있으면, 시아가 차단됩니다.",
-                    " ",
-                    "§2시아 차단시간: 5초",
-                    "§2시전시간: ?초"
-                )
-            )
+            24, CustomItemData.getFlashBang()
         )
         inventory.setItem(
             29,

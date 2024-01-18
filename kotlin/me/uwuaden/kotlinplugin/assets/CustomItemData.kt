@@ -35,7 +35,7 @@ object CustomItemData {
             ItemManager.createNamedItem(
                 Material.CROSSBOW,
                 1,
-                "§l§eVallista",
+                "§e§lVallista",
                 listOf("§7관통하는 히트스캔 방식의 화살을 발사합니다!", "§7관통대미지를 넣습니다.")
             ), Enchantment.QUICK_CHARGE, 1
         )

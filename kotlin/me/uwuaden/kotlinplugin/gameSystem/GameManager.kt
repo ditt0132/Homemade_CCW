@@ -420,7 +420,7 @@ private fun spawnZombie(time: Int, loc: Location) {
     }
 
 }
-private fun initPlayer(player: Player, sendTeam: Boolean = false) {
+private fun initPlayer(player: Player, sendTeam: Boolean = false, enhancedItem: Boolean = false) {
     player.gameMode = GameMode.SURVIVAL
     player.inventory.clear()
     player.activePotionEffects.clear()
@@ -432,16 +432,22 @@ private fun initPlayer(player: Player, sendTeam: Boolean = false) {
     playerMaxUse[player.uniqueId] = 0
     lastDamager.remove(player)
     //player.inventory.setItem(8, MapManager.createMapView(player))
-    player.inventory.addItem(ItemStack(Material.WOODEN_SWORD))
-    player.inventory.addItem(ItemStack(Material.WOODEN_PICKAXE))
-    player.inventory.addItem(ItemStack(Material.WOODEN_AXE))
+    if (enhancedItem) {
+        player.inventory.setItem(EquipmentSlot.HEAD, ItemStack(Material.IRON_HELMET))
+        player.inventory.setItem(EquipmentSlot.CHEST, ItemStack(Material.IRON_CHESTPLATE))
+        player.inventory.setItem(EquipmentSlot.LEGS, ItemStack(Material.IRON_LEGGINGS))
+        player.inventory.setItem(EquipmentSlot.FEET, ItemStack(Material.IRON_BOOTS))
+        player.inventory.addItem(ItemStack(Material.IRON_SWORD))
+        player.inventory.addItem(ItemStack(Material.COOKED_BEEF, 64))
+    } else {
+        player.inventory.addItem(ItemStack(Material.WOODEN_SWORD))
+        player.inventory.addItem(ItemStack(Material.WOODEN_PICKAXE))
+        player.inventory.addItem(ItemStack(Material.WOODEN_AXE))
+    }
     if (!player.hasPotionEffect(PotionEffectType.DAMAGE_RESISTANCE)) {
         player.sendMessage("${ChatColor.GOLD}건물 안에 있는 아이템을 파밍하여 살아남으세요!")
         player.sendMessage("${ChatColor.GRAY}팁: ${EffectManager.randomTip()}")
-    }
-    player.addPotionEffect(PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 20*30, 4, false, false))
-    if (sendTeam) {
-        scheduler.scheduleSyncDelayedTask(plugin, {
+        if (sendTeam) {
             val team = TeamManager.getTeam(player.world, player)
             if (team != null) {
                 val names = mutableListOf<String>()
@@ -450,8 +456,10 @@ private fun initPlayer(player: Player, sendTeam: Boolean = false) {
                 }
                 player.sendMessage("${ChatColor.GOLD}팀원: ${names.joinToString(", ")}")
             }
-        }, 20 * 10)
+        }
     }
+    player.addPotionEffect(PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 20*30, 4, false, false))
+
 }
 private fun initItem(player: Player) {
     val world = player.world
@@ -741,18 +749,10 @@ object GameManager {
                 i++
             }
             if (mode == "Heist") {
-                scheduler.scheduleSyncDelayedTask(plugin, {
                 val allPlayers = first + second
-                    allPlayers.forEach {
-                        it.inventory.clear()
-                        it.inventory.setItem(EquipmentSlot.HEAD, ItemStack(Material.IRON_HELMET))
-                        it.inventory.setItem(EquipmentSlot.CHEST, ItemStack(Material.IRON_CHESTPLATE))
-                        it.inventory.setItem(EquipmentSlot.LEGS, ItemStack(Material.IRON_LEGGINGS))
-                        it.inventory.setItem(EquipmentSlot.FEET, ItemStack(Material.IRON_BOOTS))
-                        it.inventory.addItem(ItemStack(Material.IRON_SWORD))
-                        it.inventory.addItem(ItemStack(Material.COOKED_BEEF, 64))
-                    }
-                }, 10)
+                allPlayers.forEach {
+                    initPlayer(it, enhancedItem = true)
+                }
                 scheduler.scheduleSyncDelayedTask(plugin, {
                     WorldManager.broadcastWorld(toWorld, "§a코어가 생성되고 있습니다.")
                     var n = 0
@@ -776,7 +776,7 @@ object GameManager {
                         var n2 = 0
                         spawnLocs.forEach { loc ->
                             val earthG = loc.clone()
-                            earthG.y = groundY
+                            earthG.y = loc.world.getHighestBlockAt(loc.clone()).y.toDouble() + 1.0
                             val core = earthG.world.spawnEntity(earthG.clone().add(0.0, 1.0, 0.0), EntityType.IRON_GOLEM) as IronGolem
                             core.setAI(false)
                             core.isSilent = true
