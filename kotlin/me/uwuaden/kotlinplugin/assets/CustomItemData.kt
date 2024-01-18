@@ -248,15 +248,15 @@ object CustomItemData {
                 Material.CROSSBOW,
                 1,
                 "§d§lExosist",
-                listOf("§7벽을 관통하는 히트스캔 방식의 화살을 빠른 속도로 발사합니다.", "§715초마다 5초간 적에게 발광효과를 적용시키는 화살을 발사합니다!", "§7벽을 관통 후 최대 5블럭까지 날아가며, 대미지가 절반으로 감소됩니다.", "§2대미지: 2.0")
+                listOf("§7벽을 관통하는 히트스캔 방식의 화살을 빠른 속도로 발사합니다.", "§715초마다 5초간 적에게 발광효과를 적용시키는 화살을 발사합니다!", "§7벽을 관통 후 최대 5블럭까지 날아가며, 대미지가 절반으로 감소됩니다."," ", "§2대미지: 2.0")
             ), Enchantment.QUICK_CHARGE, 3
         )
     }
     fun getPurify(): ItemStack {
-        return ItemManager.enchantItem(ItemManager.createNamedItem(Material.BOW, 1, "§e§lPurify", listOf("§7킬이 0이고 공중에 있을 때 능력이 발동됩니다.", "§7폭발하는 히트스캔 화살을 발사합니다.", "§7풀차징일때 넉백과 기절을 부여합니다.", "§2폭발 대미지 (최대): 8  충격파 대미지 (최대): 4")), Enchantment.ARROW_DAMAGE, 1).addCustomModelData(2)
+        return ItemManager.enchantItem(ItemManager.createNamedItem(Material.BOW, 1, "§e§lPurify", listOf("§7킬이 0이고 공중에 있을 때 능력이 발동됩니다.", "§7폭발하는 히트스캔 화살을 발사합니다.", "§7풀차징일때 넉백과 기절을 부여합니다."," ", "§2폭발 대미지 (최대): 8.0  / 충격파 대미지 (최대): 2.0")), Enchantment.ARROW_DAMAGE, 1).addCustomModelData(2)
     }
     fun getHolyShield(): ItemStack {
-        return ItemManager.createNamedItem(Material.NETHER_STAR, 1, "§bHoly Shield", listOf("§7인벤토리에 소지시,", "§7받는 피해량이 5를 넘으면 대미지를 무효화 시키고, 1초간 무적효과를 부여합니다", "§7또한 주변에 약한 대미지를 주며, 적을 밀쳐냅니다.", "§2쿨타임: 60초")).addCustomModelData(10005)
+        return ItemManager.createNamedItem(Material.NETHER_STAR, 1, "§bHoly Shield", listOf("§7인벤토리에 소지시,", "§7받는 피해량이 5를 넘으면 대미지를 무효화 시키고, 1초간 무적효과를 부여합니다", "§7또한 주변에 약한 대미지를 주며, 적을 밀쳐냅니다."," ", "§2쿨타임: 60초")).addCustomModelData(10005)
     }
     fun getCompass(): ItemStack {
         return ItemManager.createNamedItem(Material.COMPASS, 1, "§cPlayer Tracker", listOf("§7160블럭 내에 있는 가장 가까운 플레이어를 추적합니다!"))

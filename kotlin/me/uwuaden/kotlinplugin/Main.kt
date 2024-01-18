@@ -196,7 +196,7 @@ class Main: JavaPlugin() {
             })
         }, 20*30)
 
-        kommand {
+            kommand {
             register("join_dm") {
                 requires { isPlayer }
                 executes {
@@ -722,7 +722,7 @@ class Main: JavaPlugin() {
             register("test") {
                 requires { isOp }
                 executes {
-                    GuideBookGUI.openFileDropInv(player)
+                    GuideBookGUI.openFileDropInvNormal(player)
                 }
             }
             register("queuelist") {
