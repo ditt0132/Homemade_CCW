@@ -4,6 +4,7 @@ import me.uwuaden.kotlinplugin.assets.CustomItemData
 import me.uwuaden.kotlinplugin.assets.ItemManipulator.addEnchant
 import me.uwuaden.kotlinplugin.assets.ItemManipulator.addLores
 import me.uwuaden.kotlinplugin.assets.ItemManipulator.addName
+import me.uwuaden.kotlinplugin.assets.ItemManipulator.addUnsafeEnchant
 import me.uwuaden.kotlinplugin.assets.ItemManipulator.setName
 import me.uwuaden.kotlinplugin.itemManager.ItemManager
 import org.bukkit.Bukkit
@@ -37,9 +38,9 @@ object GuideBookGUI {
         )
 
         inventory.setItem(
-            0, ItemManager.createNamedItem(Material.IRON_PICKAXE, 1, "§b일반 아이템", null).addEnchant(Enchantment.DURABILITY, 1))
-        inventory.setItem(1, ItemManager.createNamedItem(Material.DIAMOND_PICKAXE, 1, "§f유틸 아이템", null))
-        inventory.setItem(2, ItemManager.createNamedItem(Material.CHEST, 1, "§f보급 아이템", null))
+            0, ItemManager.createNamedItem(Material.IRON_PICKAXE, 1, "§b일반 아이템", null).addUnsafeEnchant(Enchantment.DURABILITY, 1))
+        inventory.setItem(1, ItemManager.createNamedItem(Material.DIAMOND_PICKAXE, 1, "§e유틸 아이템", null))
+        inventory.setItem(2, ItemManager.createNamedItem(Material.CHEST, 1, "§e보급 아이템", null))
 
 
         inventory.setItem(
@@ -177,9 +178,8 @@ object GuideBookGUI {
                 i, ItemManager.createNamedItem(
                     Material.GREEN_STAINED_GLASS_PANE,
                     1,
-                    "§e다음 아이템들은 서로 2?초의 쿨타임을 공유합니다.",
-                    listOf("§7또한 앉기를 눌러 던지는 방식을 바꿀 수 있습니다.",
-                        "§7시전시간은 땅에 떨어진 후 부터 계산됩니다.")
+                    "§e다음 아이템들은 서로 3초의 쿨타임을 공유합니다.",
+                    listOf("§7또한 앉기를 홀드해 던지는 방식을 바꿀 수 있습니다.")
                 )
             )
         }
@@ -205,9 +205,9 @@ object GuideBookGUI {
                 )
             )
         )
-        inventory.setItem(0, ItemManager.createNamedItem(Material.IRON_PICKAXE, 1, "§f일반 아이템", null))
-        inventory.setItem(1, ItemManager.createNamedItem(Material.DIAMOND_PICKAXE, 1, "§b유틸 아이템", null).addEnchant(Enchantment.DURABILITY, 1))
-        inventory.setItem(2, ItemManager.createNamedItem(Material.CHEST, 1, "§f보급 아이템", null))
+        inventory.setItem(0, ItemManager.createNamedItem(Material.IRON_PICKAXE, 1, "§e일반 아이템", null))
+        inventory.setItem(1, ItemManager.createNamedItem(Material.DIAMOND_PICKAXE, 1, "§b유틸 아이템", null).addUnsafeEnchant(Enchantment.DURABILITY, 1))
+        inventory.setItem(2, ItemManager.createNamedItem(Material.CHEST, 1, "§e보급 아이템", null))
 
         inventory.setItem(
             20,
@@ -382,24 +382,13 @@ object GuideBookGUI {
         )
         inventory.setItem(
             40,
-            ItemManager.createNamedItem(
-                Material.REDSTONE_TORCH,
-                1,
-                "${ChatColor.RED}Flare Gun",
-                listOf(
-                    "${ChatColor.GRAY}하늘에 발사시",
-                    "${ChatColor.GRAY}보급품이 떨어집니다!",
-                    " ",
-                    "${ChatColor.GRAY}보급품에 깔리지 않게 조심하세요!",
-                    " ",
-                    "§7§l보급품안에는 강력한 아이템들이 들어있습니다!",
-                    "§e자세한건 보급 아이템 참조",
-                    " ",
-                    "${ChatColor.DARK_GREEN}보급상자 드랍 시간 : 15초 / 보급상자 대미지: 15.0",
-                    "${ChatColor.DARK_GREEN}보급탄 대미지 : 6.0 x 화염대미지 1.0 6틱"
-                )
+            CustomItemData.getFlareGun().addLores(listOf(" ",
+                "§7§l보급품안에는 강력한 아이템들이 들어있습니다!",
+                "§e자세한건 보급 아이템 참조",
+                " ",
+                "§7보급상자 드랍 시간 : 15초 / 보급상자 대미지: 15.0",
+                "§7}보급탄 대미지 : 6.0 x 화염대미지 1.0 6틱"))
             )
-        )
         for (i in 45..52)
             inventory.setItem(
                 i,
@@ -439,9 +428,9 @@ object GuideBookGUI {
                 listOf("§cFlare Gun §7으로부터 나온 상자에 담겨있는 강력한 아이템들입니다!")
             )
         )
-        inventory.setItem(0, ItemManager.createNamedItem(Material.IRON_PICKAXE, 1, "§f일반 아이템", null))
-        inventory.setItem(1, ItemManager.createNamedItem(Material.DIAMOND_PICKAXE, 1, "§f유틸 아이템", null))
-        inventory.setItem(2, ItemManager.createNamedItem(Material.CHEST, 1, "§b보급 아이템", null))
+        inventory.setItem(0, ItemManager.createNamedItem(Material.IRON_PICKAXE, 1, "§e일반 아이템", null))
+        inventory.setItem(1, ItemManager.createNamedItem(Material.DIAMOND_PICKAXE, 1, "§e유틸 아이템", null))
+        inventory.setItem(2, ItemManager.createNamedItem(Material.CHEST, 1, "§b보급 아이템", null).addUnsafeEnchant(Enchantment.DURABILITY, 1))
 
         for (i in 18..19) {
             inventory.setItem(
@@ -587,7 +576,7 @@ object GuideBookGUI {
                 "§e인첸트된 책",
                 listOf("§7다음 중 하나 획득 가능:",
                     "§b날카로움 1",
-                    "§b밀치기 1",
+                    "§b밀어내기 1",
                     "§b힘 2",
                     "§b보호 2"
                 )
@@ -601,7 +590,7 @@ object GuideBookGUI {
                 "§e인첸트 레벨 제한 설명서",
                 listOf("§7게임의 밸런스를 위해 일부 인첸트들의 최대 레벨이 상향평준화되었습니다.",
                     "§f날카로움 5",
-                    "§f밀치기 2",
+                    "§f밀어내기 2",
                     "§f보호 4",
                     "§e힘 3*",
                     "§e빠른장전 2*",
