@@ -9,7 +9,6 @@ import me.uwuaden.kotlinplugin.assets.EffectManager
 import me.uwuaden.kotlinplugin.assets.ItemManipulator.setName
 import me.uwuaden.kotlinplugin.itemManager.ItemManager
 import org.bukkit.Bukkit
-import org.bukkit.ChatColor
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
@@ -48,13 +47,13 @@ object RankSystem {
             change += 1
         }
 
-        player.sendMessage("${ChatColor.GOLD}========================================")
+        player.sendMessage("§e========================================")
         player.sendMessage(" ")
-        player.sendMessage("${ChatColor.GOLD}${ratePrev} ${ChatColor.GREEN}-> ${rateToString(player.uniqueId)}")
+        player.sendMessage("§e${ratePrev} §a-> ${rateToString(player.uniqueId)}")
         player.sendMessage("  ")
-        player.sendMessage("${ChatColor.GREEN}Rate: ${rateToScore(rank1)} -> ${rateToScore(classData.playerRank)} (${change})")
+        player.sendMessage("§aRate: ${rateToScore(rank1)} -> ${rateToScore(classData.playerRank)} (${change})")
         player.sendMessage("   ")
-        player.sendMessage("${ChatColor.GOLD}========================================")
+        player.sendMessage("§e========================================")
     }
 
     fun rateToScore(rate: Int): Int {
@@ -69,7 +68,7 @@ object RankSystem {
 
         val classData = initData(uuid)
         val rate = classData.playerRank
-        if (classData.unRanked) return "${ChatColor.GRAY}Unranked"
+        if (classData.unRanked) return "§7Unranked"
         val index = rate/100
 
         return when (index) {
@@ -308,16 +307,16 @@ object RankSystem {
 
                 classData.unRanked = false
 
-                player.sendMessage("${ChatColor.GOLD}========================================")
+                player.sendMessage("§e========================================")
                 player.sendMessage(" ")
-                player.sendMessage("${ChatColor.GREEN}승급했습니다!")
+                player.sendMessage("§a승급했습니다!")
                 player.sendMessage("  ")
-                player.sendMessage("${ChatColor.GREEN}티어: ${rateToString(player.uniqueId)} (${rateToScore(classData.playerRank)})")
+                player.sendMessage("§a티어: ${rateToString(player.uniqueId)} (${rateToScore(classData.playerRank)})")
                 player.sendMessage("   ")
-                player.sendMessage("${ChatColor.GOLD}========================================")
+                player.sendMessage("§e========================================")
             } else {
-                player.sendMessage("${ChatColor.GREEN}게임을 ${playCountNeeded}회 플레이 후 랭크를 확인하세요.")
-                player.sendMessage("${ChatColor.GREEN}현재: ${classData.gamePlayed}")
+                player.sendMessage("§a게임을 ${playCountNeeded}회 플레이 후 랭크를 확인하세요.")
+                player.sendMessage("§a현재: ${classData.gamePlayed}")
             }
 
         } else {

@@ -3,7 +3,6 @@ package me.uwuaden.kotlinplugin.skillSystem
 import com.destroystokyo.paper.event.player.PlayerJumpEvent
 import me.uwuaden.kotlinplugin.Main.Companion.boundingBoxExpand
 import me.uwuaden.kotlinplugin.Main.Companion.econ
-import me.uwuaden.kotlinplugin.Main.Companion.groundY
 import me.uwuaden.kotlinplugin.Main.Companion.lastDamager
 import me.uwuaden.kotlinplugin.Main.Companion.lastWeapon
 import me.uwuaden.kotlinplugin.Main.Companion.plugin
@@ -106,7 +105,7 @@ class SkillEvent: Listener {
         e.isCancelled = true
         if (e.currentItem == null) return
 
-        if (e.currentItem!!.itemMeta?.lore?.contains("${ChatColor.DARK_GRAY}Elite Item") == true) {
+        if (e.currentItem!!.itemMeta?.lore?.contains("§8Elite Item") == true) {
             val lores = e.currentItem!!.itemMeta.lore!!
             val player = e.view.player as Player
             val id = lores.filter { it.contains("ID: ") }[0].split(": ")[1].trim().toInt()
@@ -116,12 +115,12 @@ class SkillEvent: Listener {
 
 
             if (!e.isShiftClick) {
-                if (lores.contains("${ChatColor.YELLOW}Locked")) {
-                    player.sendMessage("${ChatColor.RED}잠겨있습니다.")
+                if (lores.contains("§eLocked")) {
+                    player.sendMessage("§c잠겨있습니다.")
                     player.playSound(player, Sound.ENTITY_ZOMBIE_ATTACK_IRON_DOOR, 0.8f, 1.0f)
                 } else {
                     playerEItem[player.uniqueId] = id
-                    player.sendMessage("${ChatColor.GREEN}선택되었습니다.")
+                    player.sendMessage("§a선택되었습니다.")
                     player.playSound(player, Sound.BLOCK_NOTE_BLOCK_PLING, 1.0f, 1.0f)
 
                     player.openInventory(SkillManager.inv(holder, page, player))
@@ -144,11 +143,11 @@ class SkillEvent: Listener {
 
                         if (!itemHolder.eliteItems.contains(id)) itemHolder.eliteItems.add(id) //1레벨로 설정
                         playerEItem[player.uniqueId] = id
-                        player.sendMessage("${ChatColor.GREEN}구입했습니다.")
+                        player.sendMessage("§a구입했습니다.")
                         player.openInventory(SkillManager.inv(holder, page, player))
                         player.playSound(player, Sound.BLOCK_NOTE_BLOCK_PLING, 1.0f, 1.4f)
                     } else {
-                        player.sendMessage("${ChatColor.RED}돈이 부족합니다.")
+                        player.sendMessage("§c돈이 부족합니다.")
                         player.playSound(player, Sound.ENTITY_ITEM_BREAK, 1.0f, 1.0f)
                     }
                 }
@@ -162,7 +161,7 @@ class SkillEvent: Listener {
         if (e.hand == EquipmentSlot.OFF_HAND) return
         if (!e.action.isRightClick) return
         val player = e.player
-        if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.AQUA}${ChatColor.BOLD}반중력 큐브 V2") {
+        if (player.inventory.itemInMainHand.itemMeta?.displayName == "§bl반중력 큐브 V2") {
             e.isCancelled = true
 
             if (player.getCooldown(Material.LIGHT_BLUE_DYE) > 0) return
@@ -184,7 +183,7 @@ class SkillEvent: Listener {
         if (e.hand == EquipmentSlot.OFF_HAND) return
         if (!e.action.isRightClick) return
         val player = e.player
-        if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.RED}${ChatColor.BOLD}ILLUSIONIZE") {
+        if (player.inventory.itemInMainHand.itemMeta?.displayName == "§c§lILLUSIONIZE") {
             e.isCancelled = true
 
             if (player.getCooldown(Material.RED_DYE) > 0) return
@@ -192,7 +191,7 @@ class SkillEvent: Listener {
             var loc = player.getTargetBlockExact(100)?.location
             if (loc == null) {
                 player.setCooldown(Material.RED_DYE, 20 * 3)
-                player.sendMessage("${ChatColor.RED}너무 멉니다.")
+                player.sendMessage("§c너무 멉니다.")
                 return
             }
 
@@ -278,93 +277,93 @@ class SkillEvent: Listener {
             }, 20*5)
         }
     }
-    @EventHandler
-    fun onUsePrototypeEXI(e: PlayerInteractEvent) {
-        if (e.hand == EquipmentSlot.OFF_HAND) return
-        if (!e.action.isRightClick) return
-        val player = e.player
-        if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.AQUA}${ChatColor.BOLD}Prototype E-XI") {
-            if (player.getCooldown(Material.NETHERITE_HOE) > 0) return
-            player.setCooldown(Material.NETHERITE_HOE, 4)
-            if (player.getCooldown(Material.NETHERITE_HOE) <= 0) {
-                player.setCooldown(Material.SHIELD, 20)
-                return
-            }
-            player.setCooldown(Material.SHIELD, 20)
-            val loc = player.eyeLocation
-            val dir = loc.direction
-            val entities = ArrayList<LivingEntity>()
-            val item = player.inventory.itemInMainHand
-
-            val volume: Float
-            val charge1 = SkillManager.getChargeValue(item)
-            if (charge1 in 0..50) volume = 0.5f
-            else if (charge1 in 51..100) volume = 0.8f
-            else if (charge1 in 101..150) volume = 1.1f
-            else if (charge1 in 151..190) volume = 1.4f
-            else if (charge1 in 191..200) volume = 2.0f
-            else volume = 0.5f
-            EffectManager.playSurroundSound(player.location, Sound.BLOCK_BEACON_AMBIENT, volume, 2.0f)
-            player.addPotionEffect(PotionEffect(PotionEffectType.SLOW, 30, 3, false, false))
-
-            player.sendActionBar("${ChatColor.DARK_AQUA}Charge: ${ChatColor.WHITE}[${ChatColor.DARK_AQUA}${SkillManager.createPercentageBar(SkillManager.getChargeValue(item).toDouble()/2.0, 10)}${ChatColor.WHITE}]${ChatColor.DARK_AQUA}")
-
-            shooting@for (i in 0 until 100*15) {
-                val pos = loc.clone().add(dir.clone().multiply(i / 100.0))
-                if(!pos.isChunkLoaded) break@shooting
-
-                if(pos.block.isSolid) {
-                    if (charge1 in 191..210) {
-                        if (pos.block.y > groundY) {
-                            if (pos.block.type != Material.AIR) {
-                                loc.world.spawnParticle(Particle.BLOCK_CRACK, loc, 5, 0.5, 0.5, 0.5, 0.0, loc.block.blockData)
-                                pos.block.type = Material.AIR
-                                EffectManager.playSurroundSound(pos, Sound.ENTITY_ZOMBIE_BREAK_WOODEN_DOOR, 1.0F, 1.0F)
-                            }
-                        }
-                    }
-                    break@shooting
-                }
-
-
-                if (i%10 == 0 && i > 100*2) {
-                    val dustOptions: DustOptions
-                    val charge = SkillManager.getChargeValue(item)
-                    if (charge in 0..50) dustOptions = DustOptions(Color.AQUA, 0.1f+SkillManager.getChargeValue(item).toFloat()/80.0f)
-                    else if (charge in 51..100) dustOptions = DustOptions(Color.BLUE, 0.1f+SkillManager.getChargeValue(item).toFloat()/80.0f)
-                    else if (charge in 101..150) dustOptions = DustOptions(Color.NAVY, 0.1f+SkillManager.getChargeValue(item).toFloat()/80.0f)
-                    else if (charge in 151..210) dustOptions = DustOptions(Color.PURPLE, 0.1f+SkillManager.getChargeValue(item).toFloat()/80.0f)
-                    else dustOptions = DustOptions(Color.AQUA, 0.1f+SkillManager.getChargeValue(item).toFloat()/80.0f)
-                    pos.world.spawnParticle(Particle.REDSTONE, pos, 1, 0.0, 0.0, 0.0, 10.0, dustOptions)
-
-                }
-                pos.getNearbyLivingEntities(10.0, 10.0, 10.0).forEach {
-                    if(it != player && it !is ArmorStand && it is LivingEntity && it.boundingBox.clone().expand(boundingBoxExpand).contains(pos.x, pos.y, pos.z) && isHittable(player, it)) {
-                        entities.add(it)
-                    }
-                }
-
-            }
-
-            if (entities.isNotEmpty()) {
-                val before2 = SkillManager.getChargeValue(item)
-                if (before2 + 5 < 200) {
-                    SkillManager.changeChargeValue(item, before2 + 5)
-                } else {
-                    SkillManager.changeChargeValue(item, 200)
-                }
-            }
-
-            entities.forEach {
-                if (it is Player && isHittable(player, it)) {
-                    lastDamager[it] = player
-                    lastWeapon[it] = LastWeaponData(ItemManager.createNamedItem(Material.NETHERITE_HOE, 1, "${ChatColor.AQUA}${ChatColor.BOLD}Prototype E-XI", null), System.currentTimeMillis()+1000*10)
-                }
-                it.damage(SkillManager.getChargeValue(item).toDouble()/88.888 + 0.25)
-            }
-
-        }
-    }
+//    @EventHandler
+//    fun onUsePrototypeEXI(e: PlayerInteractEvent) {
+//        if (e.hand == EquipmentSlot.OFF_HAND) return
+//        if (!e.action.isRightClick) return
+//        val player = e.player
+//        if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.AQUA}${ChatColor.BOLD}Prototype E-XI") {
+//            if (player.getCooldown(Material.NETHERITE_HOE) > 0) return
+//            player.setCooldown(Material.NETHERITE_HOE, 4)
+//            if (player.getCooldown(Material.NETHERITE_HOE) <= 0) {
+//                player.setCooldown(Material.SHIELD, 20)
+//                return
+//            }
+//            player.setCooldown(Material.SHIELD, 20)
+//            val loc = player.eyeLocation
+//            val dir = loc.direction
+//            val entities = ArrayList<LivingEntity>()
+//            val item = player.inventory.itemInMainHand
+//
+//            val volume: Float
+//            val charge1 = SkillManager.getChargeValue(item)
+//            if (charge1 in 0..50) volume = 0.5f
+//            else if (charge1 in 51..100) volume = 0.8f
+//            else if (charge1 in 101..150) volume = 1.1f
+//            else if (charge1 in 151..190) volume = 1.4f
+//            else if (charge1 in 191..200) volume = 2.0f
+//            else volume = 0.5f
+//            EffectManager.playSurroundSound(player.location, Sound.BLOCK_BEACON_AMBIENT, volume, 2.0f)
+//            player.addPotionEffect(PotionEffect(PotionEffectType.SLOW, 30, 3, false, false))
+//
+//            player.sendActionBar("${ChatColor.DARK_AQUA}Charge: ${ChatColor.WHITE}[${ChatColor.DARK_AQUA}${SkillManager.createPercentageBar(SkillManager.getChargeValue(item).toDouble()/2.0, 10)}${ChatColor.WHITE}]${ChatColor.DARK_AQUA}")
+//
+//            shooting@for (i in 0 until 100*15) {
+//                val pos = loc.clone().add(dir.clone().multiply(i / 100.0))
+//                if(!pos.isChunkLoaded) break@shooting
+//
+//                if(pos.block.isSolid) {
+//                    if (charge1 in 191..210) {
+//                        if (pos.block.y > groundY) {
+//                            if (pos.block.type != Material.AIR) {
+//                                loc.world.spawnParticle(Particle.BLOCK_CRACK, loc, 5, 0.5, 0.5, 0.5, 0.0, loc.block.blockData)
+//                                pos.block.type = Material.AIR
+//                                EffectManager.playSurroundSound(pos, Sound.ENTITY_ZOMBIE_BREAK_WOODEN_DOOR, 1.0F, 1.0F)
+//                            }
+//                        }
+//                    }
+//                    break@shooting
+//                }
+//
+//
+//                if (i%10 == 0 && i > 100*2) {
+//                    val dustOptions: DustOptions
+//                    val charge = SkillManager.getChargeValue(item)
+//                    if (charge in 0..50) dustOptions = DustOptions(Color.AQUA, 0.1f+SkillManager.getChargeValue(item).toFloat()/80.0f)
+//                    else if (charge in 51..100) dustOptions = DustOptions(Color.BLUE, 0.1f+SkillManager.getChargeValue(item).toFloat()/80.0f)
+//                    else if (charge in 101..150) dustOptions = DustOptions(Color.NAVY, 0.1f+SkillManager.getChargeValue(item).toFloat()/80.0f)
+//                    else if (charge in 151..210) dustOptions = DustOptions(Color.PURPLE, 0.1f+SkillManager.getChargeValue(item).toFloat()/80.0f)
+//                    else dustOptions = DustOptions(Color.AQUA, 0.1f+SkillManager.getChargeValue(item).toFloat()/80.0f)
+//                    pos.world.spawnParticle(Particle.REDSTONE, pos, 1, 0.0, 0.0, 0.0, 10.0, dustOptions)
+//
+//                }
+//                pos.getNearbyLivingEntities(10.0, 10.0, 10.0).forEach {
+//                    if(it != player && it !is ArmorStand && it is LivingEntity && it.boundingBox.clone().expand(boundingBoxExpand).contains(pos.x, pos.y, pos.z) && isHittable(player, it)) {
+//                        entities.add(it)
+//                    }
+//                }
+//
+//            }
+//
+//            if (entities.isNotEmpty()) {
+//                val before2 = SkillManager.getChargeValue(item)
+//                if (before2 + 5 < 200) {
+//                    SkillManager.changeChargeValue(item, before2 + 5)
+//                } else {
+//                    SkillManager.changeChargeValue(item, 200)
+//                }
+//            }
+//
+//            entities.forEach {
+//                if (it is Player && isHittable(player, it)) {
+//                    lastDamager[it] = player
+//                    lastWeapon[it] = LastWeaponData(ItemManager.createNamedItem(Material.NETHERITE_HOE, 1, "${ChatColor.AQUA}${ChatColor.BOLD}Prototype E-XI", null), System.currentTimeMillis()+1000*10)
+//                }
+//                it.damage(SkillManager.getChargeValue(item).toDouble()/88.888 + 0.25)
+//            }
+//
+//        }
+//    }
 
 //    @EventHandler
 //    fun onSavePrototypeEXI(e: PlayerSwapHandItemsEvent) {
@@ -386,7 +385,7 @@ class SkillEvent: Listener {
     fun onSlotChange(e: PlayerItemHeldEvent) {
         val player = e.player
         val item = player.inventory.getItem(e.newSlot)?: return
-        if (item.itemMeta.displayName == "${ChatColor.AQUA}${ChatColor.BOLD}Prototype E-XI") {
+        if (item.itemMeta.displayName == "§b§lPrototype E-XI") {
             SkillManager.changeChargeValue(item, SkillManager.getSaveValue(item))
         }
     }
@@ -394,7 +393,7 @@ class SkillEvent: Listener {
     fun onJump(e: PlayerJumpEvent) {
         val player = e.player
         val item = player.inventory.itemInMainHand
-        if (player.inventory.itemInMainHand.itemMeta?.displayName == "${ChatColor.AQUA}${ChatColor.BOLD}Prototype E-XI") {
+        if (player.inventory.itemInMainHand.itemMeta?.displayName == "§b§lPrototype E-XI") {
             player.setCooldown(Material.NETHERITE_HOE, 10)
         }
     }
@@ -402,7 +401,7 @@ class SkillEvent: Listener {
     @EventHandler
     fun onUseTeleportPack(e: PlayerToggleSneakEvent) {
         val player = e.player
-        if (player.inventory.leggings?.itemMeta?.displayName == "${ChatColor.AQUA}${ChatColor.BOLD}Teleport Leggings") {
+        if (player.inventory.leggings?.itemMeta?.displayName == "§b§lTeleport Leggings") {
             if (player.gameMode == GameMode.SPECTATOR) return
             if (!e.isSneaking) return
             if (player.getCooldown(Material.LEATHER_LEGGINGS) > 0) return
@@ -439,7 +438,7 @@ class SkillEvent: Listener {
             val block2 = playerTargetLoc.clone().add(0.0, 1.0, 0.0).block
             if (block1.isSolid || block2.isSolid) {
                 lastDamager[player] = player
-                lastWeapon[player] = LastWeaponData(ItemManager.createNamedItem(Material.LEATHER_LEGGINGS, 1, "${ChatColor.AQUA}${ChatColor.BOLD}Teleport Leggings", null), System.currentTimeMillis()+1000*10)
+                lastWeapon[player] = LastWeaponData(ItemManager.createNamedItem(Material.LEATHER_LEGGINGS, 1, "§b§lTeleport Leggings", null), System.currentTimeMillis()+1000*10)
                 player.damage(40.0)
 
             }
@@ -451,7 +450,7 @@ class SkillEvent: Listener {
                         if (it.boundingBox.expand(1.5).contains(loc.x, loc.y, loc.z)) {
                             if (it is Player) {
                                 lastDamager[it] = player
-                                lastWeapon[it] = LastWeaponData(ItemManager.createNamedItem(Material.LEATHER_LEGGINGS, 1, "${ChatColor.AQUA}${ChatColor.BOLD}Teleport Leggings", null), System.currentTimeMillis()+1000*10)
+                                lastWeapon[it] = LastWeaponData(ItemManager.createNamedItem(Material.LEATHER_LEGGINGS, 1, "§b§lTeleport Leggings", null), System.currentTimeMillis()+1000*10)
                             }
                             it.damage(5.0)
                             dmg = true
@@ -472,7 +471,7 @@ class SkillEvent: Listener {
         if (attacker is Player && victim is LivingEntity && CustomItemManager.isHittable(attacker, victim)) {
             if (attacker.inventory.itemInMainHand.itemMeta?.displayName == CustomItemData.getSwordOfHealing().getName()) {
                 if (attacker.getCooldown(Material.IRON_SWORD) > 0) {
-                    attacker.sendMessage(Component.text("${ChatColor.RED} 쿨타임 중 입니다. (${attacker.getCooldown(Material.IRON_SWORD).toDouble() / 20.0}초)"))
+                    attacker.sendMessage(Component.text("§c 쿨타임 중 입니다. (${attacker.getCooldown(Material.IRON_SWORD).toDouble() / 20.0}초)"))
                     return
                 }
                 attacker.setCooldown(Material.IRON_SWORD, 20 * 8)
@@ -721,7 +720,7 @@ class SkillEvent: Listener {
             var loc = player.getTargetBlockExact(100)?.location
             if (loc == null) {
                 player.setCooldown(Material.RED_DYE, 20 * 3)
-                player.sendMessage("${ChatColor.RED}너무 멉니다.")
+                player.sendMessage("§c너무 멉니다.")
                 return
             }
             val random = Random()
@@ -783,7 +782,7 @@ class SkillEvent: Listener {
     fun onOverFlowDamage(e: EntityDamageByEntityEvent) {
         val player = e.damager
         if (player is Player) {
-            if (player.inventory.helmet?.itemMeta?.displayName == "${ChatColor.RED}${ChatColor.BOLD}OverFlow") {
+            if (player.inventory.helmet?.itemMeta?.displayName == "§c§lOverFlow") {
                 val currentHealth = player.health
                 var currHealthLv = 3
 
@@ -973,7 +972,7 @@ class SkillEvent: Listener {
     fun onUseAstroMatrix(e: EntityDamageByEntityEvent) {
         val player = e.entity
         if (player is Player)
-        if (player.inventory.helmet?.itemMeta?.displayName == "${ChatColor.YELLOW}${ChatColor.BOLD}AstroMatrix")
+        if (player.inventory.helmet?.itemMeta?.displayName == "§e§lAstroMatrix")
         if (player.getCooldown(Material.DIAMOND_LEGGINGS) > 0) return
         //영구적인 재생 1 부여
 

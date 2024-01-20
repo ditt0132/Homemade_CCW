@@ -285,4 +285,14 @@ object CustomItemData {
             listOf("§7왼손에 들고 있을 시, 받는 근접 대미지를 10% 감소 시킵니다.")
         )
     }
+    fun getGoldenApple(): ItemStack {
+        return ItemManager.createNamedItem(
+            Material.GOLDEN_APPLE,
+            1,
+            "§6황금사과",
+            listOf(" ",
+            "§7Gadget"
+            )
+        )
+    }
 }

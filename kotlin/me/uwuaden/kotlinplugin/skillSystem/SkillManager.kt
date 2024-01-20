@@ -53,12 +53,12 @@ object SkillManager {
         val cloneItem = this.clone()
         val meta = cloneItem.itemMeta
         val itemLore = meta.lore?: mutableListOf()
-        val addList = mutableListOf("${ChatColor.DARK_GRAY}Charge Capacity: $cap", "${ChatColor.DARK_GRAY}Max Use: $maxUse")
+        val addList = mutableListOf("§8Charge Capacity: $cap", "§8Max Use: $maxUse")
         when (type) {
-            "nature" -> addList.add("${ChatColor.DARK_GRAY}[🍀] Nature")
-            "divinity" -> addList.add("${ChatColor.DARK_GRAY}[🛡] Divinity")
-            "chaos" -> addList.add("${ChatColor.DARK_GRAY}[🧨] Chaos")
-            "tech" -> addList.add("${ChatColor.DARK_GRAY}[⚙] Tech")
+            "nature" -> addList.add("§8[🍀] Nature")
+            "divinity" -> addList.add("§8[🛡] Divinity")
+            "chaos" -> addList.add("§8[🧨] Chaos")
+            "tech" -> addList.add("§8[⚙] Tech")
             else -> addList.add("NULL")
         }
         itemLore.addAll(0, addList)
@@ -84,11 +84,11 @@ object SkillManager {
         return cloneItem
     }
     fun initData() {
-        skillItem[0] = ItemManager.createNamedItem(Material.LIGHT_BLUE_DYE, 1, "${ChatColor.AQUA}${ChatColor.BOLD}반중력 큐브 V2", listOf("${ChatColor.DARK_GRAY}Charge Capacity: 500", "${ChatColor.DARK_GRAY}Max Use: 1", "${ChatColor.DARK_GRAY}[⚙] Tech", "${ChatColor.GRAY}재사용 가능한 반중력 큐브입니다! 사용시 보는 방향으로 자신과 상대를 밀어냅니다.", "§2쿨타임: 20초", " ", "${ChatColor.GRAY}Gadget"))
+        skillItem[0] = ItemManager.createNamedItem(Material.LIGHT_BLUE_DYE, 1, "§b§l반중력 큐브 V2", listOf("§8Charge Capacity: 500", "§8Max Use: 1", "§8[⚙] Tech", "§7재사용 가능한 반중력 큐브입니다! 사용시 보는 방향으로 자신과 상대를 밀어냅니다.", "§2쿨타임: 20초", " ", "§7Gadget"))
         skillItem[1] = CustomItemData.getGoldenCarrot().addEliteItemLore(200, 5, "nature")
         skillItem[2] = CustomItemData.getDivinityShield().addEliteItemLore(250, 2, "divinity")
-        skillItem[3] = ItemManager.createNamedItem(Material.GOLDEN_APPLE, 1, "${ChatColor.GOLD}황금사과", listOf("${ChatColor.DARK_GRAY}Charge Capacity: 100", "${ChatColor.DARK_GRAY}Max Use: 10", "${ChatColor.DARK_GRAY}[🍀] Nature", "${ChatColor.GRAY}평범한 황금사과입니다.", " ", "${ChatColor.GRAY}Gadget"))
-        skillItem[4] = ItemManager.createNamedItem(Material.RED_DYE, 1, "${ChatColor.RED}${ChatColor.BOLD}ILLUSIONIZE", listOf("${ChatColor.DARK_GRAY}Charge Capacity: 500", "${ChatColor.DARK_GRAY}Max Use: 1", "${ChatColor.DARK_GRAY}[🧨] Chaos", "${ChatColor.GRAY}바라본 위치에 넓은 범위 안에 있는 플레이어에게 대미지를 주고, 그 플레이어와 위치를 바꿉니다.", "${ChatColor.GRAY}쿨타임: 30초", " ", "${ChatColor.GRAY}Gadget"))
+        skillItem[3] = CustomItemData.getGoldenApple().addEliteItemLore(100, 10, "nature")
+        skillItem[4] = ItemManager.createNamedItem(Material.RED_DYE, 1, "§c§lILLUSIONIZE", listOf("§8Charge Capacity: 500", "§8}Max Use: 1", "§8[🧨] Chaos", "§7바라본 위치에 넓은 범위 안에 있는 플레이어에게 대미지를 주고, 그 플레이어와 위치를 바꿉니다.", "§7쿨타임: 30초", " ", "§7Gadget"))
         skillItem[5] = CustomItemData.getDevineSword().addEliteItemLore(600, 1, "divinity")
         skillItem[6] = CustomItemData.getFlareGun().addEliteItemLore(700, 1, "tech")
         skillItem[7] = CustomItemData.getTeleportLeggings()
@@ -104,7 +104,7 @@ object SkillManager {
     }
     fun changeChargeValue(item: ItemStack, new: Int) {
         val lores = item.itemMeta.lore ?: return
-        lores.replaceAll { if (it.contains("Charge:")) "${ChatColor.DARK_AQUA}Charge: ${new}" else it }
+        lores.replaceAll { if (it.contains("Charge:")) "§3Charge: ${new}" else it }
         val m = item.itemMeta
         m.lore = lores
         item.itemMeta = m
@@ -120,7 +120,7 @@ object SkillManager {
     }
     fun changeSaveValue(item: ItemStack, new: Int) {
         val lores = item.itemMeta.lore ?: return
-        lores.replaceAll { if (it.contains("Saved:")) "${ChatColor.DARK_AQUA}Saved: ${new}" else it }
+        lores.replaceAll { if (it.contains("Saved:")) "§3Saved: ${new}" else it }
         val m = item.itemMeta
         m.lore = lores
         item.itemMeta = m
@@ -173,26 +173,26 @@ object SkillManager {
                         meta.addEnchant(Enchantment.DURABILITY, 1, true)
                         itemClone.itemMeta = meta
                         addLoreLine(itemClone, " ")
-                        addLoreLine(itemClone, "${ChatColor.GREEN}${ChatColor.BOLD}선택됨.")
+                        addLoreLine(itemClone, "§a§l선택됨.")
                     }
 
                     addLoreLine(itemClone, " ")
 
                     if (playerEItemList[player?.uniqueId]?.eliteItems?.contains(id) != true) {
-                        addLoreLine(itemClone, "${ChatColor.YELLOW}Locked")
+                        addLoreLine(itemClone, "§eLocked")
                         addLoreLine(itemClone, " ")
-                        addLoreLine(itemClone, "${ChatColor.YELLOW}구매: 5000코인")
+                        addLoreLine(itemClone, "§e구매: 5000코인")
 
                     }
                     addLoreLine(itemClone, " ")
                     if (playerEItemList[player?.uniqueId]?.eliteItems?.contains(id) != true) {
-                        addLoreLine(itemClone, "${ChatColor.YELLOW}${ChatColor.BOLD}Shift+Click ${ChatColor.GREEN}to Buy")
+                        addLoreLine(itemClone, "§e§lShift+Click §ato Buy")
                     } else {
-                        addLoreLine(itemClone, "${ChatColor.YELLOW}${ChatColor.BOLD}Click ${ChatColor.GREEN}to Equip")
+                        addLoreLine(itemClone, "§e§lClick §ato Equip")
                     }
                     addLoreLine(itemClone, " ")
-                    addLoreLine(itemClone, "${ChatColor.DARK_GRAY}Elite Item")
-                    addLoreLine(itemClone, "${ChatColor.DARK_GRAY}ID: $id")
+                    addLoreLine(itemClone, "§8Elite Item")
+                    addLoreLine(itemClone, "§8ID: $id")
 
 
 
@@ -201,17 +201,17 @@ object SkillManager {
                 }
             }
         }
-        val itemM = ItemManager.createNamedItem(Material.LIME_DYE, 1, "${ChatColor.GREEN}Money: ${econ.getBalance(player)}", null)
-        val itemH = ItemManager.createNamedItem(Material.REDSTONE_TORCH, 1, "${ChatColor.GREEN}도움말", listOf("§7아이템을 파밍하거나 플레이어 킬을 하면, Charge Capacity라는 포인트를 획득합니다. (이하 CC)", "§7지정된 CC를 전부 채우면, 선택한 아이템을 얻을 수 있습니다.", "§7플레이어 킬을 한 이후로는 아이템을 파밍했을 때 CC를 얻을 수 없습니다."))
+        val itemM = ItemManager.createNamedItem(Material.LIME_DYE, 1, "§aMoney: ${econ.getBalance(player)}", null)
+        val itemH = ItemManager.createNamedItem(Material.REDSTONE_TORCH, 1, "§a도움말", listOf("§7아이템을 파밍하거나 플레이어 킬을 하면, Charge Capacity라는 포인트를 획득합니다. (이하 CC)", "§7지정된 CC를 전부 채우면, 선택한 아이템을 얻을 수 있습니다.", "§7플레이어 킬을 한 이후로는 아이템을 파밍했을 때 CC를 얻을 수 없습니다."))
         inv.setItem(8, itemM)
         inv.setItem(invSlotSize-1, itemH)
 
         if (createdSkillList.size - invSlotSize*(page+1) >= 0) {
-            inv.setItem(invSlotSize-4, ItemManager.createNamedItem(Material.ARROW, 1, "${ChatColor.GREEN}Next Page", null))
+            inv.setItem(invSlotSize-4, ItemManager.createNamedItem(Material.ARROW, 1, "§aNext Page", null))
         }
-        inv.setItem(invSlotSize-5, ItemManager.createNamedItem(Material.WHITE_STAINED_GLASS_PANE, 1, "${ChatColor.GREEN}Page: $page", null))
+        inv.setItem(invSlotSize-5, ItemManager.createNamedItem(Material.WHITE_STAINED_GLASS_PANE, 1, "§aPage: $page", null))
         if (createdSkillList.size - invSlotSize*(page-1) >= 0 && page > 0) {
-            inv.setItem(invSlotSize-6, ItemManager.createNamedItem(Material.ARROW, 1, "${ChatColor.GREEN}Previous Page", null))
+            inv.setItem(invSlotSize-6, ItemManager.createNamedItem(Material.ARROW, 1, "§aPrevious Page", null))
         }
 
         return inv
@@ -224,8 +224,8 @@ object SkillManager {
             println(lores)
             return Pair(0, 0)
         }
-        val capacity = lores.filter { it.contains("${ChatColor.DARK_GRAY}Charge Capacity:") }[0].split(": ")[1].trim().toInt()
-        val maxUse = lores.filter { it.contains("${ChatColor.DARK_GRAY}Max Use:") }[0].split(": ")[1].trim().toInt()
+        val capacity = lores.filter { it.contains("§8Charge Capacity:") }[0].split(": ")[1].trim().toInt()
+        val maxUse = lores.filter { it.contains("§8Max Use:") }[0].split(": ")[1].trim().toInt()
 
         return Pair(capacity, maxUse) //Cap, Max Use
     }
@@ -236,8 +236,8 @@ object SkillManager {
         val redSquareCount = (percentage * barLength / 100.0).toInt()
         val blackSquareCount = barLength - redSquareCount
 
-        val aquaSquare = "${ChatColor.AQUA}■"
-        val blackSquare = "${ChatColor.GRAY}■"
+        val aquaSquare = "§b■"
+        val blackSquare = "§7■"
 
         var percentageBar = ""
 
@@ -261,7 +261,7 @@ object SkillManager {
 
         playerCapacityPoint[player.uniqueId] = (playerCapacityPoint[player.uniqueId] ?: 0) + point
 
-        player.sendActionBar(Component.text("${ChatColor.DARK_AQUA}CP: ${createPercentageBar(((playerCapacityPoint[player.uniqueId]!!.toDouble()/chargeData.first.toDouble())*100).coerceIn(0.0, 100.0), 10)} ${ChatColor.WHITE}(${(playerCapacityPoint[player.uniqueId]?:0).coerceIn(0, chargeData.first)}/${chargeData.first}) +${point} ${ChatColor.AQUA}(${playerMaxUse[player.uniqueId] ?: 0}/${chargeData.second})"))
+        player.sendActionBar(Component.text("§3CP: ${createPercentageBar(((playerCapacityPoint[player.uniqueId]!!.toDouble()/chargeData.first.toDouble())*100).coerceIn(0.0, 100.0), 10)} §f(${(playerCapacityPoint[player.uniqueId]?:0).coerceIn(0, chargeData.first)}/${chargeData.first}) +${point} §b(${playerMaxUse[player.uniqueId] ?: 0}/${chargeData.second})"))
 
 
         if ((playerCapacityPoint[player.uniqueId] ?: 0) >= chargeData.first) {
@@ -276,7 +276,7 @@ object SkillManager {
             player.playSound(player, Sound.ENTITY_ITEM_PICKUP, 1.0F, 1.0F)
             player.playSound(player, Sound.ENTITY_PLAYER_LEVELUP, 1.0F, 1.2F)
 
-            player.sendMessage("${ChatColor.GREEN}엘리트 아이템을 획득했습니다!")
+            player.sendMessage("§a엘리트 아이템을 획득했습니다!")
         }
     }
 }
