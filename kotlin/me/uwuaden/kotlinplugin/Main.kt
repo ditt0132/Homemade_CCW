@@ -22,6 +22,7 @@ import me.uwuaden.kotlinplugin.rankSystem.RankSystem
 import me.uwuaden.kotlinplugin.skillSystem.SkillEvent
 import me.uwuaden.kotlinplugin.skillSystem.SkillInventoryHolder
 import me.uwuaden.kotlinplugin.skillSystem.SkillManager
+import me.uwuaden.kotlinplugin.skillSystem.SkillManager.removeEliteItemLore
 import me.uwuaden.kotlinplugin.teamSystem.TeamEvent
 import me.uwuaden.kotlinplugin.teamSystem.TeamManager
 import me.uwuaden.kotlinplugin.zombie.ZombieEvent
@@ -56,6 +57,10 @@ private fun initPluginFolder() {
     if (pluginFolder.exists()) return
     pluginFolder.mkdirs()
 
+}
+private fun queueEnabled(world: World): Boolean {
+    val data = QueueOperator.initData(world)
+    return data.queueEnabled
 }
 private fun ItemStack.unbreakable(): ItemStack {
     val item = this.clone()
@@ -420,6 +425,14 @@ class Main: JavaPlugin() {
                 executes {
 
                 }
+                then("엘리트아이템") {
+                    then("n" to int(0)) {
+                        executes {
+                            val n: Int by it
+                            player.inventory.addItem(SkillEvent.skillItem[n]?.removeEliteItemLore() ?: return@executes)
+                        }
+                    }
+                }
                 then("큐비활성화") {
                     executes {
                         player.sendMessage("§a큐가 비활성화 되었습니다")
@@ -740,9 +753,9 @@ class Main: JavaPlugin() {
                 requires { isPlayer }
                 executes {
                     if (queueStatue) {
-                        val worlds = plugin.server.worlds.filter { it.name.contains("Queue-") }.sortedByDescending { it.playerCount }
+                        val worlds = plugin.server.worlds.filter { it.name.contains("Queue-") }.filter { queueEnabled(it) }.sortedByDescending { it.playerCount }
                         if (worlds.isNotEmpty()) {
-                            player.teleport(Location(worlds[0], 14.5, 106.5, -40.5))
+                            player.teleport(Location(worlds.first(), 14.5, 106.5, -40.5))
                         }
                     } else {
                         player.sendMessage("§c큐가 비활성화 되었습니다.")

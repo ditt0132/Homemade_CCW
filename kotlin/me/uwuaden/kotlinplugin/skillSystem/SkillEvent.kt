@@ -571,7 +571,7 @@ class SkillEvent: Listener {
                 dmgEntities.add(it)
             }
             dmgEntities.forEach { entity ->
-                entity.damage(entities.filter { it == entity }.size * 0.3)
+                entity.damage(entities.filter { it == entity }.size * 0.35)
                 if (entity is Player) {
                     lastDamager[entity] = player
                     lastWeapon[entity] = LastWeaponData(
@@ -735,7 +735,7 @@ class SkillEvent: Listener {
                                 val loc2 = loc.clone().add(0.0, y.toDouble(), 0.0)
                                 val r = 4.0
                                 loc2.getNearbyEntities(r, r, r).filter { it.location.distance(loc2) <= r }.filter { it is LivingEntity || it is Projectile }.filter { !entities.contains(it) }.forEach {
-                                    if (!(it is LivingEntity && !CustomItemManager.isHittable(player, it))) entities.add(it)
+                                    if (!(it is LivingEntity && !CustomItemManager.isHittable(player, it)) && it != player) entities.add(it)
                                 }
                             }
 
@@ -944,7 +944,16 @@ class SkillEvent: Listener {
             val targetPlayer = plugin.server.getPlayer(ChatColor.stripColor(lore[lore.size - 2].split(": ").last())!!) ?: return
             val stack = lore[lore.size - 1].split(": ").last().toInt()
             if (CustomItemManager.isHittable(player, targetPlayer) && player.world == targetPlayer.world) {
-                targetPlayer.damage(stack.toDouble())
+                if ((targetPlayer.getPotionEffect(PotionEffectType.DAMAGE_RESISTANCE)?:0) != 4) {
+                    targetPlayer.damage(stack.toDouble())
+                    targetPlayer.addPotionEffect(PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 20*5, 4))
+                    scheduler.scheduleSyncDelayedTask(plugin, {
+                        heal@for (i in 0 until stack) {
+                            if (targetPlayer.maxHealth < targetPlayer.health +1) break@heal
+                            targetPlayer.health += 1
+                        }
+                    }, 20)
+                }
                 if (stack != 0) {
                     EffectManager.playSurroundSound(
                         targetPlayer.location,

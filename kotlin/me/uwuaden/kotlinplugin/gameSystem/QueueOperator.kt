@@ -18,7 +18,7 @@ import org.bukkit.World
 private fun playerHolder(world: World) {
 
     val gameWorld = plugin.server.getWorld("Field-"+ world.name.replace("Queue-", ""))?: return
-
+    val data = QueueOperator.initData(world)
 
     if (worldLoaded.contains(gameWorld.name)) {
         worldLoaded.remove(gameWorld.name)
@@ -75,10 +75,10 @@ private fun playerHolder(world: World) {
     if (timeSec < 0) {
         queueStartIn.remove(world.name)
         queueClosed.add(world.name)
+        data.queueEnabled = false
         if (queueMode[world] == null) {
             GameManager.joinPlayers(world, gameWorld, "Solo")
         } else {
-            println("started")
             GameManager.joinPlayers(world, gameWorld, queueMode[world]!!)
         }
     }

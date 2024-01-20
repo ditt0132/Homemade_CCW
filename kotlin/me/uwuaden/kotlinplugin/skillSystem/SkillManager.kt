@@ -66,7 +66,7 @@ object SkillManager {
         cloneItem.itemMeta = meta
         return cloneItem
     }
-    private fun ItemStack.removeEliteItemLore(): ItemStack {
+    fun ItemStack.removeEliteItemLore(): ItemStack {
         val cloneItem = this.clone()
         val meta = cloneItem.itemMeta
         val itemLore = meta.lore?: mutableListOf()

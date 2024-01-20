@@ -2,7 +2,7 @@ package me.uwuaden.kotlinplugin
 
 import java.util.*
 
-class QueueData(val teamList: ArrayList<TeamClass> = ArrayList()) {
+class QueueData(val teamList: ArrayList<TeamClass> = ArrayList(), var queueEnabled: Boolean = true) {
     fun isInTeam(targetUUID: UUID): Boolean {
         this.teamList.forEach { tc ->
             tc.players.forEach { playerUUID ->
