@@ -430,8 +430,9 @@ object GuideBookGUI {
             29,
                 CustomItemData.getPrototypeV3(
                 ).addLores
-                    (listOf
-                        ("§2거리비례 대미지 : 3.0 ~ 10.0",
+                    (listOf(
+                    " ",
+                    "§2거리비례 대미지 : 3.0 ~ 10.0",
                         "§2재사용 대기시간 : 8초",
                         "§7§l해당 아이템을 들 때 구속 3 및 점프불가에 걸립니다"
                         )
