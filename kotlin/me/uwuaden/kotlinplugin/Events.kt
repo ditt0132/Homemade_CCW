@@ -356,7 +356,7 @@ class Events: Listener {
                 }
             } else {
                 team.players.forEach {
-                    it.sendMessage(Component.text("§a[Team] §e${player.name}: $msg §7(${player.location.distance(it.location).roundToInt()}m)"))
+                    if (it.world == player.world) it.sendMessage(Component.text("§a[Team] §e${player.name}: $msg §7(${player.location.distance(it.location).roundToInt()}m)"))
                 }
             }
         }

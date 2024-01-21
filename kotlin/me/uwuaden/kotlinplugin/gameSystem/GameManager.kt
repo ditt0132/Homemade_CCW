@@ -759,6 +759,10 @@ object GameManager {
                     spawnLocs.forEach { loc ->
                         val earthG = loc.clone()
                         earthG.y = groundY
+                        val lowestY = earthG.world.getHighestBlockYAt(earthG).toDouble()
+                        if (earthG.y > lowestY) {
+                            earthG.y = lowestY
+                        }
                         earthGrenade(earthG.clone())
                         if (n == 0) {
                             dataClass.dataLoc1 = earthG.clone()
@@ -776,7 +780,11 @@ object GameManager {
                         var n2 = 0
                         spawnLocs.forEach { loc ->
                             val earthG = loc.clone()
-                            earthG.y = loc.world.getHighestBlockAt(loc.clone()).y.toDouble() + 1.0
+                            earthG.y = groundY
+                            val lowestY = earthG.world.getHighestBlockYAt(earthG).toDouble()
+                            if (earthG.y > lowestY) {
+                                earthG.y = lowestY
+                            }
                             val core = earthG.world.spawnEntity(earthG.clone().add(0.0, 1.0, 0.0), EntityType.IRON_GOLEM) as IronGolem
                             core.setAI(false)
                             core.isSilent = true
@@ -917,6 +925,7 @@ object GameManager {
 
 
 
+
         val worldDeleteSec: Long = 10
 
         val borderSize = borderRadius*2
@@ -928,7 +937,6 @@ object GameManager {
         if (mode == "SoloSurvival") {
             changeAmount = 6
         }
-        if (mode == "Heist") return
 
         scheduler.scheduleSyncDelayedTask(plugin, {
             fromWorld.players.forEach {
@@ -936,6 +944,9 @@ object GameManager {
             }
             WorldManager.deleteWorld(fromWorld)
         }, 20*10)
+
+        if (mode == "Heist") return
+
         scheduler.scheduleSyncDelayedTask(plugin, {
             scheduler.runTaskAsynchronously(plugin, Runnable {
                 for (n in 0 until changeAmount) {

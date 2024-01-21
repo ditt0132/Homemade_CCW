@@ -103,7 +103,7 @@ object QueueOperator {
         }, 0, 20*60)
     }
 
-    fun createQueue(mode: String, worldFolderName: String) { //수정 완료.
+    fun createQueue(mode: String, worldFolderName: String) {
         val uuid = WorldManager.createQueueWorld()
         var worldStr = ""
         scheduler.runTaskAsynchronously(plugin, Runnable {

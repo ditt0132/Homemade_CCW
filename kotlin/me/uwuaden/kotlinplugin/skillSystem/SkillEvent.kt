@@ -943,17 +943,17 @@ class SkillEvent: Listener {
             val targetPlayer = plugin.server.getPlayer(ChatColor.stripColor(lore[lore.size - 2].split(": ").last())!!) ?: return
             val stack = lore[lore.size - 1].split(": ").last().toInt()
             if (CustomItemManager.isHittable(player, targetPlayer) && player.world == targetPlayer.world) {
-                if ((targetPlayer.getPotionEffect(PotionEffectType.DAMAGE_RESISTANCE)?:0) != 4) {
-                    targetPlayer.damage(stack.toDouble())
-                    targetPlayer.addPotionEffect(PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 20*5, 4))
-                    scheduler.scheduleSyncDelayedTask(plugin, {
-                        heal@for (i in 0 until stack) {
-                            if (targetPlayer.maxHealth < targetPlayer.health +1) break@heal
-                            targetPlayer.health += 1
-                        }
-                    }, 20)
-                }
                 if (stack != 0) {
+                    if ((targetPlayer.getPotionEffect(PotionEffectType.DAMAGE_RESISTANCE)?:0) != 4) {
+                        targetPlayer.damage(stack.toDouble())
+                        targetPlayer.addPotionEffect(PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 20, 4))
+                        scheduler.scheduleSyncDelayedTask(plugin, {
+                            heal@for (i in 0 until stack) {
+                                if (targetPlayer.maxHealth < targetPlayer.health +0.5) break@heal
+                                targetPlayer.health += 0.5
+                            }
+                        }, 20)
+                    }
                     EffectManager.playSurroundSound(
                         targetPlayer.location,
                         Sound.ENTITY_ZOMBIE_BREAK_WOODEN_DOOR,

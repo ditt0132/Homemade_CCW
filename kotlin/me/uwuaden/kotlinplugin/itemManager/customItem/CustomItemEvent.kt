@@ -1290,7 +1290,7 @@ class CustomItemEvent: Listener {
         if (e.hand == EquipmentSlot.OFF_HAND) return
         if (!e.action.isRightClick) return
         val player = e.player
-        if (player.inventory.itemInMainHand.itemMeta?.displayName == "§A§l가젯 선택") {
+        if (player.inventory.itemInMainHand.itemMeta?.displayName == "§a§l가젯 선택") {
             e.isCancelled = true
             val inv = Bukkit.createInventory(null, 27, "§7§l가젯 선택")
             for (i in 0 until 27) {
@@ -1330,7 +1330,7 @@ class CustomItemEvent: Listener {
             e.isCancelled = true
             val player = e.view.player as Player
 
-            if (player.inventory.itemInMainHand.itemMeta?.displayName == "§A§l가젯 선택") {
+            if (player.inventory.itemInMainHand.itemMeta?.displayName == "§a§l가젯 선택") {
                 val item = when (e.slot) {
                     11 -> {
                         ItemManager.createNamedItem(
