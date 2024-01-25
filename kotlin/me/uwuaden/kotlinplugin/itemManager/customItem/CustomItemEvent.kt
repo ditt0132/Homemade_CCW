@@ -1906,33 +1906,158 @@ class CustomItemEvent: Listener {
     }
     @EventHandler
     fun onHolyShieldActive(e: EntityDamageEvent) {
-        if (e.entity is Player) {
-            val player = e.entity as Player
-            val itemNameList = mutableSetOf<String>()
-            player.inventory.contents.forEach {
-                if (it != null) itemNameList.add(it.itemMeta.displayName)
-            }
-            if (itemNameList.contains(CustomItemData.getHolyShield().getName())) {
-                if (!player.hasCooldown(Material.NETHER_STAR) && e.finalDamage >= 5) {
-                    player.setCooldown(Material.NETHER_STAR, 60*20)
-                    e.isCancelled = true
-                    EffectManager.playSurroundSound(player.location, Sound.ENTITY_GENERIC_EXPLODE, 0.5F, 2.0F)
-                    EffectManager.playSurroundSound(player.location, Sound.BLOCK_GLASS_BREAK, 1.0F, 1.0F)
-                    EffectManager.playSurroundSound(player.location, Sound.ITEM_TRIDENT_RETURN, 1.0F, 0.5F)
-                    EffectManager.playSurroundSound(player.location, Sound.BLOCK_BEACON_DEACTIVATE, 1.0F, 0.5F)
-                    player.location.world.spawnParticle(END_ROD, player.location, 100, 0.0, 0.0, 0.0, 1.0)
+        if (e.entity !is Player) return
+
+        val player = e.entity as Player
+        val itemNameList = mutableSetOf<String>()
+
+        player.inventory.contents.forEach {
+            if (it != null) itemNameList.add(it.itemMeta.displayName)
+        }
+        if (itemNameList.contains(CustomItemData.getHolyShield().getName())) {
+            if (!player.hasCooldown(Material.NETHER_STAR) && e.finalDamage >= 5) {
+                player.setCooldown(Material.NETHER_STAR, 60*20)
+                e.isCancelled = true
+                EffectManager.playSurroundSound(player.location, Sound.ENTITY_GENERIC_EXPLODE, 0.5F, 2.0F)
+                EffectManager.playSurroundSound(player.location, Sound.BLOCK_GLASS_BREAK, 1.0F, 1.0F)
+                EffectManager.playSurroundSound(player.location, Sound.ITEM_TRIDENT_RETURN, 1.0F, 0.5F)
+                EffectManager.playSurroundSound(player.location, Sound.BLOCK_BEACON_DEACTIVATE, 1.0F, 0.5F)
+                player.location.world.spawnParticle(END_ROD, player.location, 100, 0.0, 0.0, 0.0, 1.0)
 
 
-                    player.addPotionEffect(PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 20, 4, false, false))
-                    player.location.getNearbyLivingEntities(3.0).filter { it != player }.forEach {
-                        if (CustomItemManager.isHittable(player, it)) {
-                            val direction = it.location.toVector().subtract(player.location.toVector()).normalize()
-                            it.velocity = direction.multiply(1.0)
-                            it.damage(4.0)
-                        }
+                player.addPotionEffect(PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 20, 4, false, false))
+                player.location.getNearbyLivingEntities(3.0).filter { it != player }.forEach {
+                    if (CustomItemManager.isHittable(player, it)) {
+                        val direction = it.location.toVector().subtract(player.location.toVector()).normalize()
+                        it.velocity = direction.multiply(1.0)
+                        it.damage(4.0)
                     }
                 }
             }
+        }
+
+    }
+
+    @EventHandler
+    fun onUseSolar(e: PlayerInteractEvent) {
+        if (e.hand == EquipmentSlot.OFF_HAND) return
+        if (!e.action.isRightClick) return
+        val player = e.player
+        if (player.inventory.itemInMainHand.itemMeta?.displayName == "testingItem") {
+            if (player.getCooldown(Material.WOODEN_HOE) > 0) return
+            player.setCooldown(Material.WOODEN_HOE, 20 * 5)
+
+            val maxDamageDist = 60*10
+
+            val hitEntities = mutableListOf<Pair<LivingEntity, Int>>()
+
+            val weapon = player.inventory.itemInMainHand.clone()
+            player.addPotionEffect(PotionEffect(PotionEffectType.SLOW, 20*2, 2, false, false))
+
+            scheduler.runTaskAsynchronously(plugin, Runnable {
+                for (n in 0 until 4) {
+                    scheduler.scheduleSyncDelayedTask(plugin, {
+                        EffectManager.playSurroundSound(player.location, Sound.ENTITY_WITHER_SHOOT, 1.0f, 1.0f + n*0.5f)
+                    }, 0)
+                    Thread.sleep(200)
+                }
+                Thread.sleep(400)
+                for (n in 0 until 3) {
+                    scheduler.scheduleSyncDelayedTask(plugin, {
+                        if (player.inventory.itemInMainHand == weapon) {
+                            val loc = player.eyeLocation.clone()
+                            EffectManager.playSurroundSound(player.location, Sound.BLOCK_BEACON_DEACTIVATE, 1.0f, 1.65f)
+                            EffectManager.playSurroundSound(player.location, Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 2.0f)
+
+                            var charge = 0.0
+                            var colorCharge = 0.2
+                            var color = Color.BLACK
+                            sh@ for (i in 0 until 10 * 160) {
+                                loc.add(loc.direction.multiply(0.1))
+                                charge = (i.toDouble()/maxDamageDist.toDouble()).coerceAtLeast(0.0).coerceAtMost(1.0)
+                                colorCharge = (charge + 0.2).coerceAtLeast(0.0).coerceAtMost(1.0)
+                                color = Color.fromRGB(255, 163+((92*colorCharge).toInt()), 0)
+                                if (i > 10) loc.world.spawnParticle(REDSTONE, loc, 1, 0.0, 0.0, 0.0, 0.0, DustOptions(color, (3.0*charge).toFloat() + 0.5f))
+
+                                if (loc.block.isSolid) break@sh
+
+                                val entities = loc.getNearbyLivingEntities(5.0, 5.0, 5.0).filterNot { it == player }.filter { it.boundingBox.clone().expand(boundingBoxExpand).contains(loc.x, loc.y, loc.z) && CustomItemManager.isHittable(player, it) }
+                                if (entities.isNotEmpty()) {
+                                    EffectManager.setLastDamager(player, entities.first(), weapon)
+                                    entities.first().damage(2.0*charge)
+                                    entities.first().fireTicks += 20
+
+                                    val direction =  entities.first().location.toVector().subtract(player.location.clone().toVector()).normalize()
+                                    if (entities.first().isOnGround) entities.first().velocity = direction.multiply(0.4*(1.0 - charge)).setY(0.4)
+                                    else entities.first().velocity = direction.multiply(0.4*(1.0 - charge)).setY(0.0)
+                                    if (charge >= 0.5) {
+                                        hitEntities.add(Pair(entities.first(), i))
+                                    }
+                                    break@sh
+                                }
+                            }
+                        }
+                    }, 0)
+                    Thread.sleep(400)
+                }
+                Thread.sleep(1000)
+                scheduler.scheduleSyncDelayedTask(plugin, {
+                    var damageEntity = HashMap<LivingEntity, Double>()
+
+                    hitEntities.filter { it.first.world == player.world }.forEach {
+                        if (it.first is Player && (it.first as Player).gameMode == GameMode.SPECTATOR) {
+                            return@forEach
+                        }
+                        val exLoc = it.first.location.clone()
+                        val charge = (it.second/maxDamageDist.toDouble() +0.2).coerceAtLeast(0.0).coerceAtMost(1.0)
+                        exLoc.getNearbyLivingEntities(3.0*charge).filter { entity -> CustomItemManager.isHittable(player, entity) }.filterNot { entity -> entity is ArmorStand }.forEach { entity ->
+                            damageEntity[entity] = (damageEntity[entity]?: 0.0) + 3.0*charge
+                        }
+                        exLoc.world.spawnParticle(EXPLOSION_HUGE, exLoc, 1, 0.0, 0.0, 0.0)
+                        EffectManager.playSurroundSound(exLoc, Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 1.0f)
+
+                        val random = Random
+                        val particleEntities = mutableListOf<ArmorStand>()
+                        for (i in 0 until (charge * 8).toInt()) {
+                            val spawnLoc = exLoc.clone().add(random.nextDouble(-1.0, 1.0), random.nextDouble(0.0, 1.0), random.nextDouble(-1.0, 1.0))
+
+                            val entity = spawnLoc.world.spawnEntity(spawnLoc, EntityType.ARMOR_STAND) as ArmorStand
+                            entity.isSmall = true
+                            entity.isInvisible = true
+                            entity.isInvulnerable = true
+                            entity.isSilent = true
+                            entity.addPotionEffect(PotionEffect(PotionEffectType.SLOW_FALLING, 20*10, 0, false, true))
+                            particleEntities.add(entity)
+                        }
+                        particleEntities.forEach { entity ->
+                            val vectorOriginLoc = exLoc.clone().add(exLoc.clone().direction.multiply(-0.5))
+                            val direction = entity.location.toVector().subtract(vectorOriginLoc.toVector()).normalize().multiply(1.0)
+                            entity.velocity = direction
+                        }
+                        scheduler.runTaskAsynchronously(plugin, Runnable {
+                            for (i in 0 until 10 * 3) {
+                                scheduler.scheduleSyncDelayedTask(plugin, {
+                                    val colorCharge = (it.second/maxDamageDist.toDouble() +0.2).coerceAtLeast(0.0).coerceAtMost(1.0)
+                                    particleEntities.forEach { armorStand ->
+                                        exLoc.world.spawnParticle(REDSTONE, armorStand.location, 1, 0.0, 0.0, 0.0, 0.0, DustOptions(Color.fromRGB(255, 163+((92*colorCharge).toInt()), 0), (30-i).toFloat()/10.0f))
+                                    }
+                                }, 0)
+                                Thread.sleep(100)
+                            }
+                            scheduler.scheduleSyncDelayedTask(plugin, {
+                                particleEntities.forEach { armorStand ->
+                                    armorStand.remove()
+                                }
+                            }, 0)
+                        })
+                    }
+                    damageEntity.forEach { pair ->
+                        EffectManager.setLastDamager(player, pair.key, weapon)
+                        pair.key.damage(pair.value)
+                        pair.key.fireTicks = 20
+                    }
+                }, 0)
+            })
         }
     }
 }

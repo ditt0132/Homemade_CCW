@@ -25,7 +25,19 @@ import kotlin.math.cos
 import kotlin.math.roundToInt
 import kotlin.math.sin
 
-//EffectManager.playSurroundSound
+private fun rotateAroundYAxis(x: Double, z: Double, yaw: Double): DoubleArray {
+    val angle = Math.toRadians(yaw)
+    val newX = cos(angle) * x - sin(angle) * z
+    val newZ = sin(angle) * x + cos(angle) * z
+    return doubleArrayOf(newX, 0.0, newZ)
+}
+
+private fun rotateAroundXAxis(x: Double, y: Double, z: Double, pitch: Double): DoubleArray {
+    val angle = Math.toRadians(pitch)
+    val newY = cos(angle) * y - sin(angle) * z
+    val newZ = sin(angle) * y + cos(angle) * z
+    return doubleArrayOf(x, newY, newZ)
+}
 private fun resizeImage(image: BufferedImage, newWidth: Int, newHeight: Int): BufferedImage {
     val resizedImage = BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_ARGB)
     val g = resizedImage.createGraphics()
@@ -200,4 +212,37 @@ object EffectManager {
             println(e)
         }
     }
+    fun drawTiltedCircle(center: Location, radius: Double, yaw: Double, pitch: Double) {
+        val world = center.world ?: return
+
+        val particleCount = 100
+        val angleDelta = 360.0 / particleCount
+
+        for (i in 0 until particleCount) {
+            val angle = Math.toRadians(i * angleDelta)
+            val x = center.x + radius * cos(angle)
+            val z = center.z + radius * sin(angle)
+
+            // Rotate around yaw
+            val rotated = rotateAroundYAxis(x - center.x, z - center.z, yaw)
+
+            // Apply pitch
+            val rotatedPitch = rotateAroundXAxis(rotated[0], rotated[1], rotated[2], pitch)
+
+            // Translate back to original position
+            val finalLocation = Location(world, rotatedPitch[0] + center.x, rotatedPitch[1] + center.y, rotatedPitch[2] + center.z)
+
+            world.spawnParticle(
+                Particle.REDSTONE,
+                finalLocation,
+                1,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                DustOptions(Color.RED, 1.0f)
+            )
+        }
+    }
+
 }

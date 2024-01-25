@@ -161,7 +161,7 @@ class SkillEvent: Listener {
         if (e.hand == EquipmentSlot.OFF_HAND) return
         if (!e.action.isRightClick) return
         val player = e.player
-        if (player.inventory.itemInMainHand.itemMeta?.displayName == "§bl반중력 큐브 V2") {
+        if (player.inventory.itemInMainHand.itemMeta?.displayName == "§b§l반중력 큐브 V2") {
             e.isCancelled = true
 
             if (player.getCooldown(Material.LIGHT_BLUE_DYE) > 0) return
@@ -570,7 +570,7 @@ class SkillEvent: Listener {
                 dmgEntities.add(it)
             }
             dmgEntities.forEach { entity ->
-                entity.damage(entities.filter { it == entity }.size * 0.35)
+                entity.damage(entities.filter { it == entity }.size * 0.3)
                 if (entity is Player) {
                     lastDamager[entity] = player
                     lastWeapon[entity] = LastWeaponData(
@@ -905,6 +905,7 @@ class SkillEvent: Listener {
                 if (item.itemMeta.hasEnchant(Enchantment.ARROW_DAMAGE)) {
                     damage*=(1.25 + item.itemMeta.getEnchantLevel(Enchantment.ARROW_DAMAGE)*0.25)
                 }
+                EffectManager.setLastDamager(shooter, entity!!, shooter.inventory.itemInMainHand)
                 entity!!.damage(damage)
 
                 val direction = entity!!.location.toVector().subtract(shooter.location.clone().toVector()).normalize()
@@ -945,14 +946,9 @@ class SkillEvent: Listener {
             if (CustomItemManager.isHittable(player, targetPlayer) && player.world == targetPlayer.world) {
                 if (stack != 0) {
                     if ((targetPlayer.getPotionEffect(PotionEffectType.DAMAGE_RESISTANCE)?:0) != 4) {
+                        EffectManager.setLastDamager(player, targetPlayer, player.inventory.itemInMainHand)
                         targetPlayer.damage(stack.toDouble())
-                        targetPlayer.addPotionEffect(PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 20, 4))
-                        scheduler.scheduleSyncDelayedTask(plugin, {
-                            heal@for (i in 0 until stack) {
-                                if (targetPlayer.maxHealth < targetPlayer.health +0.5) break@heal
-                                targetPlayer.health += 0.5
-                            }
-                        }, 20)
+                        targetPlayer.addPotionEffect(PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 2*20, 4))
                     }
                     EffectManager.playSurroundSound(
                         targetPlayer.location,

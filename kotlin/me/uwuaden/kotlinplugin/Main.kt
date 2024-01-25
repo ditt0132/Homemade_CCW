@@ -6,6 +6,7 @@ import io.github.monun.kommand.kommand
 import me.uwuaden.kotlinplugin.Main.Companion.plugin
 import me.uwuaden.kotlinplugin.assets.CustomItemData
 import me.uwuaden.kotlinplugin.assets.EffectManager
+import me.uwuaden.kotlinplugin.cooldown.CooldownManager
 import me.uwuaden.kotlinplugin.gameSystem.*
 import me.uwuaden.kotlinplugin.gameSystem.GameEvent
 import me.uwuaden.kotlinplugin.itemManager.ItemManager
@@ -141,6 +142,7 @@ class Main: JavaPlugin() {
         SkillManager.initData()
         SkillManager.sch()
         ZombieManager.zombieSkillSch()
+        CooldownManager.sch()
 
 
         Bukkit.getPluginManager().registerEvents(Events(), this)
@@ -740,7 +742,6 @@ class Main: JavaPlugin() {
             register("test") {
                 requires { isOp }
                 executes {
-                    GuideBookGUI.openFileDropInvNormal(player)
                 }
             }
             register("queuelist") {

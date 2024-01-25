@@ -180,6 +180,12 @@ class Events: Listener {
 //        }
 //    }
     @EventHandler
+    fun onPlayerArmorstandInteract(e: PlayerInteractAtEntityEvent) {
+        if (e.player.gameMode == GameMode.SURVIVAL && e.rightClicked is ArmorStand && (e.rightClicked as ArmorStand).isSmall) {
+            e.isCancelled = true
+        }
+    }
+    @EventHandler
     fun slotChange(e: PlayerItemHeldEvent) {
         val item = e.player.inventory.getItem(e.newSlot) ?: return
         if (ItemManager.isRangedWeapon(item.type)) {
