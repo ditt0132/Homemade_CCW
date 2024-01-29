@@ -19,7 +19,7 @@ import java.util.concurrent.CompletableFuture
 import java.util.logging.Level
 
 
-object  WorldManager {
+object WorldManager {
     fun initData(world: World): WorldDataManager {
         if (worldDatas[world] == null) worldDatas[world] = WorldDataManager()
         return worldDatas[world]!!

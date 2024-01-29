@@ -958,7 +958,7 @@ class CustomItemEvent: Listener {
         if (player.inventory.itemInMainHand.itemMeta?.displayName == "§6Golden Carrot") {
             e.isCancelled = true
             if (player.getCooldown(Material.GOLDEN_CARROT) > 0) return
-            player.setCooldown(Material.GOLDEN_CARROT, 20 * 1)
+            player.setCooldown(Material.GOLDEN_CARROT, 20 * 5)
             player.inventory.itemInMainHand.amount -= 1
 
 
@@ -1943,11 +1943,11 @@ class CustomItemEvent: Listener {
         if (e.hand == EquipmentSlot.OFF_HAND) return
         if (!e.action.isRightClick) return
         val player = e.player
-        if (player.inventory.itemInMainHand.itemMeta?.displayName == "testingItem") {
-            if (player.getCooldown(Material.WOODEN_HOE) > 0) return
-            player.setCooldown(Material.WOODEN_HOE, 20 * 5)
+        if (player.inventory.itemInMainHand.itemMeta?.displayName == CustomItemData.getSolarCannon().getName()) {
+            if (player.getCooldown(Material.GOLDEN_SHOVEL) > 0) return
+            player.setCooldown(Material.GOLDEN_SHOVEL, 20 * 5)
 
-            val maxDamageDist = 60*10
+            val maxDamageDist = 50*10
 
             val hitEntities = mutableListOf<Pair<LivingEntity, Int>>()
 
@@ -1961,13 +1961,13 @@ class CustomItemEvent: Listener {
                     }, 0)
                     Thread.sleep(200)
                 }
-                Thread.sleep(400)
+                Thread.sleep(200)
                 for (n in 0 until 3) {
                     scheduler.scheduleSyncDelayedTask(plugin, {
                         if (player.inventory.itemInMainHand == weapon) {
                             val loc = player.eyeLocation.clone()
                             EffectManager.playSurroundSound(player.location, Sound.BLOCK_BEACON_DEACTIVATE, 1.0f, 1.65f)
-                            EffectManager.playSurroundSound(player.location, Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 2.0f)
+                            EffectManager.playSurroundSound(player.location, Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 1.0f)
 
                             var charge = 0.0
                             var colorCharge = 0.2
@@ -1976,7 +1976,7 @@ class CustomItemEvent: Listener {
                                 loc.add(loc.direction.multiply(0.1))
                                 charge = (i.toDouble()/maxDamageDist.toDouble()).coerceAtLeast(0.0).coerceAtMost(1.0)
                                 colorCharge = (charge + 0.2).coerceAtLeast(0.0).coerceAtMost(1.0)
-                                color = Color.fromRGB(255, 163+((92*colorCharge).toInt()), 0)
+                                color = Color.fromRGB(255, 255-((92*colorCharge).toInt()), 0)
                                 if (i > 10) loc.world.spawnParticle(REDSTONE, loc, 1, 0.0, 0.0, 0.0, 0.0, DustOptions(color, (3.0*charge).toFloat() + 0.5f))
 
                                 if (loc.block.isSolid) break@sh
@@ -1985,13 +1985,14 @@ class CustomItemEvent: Listener {
                                 if (entities.isNotEmpty()) {
                                     EffectManager.setLastDamager(player, entities.first(), weapon)
                                     entities.first().damage(2.0*charge)
-                                    entities.first().fireTicks += 20
 
                                     val direction =  entities.first().location.toVector().subtract(player.location.clone().toVector()).normalize()
                                     if (entities.first().isOnGround) entities.first().velocity = direction.multiply(0.4*(1.0 - charge)).setY(0.4)
                                     else entities.first().velocity = direction.multiply(0.4*(1.0 - charge)).setY(0.0)
-                                    if (charge >= 0.5) {
+                                    if (charge >= 0.4) {
+                                        entities.first().fireTicks += (20*charge).roundToInt()
                                         hitEntities.add(Pair(entities.first(), i))
+                                        player.playSound(player, Sound.ENTITY_ARROW_HIT_PLAYER, 1.0f, 1.0f)
                                     }
                                     break@sh
                                 }
@@ -2039,7 +2040,7 @@ class CustomItemEvent: Listener {
                                 scheduler.scheduleSyncDelayedTask(plugin, {
                                     val colorCharge = (it.second/maxDamageDist.toDouble() +0.2).coerceAtLeast(0.0).coerceAtMost(1.0)
                                     particleEntities.forEach { armorStand ->
-                                        exLoc.world.spawnParticle(REDSTONE, armorStand.location, 1, 0.0, 0.0, 0.0, 0.0, DustOptions(Color.fromRGB(255, 163+((92*colorCharge).toInt()), 0), (30-i).toFloat()/10.0f))
+                                        exLoc.world.spawnParticle(REDSTONE, armorStand.location, 1, 0.0, 0.0, 0.0, 0.0, DustOptions(Color.fromRGB(255, 255-((92*colorCharge).toInt()), 0), (30-i).toFloat()/10.0f))
                                     }
                                 }, 0)
                                 Thread.sleep(100)

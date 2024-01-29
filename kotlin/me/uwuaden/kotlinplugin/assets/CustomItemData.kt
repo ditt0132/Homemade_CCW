@@ -295,4 +295,16 @@ object CustomItemData {
             )
         )
     }
+    fun getSolarCannon(): ItemStack {
+        val item = ItemManager.createNamedItem(
+            Material.GOLDEN_SHOVEL,
+            1,
+            "§e§lSolar Cannon",
+            listOf("§7거리가 멀수록 대미지가 증가하는 광선을 3번 발사합니다.", "§7원거리 공격일 경우 적에게 불을 붙히며", "§7불이 붙은 적은 잠시후 폭발합니다.", " ", "§2광선 대미지: ~2.0  폭발 대미지: ~3.0*3")
+        )
+        val m = item.itemMeta
+        m.isUnbreakable = true
+        item.itemMeta = m
+        return item
+    }
 }

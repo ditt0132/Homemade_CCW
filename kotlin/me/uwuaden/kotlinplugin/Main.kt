@@ -5,9 +5,10 @@ import io.github.monun.kommand.getValue
 import io.github.monun.kommand.kommand
 import me.uwuaden.kotlinplugin.Main.Companion.plugin
 import me.uwuaden.kotlinplugin.assets.CustomItemData
+import me.uwuaden.kotlinplugin.assets.EffectManager
+import me.uwuaden.kotlinplugin.cooldown.CooldownManager
 import me.uwuaden.kotlinplugin.gameSystem.*
 import me.uwuaden.kotlinplugin.gameSystem.GameEvent
-import me.uwuaden.kotlinplugin.itemManager.DroppedItem
 import me.uwuaden.kotlinplugin.itemManager.ItemManager
 import me.uwuaden.kotlinplugin.itemManager.OpenItemEvent
 import me.uwuaden.kotlinplugin.itemManager.customItem.CustomItemEvent
@@ -17,10 +18,12 @@ import me.uwuaden.kotlinplugin.itemManager.maps.MapManager
 import me.uwuaden.kotlinplugin.quickSlot.QuickSlotEvent
 import me.uwuaden.kotlinplugin.quickSlot.QuickSlotManager
 import me.uwuaden.kotlinplugin.rankSystem.PlayerStats
+import me.uwuaden.kotlinplugin.rankSystem.RankEvent
 import me.uwuaden.kotlinplugin.rankSystem.RankSystem
 import me.uwuaden.kotlinplugin.skillSystem.SkillEvent
 import me.uwuaden.kotlinplugin.skillSystem.SkillInventoryHolder
 import me.uwuaden.kotlinplugin.skillSystem.SkillManager
+import me.uwuaden.kotlinplugin.skillSystem.SkillManager.removeEliteItemLore
 import me.uwuaden.kotlinplugin.teamSystem.TeamEvent
 import me.uwuaden.kotlinplugin.teamSystem.TeamManager
 import me.uwuaden.kotlinplugin.zombie.ZombieEvent
@@ -28,45 +31,51 @@ import me.uwuaden.kotlinplugin.zombie.ZombieManager
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.event.HoverEvent
+import net.luckperms.api.LuckPerms
 import net.milkbowl.vault.economy.Economy
 import org.bukkit.*
 import org.bukkit.entity.Player
+import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.java.JavaPlugin
-import org.bukkit.scheduler.BukkitScheduler
+import org.bukkit.potion.PotionEffect
+import org.bukkit.potion.PotionEffectType
 import java.io.File
+import java.net.URL
+import java.time.LocalDate
 import java.util.*
 import java.util.logging.Level
-import kotlin.math.log
+import kotlin.math.roundToInt
 
 
+private fun sendResetMessage(player: Player) {
+    player.sendMessage("§a시즌을 초기화하시겠습니까?")
+    player.sendMessage("§a§l/닭갈비관리자 시즌초기화 confirm§a으로 명령어를 실행해주세요.")
+}
 private fun initPluginFolder() {
     val pluginFolder = File(plugin.dataFolder, "maps")
     if (pluginFolder.exists()) return
     pluginFolder.mkdirs()
 
 }
-
-private fun playSurroundSound(loc: Location, sound: Sound, volume: Float, pitch: Float) {
-    loc.getNearbyPlayers(150.0).forEach { player ->
-        val dist = loc.distance(player.location)
-        if (dist <= 5) {
-            player.playSound(loc, sound, volume, pitch)
-        } else {
-            val calculatedVol = volume * (log(dist+30.0, 1.2) - 20.0).toFloat()
-            player.playSound(loc, sound, calculatedVol, pitch)
-        }
-    }
+private fun queueEnabled(world: World): Boolean {
+    val data = QueueOperator.initData(world)
+    return data.queueEnabled
 }
-
+private fun ItemStack.unbreakable(): ItemStack {
+    val item = this.clone()
+    val meta = item.itemMeta
+    meta.isUnbreakable = true
+    item.itemMeta = meta
+    return item
+}
 class Main: JavaPlugin() {
     companion object {
         lateinit var plugin: JavaPlugin
-        lateinit var scheduler: BukkitScheduler
+        lateinit var luckpermAPI: LuckPerms
         val worldLoaded = ArrayList<String>()
         val queueStartIn = HashMap<String, Long>()
         val queueClosed = ArrayList<String>()
-        var droppedItems = ArrayList<DroppedItem>()
         val currentInv = HashMap<UUID, UUID>()
         val isOpening = ArrayList<UUID>()
         val inventoryData = HashMap<UUID, Array<ItemStack?>>()
@@ -80,6 +89,12 @@ class Main: JavaPlugin() {
 
         var worldDatas = HashMap<World, WorldDataManager>()
         var queueDatas = HashMap<World, QueueData>()
+        var queueStatue = true
+        val chunkItemDisplayGen = mutableSetOf<Chunk>()
+        val chunkItemLocInit = mutableSetOf<Chunk>()
+
+        val scheduler = Bukkit.getScheduler()
+        val scoreboardManager = Bukkit.getScoreboardManager()
 
         lateinit var lobbyLoc: Location
         lateinit var econ: Economy
@@ -92,6 +107,7 @@ class Main: JavaPlugin() {
 
         const val defaultMMR = 1000
         var map = "test"
+        const val boundingBoxExpand = 0.5
 
     }
     override fun onEnable() {
@@ -114,10 +130,11 @@ class Main: JavaPlugin() {
 
 
         initPluginFolder()
-        scheduler = Bukkit.getScheduler()
         scheduler.cancelTasks(plugin)
         QueueOperator.sch()
+        GameManager.chunkSch() //아이템 생성 등등 여러가지
         GameManager.gameSch()
+        GameManager.playerSidebarSch()
         ItemManager.updateInventorySch()
         CustomItemManager.itemSch()
         LobbyManager.sch()
@@ -126,6 +143,7 @@ class Main: JavaPlugin() {
         SkillManager.initData()
         SkillManager.sch()
         ZombieManager.zombieSkillSch()
+        CooldownManager.sch()
 
 
         Bukkit.getPluginManager().registerEvents(Events(), this)
@@ -136,22 +154,29 @@ class Main: JavaPlugin() {
         Bukkit.getPluginManager().registerEvents(TeamEvent(), this)
         Bukkit.getPluginManager().registerEvents(SkillEvent(), this)
         Bukkit.getPluginManager().registerEvents(QuickSlotEvent(), this)
-        Bukkit.getPluginManager().registerEvents(SpecEvent(), this)
         Bukkit.getPluginManager().registerEvents(ZombieEvent(), this)
+        Bukkit.getPluginManager().registerEvents(GuideBookEvent(), this)
+        Bukkit.getPluginManager().registerEvents(RankEvent(), this)
 
-        if (!setupEconomy() ) {
+        if (!setupEconomy()) {
             server.logger.log(Level.WARNING, "Vault Load Error")
             server.pluginManager.disablePlugin(plugin)
             return
         }
+        val provider = Bukkit.getServicesManager().getRegistration(
+            LuckPerms::class.java
+        )
+        if (provider != null) {
+            luckpermAPI = provider.provider
+        }
 
         plugin.server.worlds.forEach {
-            if (it.name.contains("Queue-") || it.name.contains("Field-")) {
+            if (it.name.contains("Queue-") || it.name.contains("Field-") || it.name.contains("death_match")) {
                 WorldManager.deleteWorld(it)
             }
         }
 
-        plugin.server.worldContainer.listFiles { file-> (file.name.contains("Queue-") || file.name.contains("Field-"))}.forEach {
+        plugin.server.worldContainer.listFiles { file-> (file.name.contains("Queue-") || file.name.contains("Field-")) || file.name.contains("death_match") }.forEach {
             it.deleteRecursively()
         }
 
@@ -162,10 +187,47 @@ class Main: JavaPlugin() {
         plugin.server.onlinePlayers.forEach {
             it.teleport(lobbyLoc)
         }
-        FileManager.loadVar()
-        FileManager.loadPlayerEItemFromFile()
 
-        kommand {
+        FileManager.loadVar()
+
+        scheduler.scheduleSyncDelayedTask(plugin, {
+            val copyDir = File(File(plugin.dataFolder, "maps"), "Sinchon")
+            val pasteDir = File(plugin.server.worldContainer, "death_match")
+            scheduler.runTaskAsynchronously(plugin, Runnable {
+                FileManager.copyDir(copyDir.toPath(), pasteDir.toPath())
+                scheduler.scheduleSyncDelayedTask(plugin, {
+                    WorldManager.loadWorld("death_match")
+                }, 0)
+                scheduler.scheduleSyncDelayedTask(plugin, {
+                    plugin.server.getWorld("death_match")?.difficulty = Difficulty.HARD
+                }, 20*10)
+            })
+        }, 20*30)
+
+            kommand {
+            register("join_dm") {
+                requires { isPlayer }
+                executes {
+                    if (player.world.name == "world") {
+                        player.teleport(Location(plugin.server.getWorld("death_match") ?: return@executes, 0.0, 2.0, 0.0))
+                        player.addPotionEffect(PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 20*10, 4))
+                        player.inventory.clear()
+                        player.inventory.setItem(EquipmentSlot.HEAD, ItemStack(Material.IRON_HELMET).unbreakable())
+                        player.inventory.setItem(EquipmentSlot.CHEST, ItemStack(Material.IRON_CHESTPLATE).unbreakable())
+                        player.inventory.setItem(EquipmentSlot.LEGS, ItemStack(Material.IRON_LEGGINGS).unbreakable())
+                        player.inventory.setItem(EquipmentSlot.FEET, ItemStack(Material.IRON_BOOTS).unbreakable())
+                        player.inventory.setItem(EquipmentSlot.OFF_HAND, ItemStack(Material.SHIELD).unbreakable())
+                        player.inventory.addItem(ItemStack(Material.IRON_SWORD).unbreakable())
+                        player.inventory.addItem(ItemStack(Material.BOW).unbreakable())
+                        player.inventory.addItem(ItemStack(Material.ARROW, 64))
+                        player.inventory.addItem(ItemStack(Material.COOKED_BEEF, 64))
+                        player.inventory.addItem(ItemStack(Material.IRON_AXE))
+                        player.inventory.addItem(ItemStack(Material.IRON_PICKAXE))
+                        player.inventory.addItem(CustomItemData.getVallista().unbreakable())
+                        player.sendMessage("§a데스매치에 입장했습니다.")
+                    }
+                }
+            }
             register("setmap") {
                 requires { isOp }
                 then("test") {
@@ -363,16 +425,39 @@ class Main: JavaPlugin() {
             }
             register("닭갈비관리자") {
                 requires { isOp || isConsole }
+                executes {
+
+                }
+                then("엘리트아이템") {
+                    then("n" to int(0)) {
+                        executes {
+                            val n: Int by it
+                            player.inventory.addItem(SkillEvent.skillItem[n]?.removeEliteItemLore() ?: return@executes)
+                        }
+                    }
+                }
+                then("큐비활성화") {
+                    executes {
+                        player.sendMessage("§a큐가 비활성화 되었습니다")
+                        queueStatue = false
+                    }
+                }
+                then("큐활성화") {
+                    executes {
+                        player.sendMessage("§a큐가 활성화 되었습니다")
+                        queueStatue = true
+                    }
+                }
                 then("저장") {
                     executes {
                         FileManager.saveVar()
-                        player.sendMessage("${ChatColor.GREEN}저장되었습니다.")
+                        player.sendMessage("§a저장되었습니다.")
                     }
                 }
                 then("리로드") {
                     executes {
                         FileManager.loadVar()
-                        player.sendMessage("${ChatColor.GREEN}리로드되었습니다.")
+                        player.sendMessage("§a리로드되었습니다.")
 
                     }
                 }
@@ -381,83 +466,131 @@ class Main: JavaPlugin() {
                         suggests { ctx ->
                             val list = mutableListOf<String>()
                             playerStat.forEach { (k, v) ->
-                                val p = plugin.server.getOfflinePlayer(k).player
-                                if (p != null) list.add(p.name)
+                                val p = plugin.server.getOfflinePlayer(k)
+                                if (p.name != null) list.add(p.name!!)
                             }
                             suggest(list)
                         }
                     }
-
-                    then("시즌초기화") {
-                        executes {
-                            sender.sendMessage("정말로 시즌을 초기화하나요?")
-                            sender.sendMessage("/닭갈비관리자 시즌초기화 confirm 을 사용하여 시즌 초기화를 승인하세요")
-                            var rankreset = 0
-                            rankreset += 1
-
-                            if (rankreset > 1) {
-                                rankreset = 1
-                            }
-                        }
-                        then("confirm") {
-                            executes {
-
-                                }
-                            }
-
-                        }
-
-
                     then("PlayerName" to autoCompleteBlockPosition) {
                         executes {
                             val PlayerName: String by it
-                            val p = plugin.server.getPlayer(PlayerName)
-                            if (p != null) {
-                                val classData = RankSystem.initData(p.uniqueId)
+                            val p = plugin.server.getOfflinePlayer(PlayerName)
+                            RankSystem.openGui(player, p.uniqueId)
 
-                                val rankStr = RankSystem.rateToString(player)
-                                player.sendMessage("${ChatColor.GREEN}${PlayerName}님의 랭크: ${rankStr} ${ChatColor.GREEN}(${classData.playerRank % 100}/100)")
-                            }
                         }
                     }
+                }
 
-                    then("강제시작") {
+                then("시즌초기화") {
+                    then("arg" to string(StringType.GREEDY_PHRASE)) {
                         executes {
-                            if (player.world.name.contains("Queue-")) {
-                                queueStartIn[player.world.name] = System.currentTimeMillis() + 10 * 1000
-                                player.sendMessage("${ChatColor.GREEN}강제시작 됨 (10초)")
-                            }
-                        }
-                    }
-                    then("test") {
-                        then("n" to int()) {
-                            executes {
-                                val n: Int by it
-                                val data = WorldManager.initData(player.world)
-                                data.dataInt = n
-                            }
-                        }
-                    }
-                    then("test2") {
-                        executes {
-                            player.inventory.addItem(CustomItemData.getMolt())
-                        }
-                    }
-                    then("test3") {
-                        executes {
-                            player.location.getNearbyEntities(10.0, 10.0, 10.0).forEach {
-                                if (it.scoreboardTags.contains("ccw_smoke")) {
-                                    if (it.boundingBox.contains(player.x, player.y, player.z)) {
-                                        player.sendMessage("asdf")
+                            val arg: String by it
+                            if (arg == "confirm") {
+                                plugin.server.onlinePlayers.forEach { player ->
+                                    val classData = RankSystem.initData(player.uniqueId)
+                                    player.sendMessage("§6=================================================")
+                                    player.sendMessage(" ")
+                                    player.sendMessage("§a${LocalDate.now().year}년 ${LocalDate.now().monthValue}월 ${LocalDate.now().dayOfMonth}일, 시즌이 종료되었습니다!")
+                                    player.sendMessage(" ")
+                                    player.sendMessage("§f당신의 최종 티어 : ${RankSystem.rateToString(player.uniqueId)} §a(${RankSystem.rateToScore(classData.playerRank)})")
+                                    player.sendMessage(" ")
+                                    player.sendMessage("§6=================================================")
+                                }
+                                plugin.server.offlinePlayers.forEach { offlinePlayer ->
+                                    val classData = RankSystem.initData(offlinePlayer.uniqueId)
+
+                                    when (classData.playerRank/400) { //점수를 400단위 (한 티어) 단위로 잘라서 계산 (0: 아이언, 1: 브론즈, 2: 실버..)
+                                        //아이언
+                                        0 -> {
+                                            econ.depositPlayer(offlinePlayer, 500.0)
+                                        }
+                                        //브론즈
+                                        1 -> {
+                                            econ.depositPlayer(offlinePlayer, 500.0)
+                                        }
+                                        //실버
+                                        2 -> {
+                                            econ.depositPlayer(offlinePlayer, 1000.0)
+                                        }
+                                        //골드
+                                        3 -> {
+                                            econ.depositPlayer(offlinePlayer, 1500.0)
+                                        }
+                                        //플레티넘
+                                        4 -> {
+                                            econ.depositPlayer(offlinePlayer, 2000.0)
+                                        }
+                                        //다이아
+                                        5 -> {
+                                            econ.depositPlayer(offlinePlayer, 2500.0)
+                                        }
+                                        //마스터
+                                        6 -> {
+                                            econ.depositPlayer(offlinePlayer, 3000.0)
+                                        }
+                                        //그마
+                                        7 -> {
+                                            econ.depositPlayer(offlinePlayer, 3500.0)
+                                        }
+                                        //이터널
+                                        in 8..Int.MAX_VALUE -> {
+                                            econ.depositPlayer(offlinePlayer, 4000.0)
+                                        }
                                     }
+                                    classData.playerRank = 0
+                                    classData.gamePlayed = 0
+                                    val removal = 250*3
+                                    when (classData.playerMMR) {
+                                        in 0..1200 -> classData.playerMMR -= (removal*0.5).roundToInt()
+                                        in 1201..2000 -> classData.playerMMR -= (removal*0.7).roundToInt()
+                                        in 2001..Int.MAX_VALUE -> classData.playerMMR -= (removal*0.9).roundToInt()
+                                    }
+
+                                    if (classData.playerMMR < 0) classData.playerMMR = 0 //배치 관련 mmr 패치
+                                    classData.unRanked = true
+                                }
+                            } else {
+                                sendResetMessage(player)
+                            }
+                        }
+                    }
+                }
+                then("강제시작") {
+                    executes {
+                        if (player.world.name.contains("Queue-")) {
+                            queueStartIn[player.world.name] = System.currentTimeMillis() + 10 * 1000
+                            player.sendMessage("§a강제시작 됨 (10초)")
+                        }
+                    }
+                }
+                then("test") {
+                    then("n" to string(StringType.GREEDY_PHRASE)) {
+                        executes {
+                            val n: String by it
+                            EffectManager.drawImageXZ(player.location, n, 50, 50, 10.0)
+                        }
+                    }
+                }
+                then("test2") {
+                    executes {
+                        player.inventory.addItem(CustomItemData.getDevineSword())
+                    }
+                }
+                then("test3") {
+                    executes {
+                        player.location.getNearbyEntities(10.0, 10.0, 10.0).forEach {
+                            if (it.scoreboardTags.contains("ccw_smoke")) {
+                                if (it.boundingBox.contains(player.x, player.y, player.z)) {
+                                    player.sendMessage("asdf")
                                 }
                             }
                         }
                     }
-                    then("resetcooldown") {
-                        executes {
-                            player.setCooldown(player.inventory.itemInMainHand.type, 0)
-                        }
+                }
+                then("resetcooldown") {
+                    executes {
+                        player.setCooldown(player.inventory.itemInMainHand.type, 0)
                     }
                 }
             }
@@ -487,7 +620,7 @@ class Main: JavaPlugin() {
                                     }
                                 }
                             } else {
-                                player.sendMessage("${ChatColor.RED}해당 대상의 인벤토리를 확인할 수 없습니다.")
+                                player.sendMessage("§c해당 대상의 인벤토리를 확인할 수 없습니다.")
                             }
                         }
                     }
@@ -503,34 +636,44 @@ class Main: JavaPlugin() {
                 requires { isPlayer }
                 executes {
                     if (!player.world.name.contains("Field-") || player.gameMode != GameMode.SURVIVAL) {
+                        player.inventory.clear()
                         player.teleport(lobbyLoc)
                     }
                 }
             }
             register("닭갈비") {
+                then("가이드북") {
+                    executes {
+                        GuideBookGUI.openFileDropInvNormal(player)
+                    }
+                }
+                then("디스코드") {
+                    executes {
+                        val text = Component.text("§e디스코드: §nhttps://discord.gg/YSHuMRMyY6").clickEvent(ClickEvent.openUrl(URL("https://discord.gg/YSHuMRMyY6")))
+                        player.sendMessage(text)
+                    }
+                }
                 then("돈") {
                     executes {
-                        player.sendMessage("${ChatColor.GREEN}${player.name}님의 돈: ${econ.getBalance(player)}")
+                        player.sendMessage("§a${player.name}님의 돈: ${econ.getBalance(player)}")
                     }
                 }
                 then("랭크") {
                     executes {
-                        val classData = RankSystem.initData(player.uniqueId)
-                        val rankStr = RankSystem.rateToString(player)
-                        player.sendMessage("${rankStr} ${ChatColor.GREEN}(${classData.playerRank%100}/100)")
+                        RankSystem.openGui(player)
                     }
                     then("활성화") {
                         executes {
                             val classData = RankSystem.initData(player.uniqueId)
                             classData.rank = true
-                            player.sendMessage("${ChatColor.GREEN}랭크가 활성화되었습니다.")
+                            player.sendMessage("§a랭크가 활성화되었습니다.")
                         }
                     }
                     then("비활성화") {
                         executes {
                             val classData = RankSystem.initData(player.uniqueId)
                             classData.rank = false
-                            player.sendMessage("${ChatColor.GREEN}랭크가 비활성화되었습니다.")
+                            player.sendMessage("§a랭크가 비활성화되었습니다.")
                         }
                     }
                 }
@@ -549,11 +692,11 @@ class Main: JavaPlugin() {
                     player.world.players.forEach {
                         if (it != player) {
                             it.inventory.addItem(player.inventory.itemInMainHand.clone())
-                            it.sendMessage("${ChatColor.GREEN}${player.name}님이 아이템을 지급했습니다.")
+                            it.sendMessage("§a${player.name}님이 아이템을 지급했습니다.")
                         }
                     }
 
-                    player.sendMessage("${ChatColor.GREEN}모든 플레이어에게 해당 아이템이 지급되었습니다.")
+                    player.sendMessage("§a모든 플레이어에게 해당 아이템이 지급되었습니다.")
 
                 }
             }
@@ -575,9 +718,9 @@ class Main: JavaPlugin() {
                         val mode: String by it
                         if (player.world.name.contains("Queue-")) {
                             queueMode[player.world] = mode
-                            player.sendMessage("${ChatColor.GREEN}${mode}로 설정됨.")
+                            player.sendMessage("§a${mode}로 설정됨.")
                         } else {
-                            player.sendMessage("${ChatColor.RED}큐에서만 설정가능합니다.")
+                            player.sendMessage("§c큐에서만 설정가능합니다.")
                         }
                     }
                 }
@@ -586,19 +729,20 @@ class Main: JavaPlugin() {
             register("itp") {
                 requires { isOp }
                 executes {
-                    player.teleport(droppedItems.random().loc)
+                    val data = WorldManager.initData(player.world)
+                    player.teleport(data.droppedItems.random().loc)
                 }
             }
             register("items") {
                 requires { isOp }
                 executes {
-                    player.sendMessage(droppedItems.filter { it.loc.world == player.world }.size.toString())
+                    val data = WorldManager.initData(player.world)
+                    player.sendMessage(data.droppedItems.filter { it.loc.world == player.world }.size.toString())
                 }
             }
             register("test") {
                 requires { isOp }
                 executes {
-
                 }
             }
             register("queuelist") {
@@ -610,9 +754,13 @@ class Main: JavaPlugin() {
             register("joinqueue") {
                 requires { isPlayer }
                 executes {
-                    val worlds = plugin.server.worlds.filter { it.name.contains("Queue-") }.sortedByDescending { it.playerCount }
-                    if (worlds.isNotEmpty()) {
-                        player.teleport(Location(worlds[0], 14.5, 106.5, -40.5))
+                    if (queueStatue) {
+                        val worlds = plugin.server.worlds.filter { it.name.contains("Queue-") }.filter { queueEnabled(it) }.sortedByDescending { it.playerCount }
+                        if (worlds.isNotEmpty()) {
+                            player.teleport(Location(worlds.first(), 14.5, 106.5, -40.5))
+                        }
+                    } else {
+                        player.sendMessage("§c큐가 비활성화 되었습니다.")
                     }
                 }
             }
@@ -630,7 +778,6 @@ class Main: JavaPlugin() {
         //니얼굴
 
         FileManager.saveVar()
-        FileManager.savePlayerEItemToFile()
         plugin.server.worlds.forEach { w->
             w.entities.forEach { e->
                 if (e.scoreboardTags.contains("tmp-display")) {
@@ -638,6 +785,7 @@ class Main: JavaPlugin() {
                 }
             }
         }
+
     }
     private fun setupEconomy(): Boolean {
         if (server.pluginManager.getPlugin("Vault") == null) {
