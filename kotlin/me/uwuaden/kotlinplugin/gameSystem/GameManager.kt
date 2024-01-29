@@ -10,6 +10,7 @@ import me.uwuaden.kotlinplugin.Main.Companion.playerLocPing
 import me.uwuaden.kotlinplugin.Main.Companion.playerStat
 import me.uwuaden.kotlinplugin.Main.Companion.plugin
 import me.uwuaden.kotlinplugin.Main.Companion.scheduler
+import me.uwuaden.kotlinplugin.Main.Companion.scoreboardManager
 import me.uwuaden.kotlinplugin.Main.Companion.worldDatas
 import me.uwuaden.kotlinplugin.assets.CustomItemData
 import me.uwuaden.kotlinplugin.assets.EffectManager
@@ -36,13 +37,26 @@ import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
 import org.bukkit.potion.PotionEffect
 import org.bukkit.potion.PotionEffectType
+import org.bukkit.scoreboard.DisplaySlot
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
+private fun secondsToHMS(seconds: Long): String {
+    val hours = seconds / 3600
+    val minutes = (seconds % 3600) / 60
+    val remainingSeconds = seconds % 60
 
+    val hoursPart = if (hours > 0) "${hours}시간 " else ""
+    val minutesPart = if (minutes > 0) "${minutes}분 " else ""
+    val secondsPart = if (seconds > 0 || (hours == 0L && minutes == 0L)) "${remainingSeconds}초" else ""
+
+    return "$hoursPart$minutesPart$secondsPart".trim()
+}
 private fun spawnItemDisplay(loc: Location, type: Material, scale: Double = 1.0) {
     val world = loc.world
     val itemDisplay1 = world.spawnEntity(loc.clone(), EntityType.ITEM_DISPLAY) as ItemDisplay
@@ -678,7 +692,7 @@ object GameManager {
         BorderManager.initBoarder(borderCenter, borderRadius*2)
 
         dataClass.worldMode = mode
-        dataClass.worldTimer[toWorld] = System.currentTimeMillis()
+        dataClass.worldTimer = System.currentTimeMillis()
 
         var players = ArrayList<Player>()
         fromWorld.players.forEach {
@@ -1011,6 +1025,41 @@ object GameManager {
         return locs
     }
 
+    fun playerSidebarSch() {
+        scheduler.scheduleSyncRepeatingTask(plugin, {
+            plugin.server.onlinePlayers.forEach { player ->
+                if (player.world.name.contains("Field-")) {
+                    val data = WorldManager.initData(player.world)
+                    val time = (System.currentTimeMillis() - data.worldTimer)/1000
+                    val playerCount = player.world.players.filter { it.gameMode == GameMode.SURVIVAL }.filter { !data.deadPlayer.contains(it) }.size
+                    val current = LocalDateTime.now()
+                    val formatter = DateTimeFormatter.ofPattern("yy. MM. d. HH:mm")
+                    val formatted = current.format(formatter)
+
+                    val scoreboard = scoreboardManager.newScoreboard
+                    val objective = scoreboard.registerNewObjective("ccw", "dummy", "§f[  §6CCW  §f]")
+
+                    objective.displaySlot = DisplaySlot.SIDEBAR
+
+                    objective.getScore("§7${formatted}").score = 8
+                    objective.getScore("    ").score = 7
+                    objective.getScore("§a생존자 수: $playerCount §7(${data.totalPlayer})").score = 6
+                    objective.getScore("   ").score = 5
+                    objective.getScore("§a시간: ${secondsToHMS(time)}").score = 4
+                    objective.getScore("  ").score = 3
+                    objective.getScore("§aKill: ${data.playerKill[player.uniqueId] ?: 0}").score = 2
+                    objective.getScore(" ").score = 1
+                    objective.getScore("§8IP: ccw.mcv.kr").score = 0
+
+
+                    player.scoreboard = scoreboard
+                } else {
+                    player.scoreboard.clearSlot(DisplaySlot.SIDEBAR)
+                }
+            }
+        }, 0, 20)
+    }
+
     fun gameSch() {
         scheduler.scheduleSyncRepeatingTask(plugin, {
             plugin.server.worlds.filter { it.name.contains("Field-") }.forEach { world ->
@@ -1090,7 +1139,7 @@ object GameManager {
                     }
                 }
 
-                if (!dataClass.gameEndedWorld && (System.currentTimeMillis() - (dataClass.worldTimer[world] ?: System.currentTimeMillis())) > 1000 * 10) {
+                if (!dataClass.gameEndedWorld && (System.currentTimeMillis() - dataClass.worldTimer) > 1000 * 10) {
                     if (dataClass.worldMode == "Solo" || dataClass.worldMode == "Quick") {
                         val players = world.players.filter { it.gameMode == GameMode.SURVIVAL }
                         if (players.size == 1) {
@@ -1178,7 +1227,7 @@ object GameManager {
                 if (dataClass.worldMode == "SoloSurvival") {
                     val players = world.players.filter { it.gameMode == GameMode.SURVIVAL }
                     val monsters = world.entities.filter { it.scoreboardTags.contains("Spawned-Zombie") }
-                    val time = (System.currentTimeMillis() -(dataClass.worldTimer[world] ?: System.currentTimeMillis()))/1000
+                    val time = (System.currentTimeMillis() -dataClass.worldTimer)/1000
                     if (dataClass.dataInt1 == 0) dataClass.dataInt1 = 1
                     if (dataClass.dataLong == 0L) dataClass.dataLong = System.currentTimeMillis()
                     val wave = dataClass.dataInt1

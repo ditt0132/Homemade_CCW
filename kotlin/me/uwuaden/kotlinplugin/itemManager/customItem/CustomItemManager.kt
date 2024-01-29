@@ -343,7 +343,7 @@ object CustomItemManager {
                         addItemToChest(chest, CustomItemData.getCompass())
 
                         val numList = mutableListOf<Int>()
-                        for (i in 0..8) {
+                        for (i in 0..9) {
                             numList.add(i)
                         }
 
@@ -377,6 +377,7 @@ object CustomItemManager {
                                 6 -> { addItemToChest(chest, CustomItemData.getExosist()) }
                                 7 -> { addItemToChest(chest, CustomItemData.getExplosiveBow()) }
                                 8 -> { addItemToChest(chest, CustomItemData.getPurify()) }
+                                9 -> { addItemToChest(chest, CustomItemData.getSolarCannon()) }
                             }
                         }
                     }, 1)
