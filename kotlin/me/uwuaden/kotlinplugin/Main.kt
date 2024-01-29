@@ -40,7 +40,6 @@ import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.potion.PotionEffect
 import org.bukkit.potion.PotionEffectType
-import org.bukkit.scheduler.BukkitScheduler
 import java.io.File
 import java.net.URL
 import java.time.LocalDate
@@ -73,7 +72,6 @@ private fun ItemStack.unbreakable(): ItemStack {
 class Main: JavaPlugin() {
     companion object {
         lateinit var plugin: JavaPlugin
-        lateinit var scheduler: BukkitScheduler
         lateinit var luckpermAPI: LuckPerms
         val worldLoaded = ArrayList<String>()
         val queueStartIn = HashMap<String, Long>()
@@ -94,6 +92,9 @@ class Main: JavaPlugin() {
         var queueStatue = true
         val chunkItemDisplayGen = mutableSetOf<Chunk>()
         val chunkItemLocInit = mutableSetOf<Chunk>()
+
+        val scheduler = Bukkit.getScheduler()
+        val scoreboardManager = Bukkit.getScoreboardManager()
 
         lateinit var lobbyLoc: Location
         lateinit var econ: Economy
@@ -129,11 +130,11 @@ class Main: JavaPlugin() {
 
 
         initPluginFolder()
-        scheduler = Bukkit.getScheduler()
         scheduler.cancelTasks(plugin)
         QueueOperator.sch()
         GameManager.chunkSch() //아이템 생성 등등 여러가지
         GameManager.gameSch()
+        GameManager.playerSidebarSch()
         ItemManager.updateInventorySch()
         CustomItemManager.itemSch()
         LobbyManager.sch()
